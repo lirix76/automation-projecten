@@ -1,0 +1,948 @@
+base: Project planning
+baseId: appopJMiQr8csSHhh
+tables:
+- name: Projecten
+  id: tblNDZDbjxejZDmnQ
+  fields:
+  - name: Project
+    id: fld6mJsZNiooDG4VF
+    type: formula
+    result: singleLineText
+    formula: IF({fldBR1LOKkxug2fRF}, "P" & RIGHT("000" & {fld0zxaMsNd3ueUDk}, 3) &
+      ' - ' & {fldBR1LOKkxug2fRF}, {fldBR1LOKkxug2fRF})
+  - name: Project ID
+    id: fld0zxaMsNd3ueUDk
+    type: autoNumber
+  - name: Project naam
+    id: fldBR1LOKkxug2fRF
+    type: singleLineText
+  - name: Status
+    id: fldYCidFJ0wk6ZBZy
+    type: singleSelect
+    choices:
+    - Tentative
+    - Todo
+    - In progress
+    - On hold
+    - Done
+    - Geannulleerd
+  - name: Notes
+    id: fldzFJ7g5QFUd4BwS
+    type: multilineText
+  - name: Start project
+    id: fldCY9qqMHkp7Msgm
+    type: date
+    description: Dit is de datum waarop de campagne live gaat
+  - name: Einde project
+    id: fldU0w2fwQpE9lZoj
+    type: date
+  - name: ProjectDoc FileID
+    id: fld1yWLCY25cegElZ
+    type: formula
+    result: singleLineText
+    formula: "IF(\n  AND(\n    NOT(BLANK({fldPyhxENAMgCd5lG})),\n    OR(\n      REGEX_MATCH({fldPyhxENAMgCd5lG},\
+      \ \"docs\\\\.google\\\\.com\\\\/document\\\\/d\\\\/\"),\n      REGEX_MATCH({fldPyhxENAMgCd5lG},\
+      \ \"docs\\\\.google\\\\.com\\\\/presentation\\\\/d\\\\/\")\n    )\n  ),\n  REGEX_EXTRACT({fldPyhxENAMgCd5lG},\
+      \ \"\\\\/d\\\\/([^\\\\/]+)\"),\n  \"\"\n)"
+  - name: Medewerkers
+    id: fld53jeIvxlXQ4tUf
+    type: link
+    linkedTable: Picoo users
+    linkedTableId: tblBraAP1jnIZNyoU
+  - name: Open Detail Interface
+    id: fldzzrBSU9jemmU76
+    type: button
+    description: Opens the interface URL for the current record
+  - name: Team
+    id: fldweONSRCmynL8cV
+    type: multipleSelects
+    choices:
+    - App
+    - Backend
+    - MarCom
+    - Productie
+    - Sales
+    - Software
+    - UX
+    - Web
+  - name: Create project plan
+    id: fldZcibinoCxFDD9Q
+    type: checkbox
+  - name: Verantwoordelijk
+    id: fld2SksNnwN9S5qrK
+    type: link
+    linkedTable: Picoo users
+    linkedTableId: tblBraAP1jnIZNyoU
+  - name: Email (from Verantwoordelijk)
+    id: fld6gt42cZD0Eltk3
+    type: multipleLookupValues
+    via: Verantwoordelijk
+    result: email
+  - name: Projectdoc_old
+    id: fldPyhxENAMgCd5lG
+    type: url
+    description: used before assets
+  - name: Open projectplan
+    id: fldiqyj0Dx4F0O8kv
+    type: button
+  - name: Slack ID (from Medewerkers)
+    id: fldCajroxijsQ2w2y
+    type: multipleLookupValues
+    via: Medewerkers
+    result: multilineText
+  - name: Slack ID (from Verantwoordelijk)
+    id: fldn3cJ1E6smFznXM
+    type: multipleLookupValues
+    via: Verantwoordelijk
+    result: multilineText
+  - name: Taken
+    id: fldNE9yQNmdWgtyc0
+    type: link
+    linkedTable: Taken
+    linkedTableId: tblW5PkBL4mysdN7t
+  - name: Marketing campagne
+    id: fldC9QAYnrMe9pS1N
+    type: link
+    linkedTable: Marketing campagne
+    linkedTableId: tblDC54JL45jkOU2i
+  - name: RecordID
+    id: fldRPxDHOEUSMXq4b
+    type: formula
+    result: singleLineText
+    formula: 'RECORD_ID()
+
+      '
+  - name: Task Status Summary
+    id: fldRz4qvpwJBbhyXL
+    type: richText
+  - name: create-slack-channel
+    id: fldLB4mBrLyfR6Drk
+    type: checkbox
+  - name: Slack-channel-ID
+    id: fldPHVXx0uBlVA8DH
+    type: singleLineText
+  - name: Open Slack
+    id: fld8qdSGnyCIQLCA3
+    type: formula
+    result: singleLineText
+    formula: IF({fldPHVXx0uBlVA8DH},"https://app.slack.com/client/T03JDLH7S/"& {fldPHVXx0uBlVA8DH})
+  - name: Open Slack button
+    id: fldiZwxeDGB9NBHcQ
+    type: button
+  - name: Project updates
+    id: fldI7YM7DiFkzW5Ta
+    type: link
+    linkedTable: Project updates
+    linkedTableId: tbl6X2i1Kp84g5AVw
+  - name: Trigger project update
+    id: fld2LjIxiT4nEJnrX
+    type: checkbox
+  - name: Assets
+    id: fldZKLp2UV0BMKA5n
+    type: link
+    linkedTable: Assets
+    linkedTableId: tblWVfKlDuYYWRoib
+  - name: Last modified by
+    id: fldOBAXTyT6MdZfWa
+    type: lastModifiedBy
+  - name: Projectdoc (Assets)
+    id: fldzUsDJoFrUJgYBH
+    type: multipleLookupValues
+    via: Assets
+    result: singleLineText
+  - name: Script Log
+    id: fld0IowHqbNeloFqs
+    type: singleLineText
+  - name: Prioriteit
+    id: fldFvHDHIzlhLkPC5
+    type: singleSelect
+    choices:
+    - P1
+    - P2
+    - P3
+    - P4
+  - name: URL projectdoc
+    id: fldaW4LgNzaS4ZnH3
+    type: multipleLookupValues
+    via: Assets
+    result: singleLineText
+  - name: Projecten 2026
+    id: fld53HMcGbuIfZRW7
+    type: link
+    linkedTable: Projectplanning 2026
+    linkedTableId: tblhpZ8bLZxY1r6zY
+  - name: Opmerking voortgang
+    id: fldIEyayiKhsqx8pc
+    type: singleLineText
+  - name: Actief in (from Projecten 2026)
+    id: fldlTnDiV4QAeWzvA
+    type: multipleLookupValues
+    via: Projecten 2026
+    result: multipleSelects
+    resultChoices:
+    - Q1
+    - Q2
+    - Q3
+    - Q4
+- name: Taken
+  id: tblW5PkBL4mysdN7t
+  fields:
+  - name: Taak titel
+    id: fldEqow62GYNmDB25
+    type: singleLineText
+  - name: Tags
+    id: fldTHzDGLu9Zi0fnK
+    type: multipleSelects
+    choices:
+    - Smartsleeves
+    - Gametags
+    - Quizzen
+    - Handleidingen
+    - Overig
+    - Productie
+  - name: Omschrijving
+    id: fldwK4oXwt9wMEVdq
+    type: richText
+  - name: Assignee
+    id: fld3YCjA3KSJQRvPW
+    type: link
+    linkedTable: Picoo users
+    linkedTableId: tblBraAP1jnIZNyoU
+  - name: Slack (from Assignee)
+    id: fldaELXZHLcggN1fN
+    type: multipleLookupValues
+    via: Assignee
+    result: multilineText
+  - name: Status
+    id: fldVOsyRlR76odsA0
+    type: singleSelect
+    choices:
+    - Todo
+    - Blocked
+    - In progress
+    - Done
+    - Canceled
+  - name: Progress
+    id: fldGn9YL5NYUv73Ly
+    type: formula
+    result: singleSelect
+    formula: "IF(AND({fldV1POvR5BiufpEd}=BLANK(), {fldLXo2SJjgMSBn4o}=BLANK()),\"\"\
+      ,\nSWITCH({fldVOsyRlR76odsA0},\n  \"Done\", \"Completed\",\n  \"In progress\"\
+      , \n    IF({fldV1POvR5BiufpEd}<TODAY(), \"Overdue\",\n      IF(DATETIME_DIFF({fldV1POvR5BiufpEd},\
+      \ TODAY(), \"days\") < 7 , \"Due soon\", \"On track\")\n    ),\n  \"Todo\",\n\
+      \    IF({fldV1POvR5BiufpEd}<TODAY(), \"Overdue\",\n      IF(AND({fldLXo2SJjgMSBn4o},{fldLXo2SJjgMSBn4o}<TODAY()),\
+      \ \"Start overdue\",\n        IF(DATETIME_DIFF({fldLXo2SJjgMSBn4o}, TODAY(),\
+      \ \"days\") < 7, \"Start soon\",\n          IF(DATETIME_DIFF({fldV1POvR5BiufpEd},\
+      \ TODAY(), \"days\") < 14, \"Due soon\",\n           \"Upcoming\"\n        \
+      \  )\n        )\n      )\n    )\n))\n   "
+  - name: Link
+    id: fldz9hE31iGPMXZE1
+    type: button
+  - name: Project
+    id: fldvaTT0fp6LVYRNG
+    type: link
+    linkedTable: Projecten
+    linkedTableId: tblNDZDbjxejZDmnQ
+  - name: Projectdoc (from Project)
+    id: fld99YAMWZqsfWNsk
+    type: multipleLookupValues
+    via: Project
+    result: url
+  - name: Startdatum
+    id: fldLXo2SJjgMSBn4o
+    type: date
+  - name: Einddatum
+    id: fldV1POvR5BiufpEd
+    type: date
+  - name: Updates
+    id: fldtKE9l46qLUfSyz
+    type: link
+    linkedTable: Updates
+    linkedTableId: tblc2GJcRzgdArNua
+  - name: Updates omschrijving
+    id: fldVAgNPsYdYzvlf9
+    type: richText
+  - name: Type
+    id: fldw51LCTcfwKJvtT
+    type: singleSelect
+    choices:
+    - Taak
+    - Milestone
+  - name: Gerelateerde taken
+    id: fldhYL9OuU9YaYcvD
+    type: link
+    linkedTable: Taken
+    linkedTableId: tblW5PkBL4mysdN7t
+  - name: Assets
+    id: fldBeKksYIUA1nXkv
+    type: link
+    linkedTable: Versions
+    linkedTableId: tbl4jDE911lJl6j7f
+  - name: Status designwerk (from Assets)
+    id: fldhjYVOCkGYOvp7U
+    type: multipleLookupValues
+    via: Assets
+    result: singleSelect
+    resultChoices:
+    - Niet van toepassing
+    - TODO
+    - BLOCKED
+    - DRAFT
+    - FINAL
+    - CANCELED
+  - name: Assets URL
+    id: fldIlAl5EN5AajtUc
+    type: multipleLookupValues
+    via: Assets
+    result: multilineText
+  - name: Interface URL
+    id: fldZ9hO1xf6s2c7UN
+    type: formula
+    result: singleLineText
+    formula: "CONCATENATE(\n  \"https://airtable.com/appopJMiQr8csSHhh/pagR3ECLCSqWB9I5C/\"\
+      ,\n  RECORD_ID(),\n  \"?beCJL=b:WzAsWyJvZHNBMCIsMSwic2VsSkZUUEFQUmpkWjZpVTAiXV0&home=pagZZ0pIqIxMly274\"\
+      \n)\n"
+  - name: Taak ID
+    id: fldaUoorozjC3u7op
+    type: autoNumber
+  - name: Is blocked by
+    id: fldR69bivr2vw8KKt
+    type: link
+    linkedTable: Taken
+    linkedTableId: tblW5PkBL4mysdN7t
+  - name: Blocking
+    id: fld2lU4OORUzi3X8u
+    type: link
+    linkedTable: Taken
+    linkedTableId: tblW5PkBL4mysdN7t
+  - name: Duration
+    id: flde9vk7ccBN69DiG
+    type: formula
+    result: number
+    formula: IF({fldLXo2SJjgMSBn4o},DATETIME_DIFF({fldV1POvR5BiufpEd},{fldLXo2SJjgMSBn4o},"days"),
+      1)
+  - name: Create date
+    id: fldI0UefYAAJmRCgH
+    type: createdTime
+  - name: Last Modified Status
+    id: fldWpVeuIikRtz9Bv
+    type: lastModifiedTime
+  - name: Project naam (from Project)
+    id: fldZJtL9yvprQjEtY
+    type: multipleLookupValues
+    via: Project
+    result: singleLineText
+  - name: Open Detail Interface (from Project)
+    id: fldU9qi3pZEruzp8u
+    type: multipleLookupValues
+    via: Project
+    result: singleLineText
+  - name: Prioriteit
+    id: fldOdj6ciljsoLdDp
+    type: singleSelect
+    choices:
+    - P1
+    - P2
+    - P3
+    - P4
+  - name: Open projectdoc
+    id: fldd2a8squS7BZ1g3
+    type: button
+  - name: Status (from Project)
+    id: fldAITAKGoRg491Rf
+    type: multipleLookupValues
+    via: Project
+    result: singleSelect
+    resultChoices:
+    - Tentative
+    - Todo
+    - In progress
+    - On hold
+    - Done
+    - Geannulleerd
+- name: Updates
+  id: tblc2GJcRzgdArNua
+  fields:
+  - name: ID
+    id: fldbTOCxjt58YL7X3
+    type: formula
+    result: singleLineText
+    formula: '"UPD"&RIGHT("000000" & {fldIQ2bOE2vGpiKly}, 6)'
+  - name: Update
+    id: fldAbKRaMHaFC1zoT
+    type: multilineText
+  - name: Assignee
+    id: fldGkrjeLA7GtnAuB
+    type: link
+    linkedTable: Picoo users
+    linkedTableId: tblBraAP1jnIZNyoU
+  - name: Datum
+    id: fldRnQxrcCPN5RmiM
+    type: date
+  - name: autonr
+    id: fldIQ2bOE2vGpiKly
+    type: autoNumber
+  - name: Taken
+    id: fldujvyhO5hNqskpQ
+    type: link
+    linkedTable: Taken
+    linkedTableId: tblW5PkBL4mysdN7t
+  - name: Project (from Taken)
+    id: fld4id2tRFRiMbqvg
+    type: multipleLookupValues
+    via: Taken
+    result: multipleRecordLinks
+- name: Picoo users
+  id: tblBraAP1jnIZNyoU
+  fields:
+  - name: Name
+    id: fldW1Tc5L59mAhZTP
+    type: singleLineText
+  - name: Slack
+    id: fldpwE3DXE2FTdwCO
+    type: multilineText
+  - name: Email
+    id: fldPfybGBNRj8YsMj
+    type: email
+  - name: Verantwoordelijk
+    id: fldb0xLCBvFRTCj8L
+    type: link
+    linkedTable: Projecten
+    linkedTableId: tblNDZDbjxejZDmnQ
+  - name: Project deelnemer
+    id: fldGOb03xWzqlU9Mv
+    type: link
+    linkedTable: Projecten
+    linkedTableId: tblNDZDbjxejZDmnQ
+  - name: Taken
+    id: fld6stiWom7CmhQOc
+    type: link
+    linkedTable: Taken
+    linkedTableId: tblW5PkBL4mysdN7t
+  - name: Status (from Taken)
+    id: fldTzoAg64SfSyMGh
+    type: multipleLookupValues
+    via: Taken
+    result: singleSelect
+    resultChoices:
+    - Todo
+    - Blocked
+    - In progress
+    - Done
+    - Canceled
+  - name: Updates
+    id: fldGOrp32eJfXLS5g
+    type: link
+    linkedTable: Updates
+    linkedTableId: tblc2GJcRzgdArNua
+  - name: Deliverable
+    id: fldsEPLdM4RVOo6IC
+    type: singleLineText
+  - name: Status dienstverband
+    id: fldy9Q2wpthmVgpEe
+    type: singleSelect
+    choices:
+    - in dienst
+    - uit dienst
+  - name: FTE
+    id: fldYGxIiOoMJoHvow
+    type: number
+  - name: Allocaties 2026
+    id: fldIfdLomRepTMWQ9
+    type: link
+    description: of active or planned projects only
+    linkedTable: Allocaties 2026
+    linkedTableId: tblB50tDezPfFeMoK
+  - name: Totaal geplande FTE
+    id: fldskVYTqG4jtGvfX
+    type: rollup
+    via: Allocaties 2026
+  - name: Bezettingsgraad
+    id: fld3od5wsPv8dSZoC
+    type: formula
+    result: number
+    formula: '{fldskVYTqG4jtGvfX}/{fldYGxIiOoMJoHvow}'
+  - name: Project (from Allocaties 2026)
+    id: fldJRU7KMES2AVcGI
+    type: multipleLookupValues
+    via: Allocaties 2026
+    result: multipleRecordLinks
+  - name: Rol (from Allocaties 2026)
+    id: fldzJNtGJ4EhLWJwL
+    type: multipleLookupValues
+    via: Allocaties 2026
+    result: singleSelect
+    resultChoices:
+    - Project Lead / Kartrekker
+    - Core Contributor
+    - Support / Ondersteunend
+    - Adviseur / Expert
+    - Volger / Stakeholder
+- name: Versions
+  id: tbl4jDE911lJl6j7f
+  fields:
+  - name: Name
+    id: fldan7gBqfGMbOlP9
+    type: multilineText
+  - name: Titel
+    id: fld0YxwsXTwClm1kt
+    type: singleLineText
+  - name: Status designwerk
+    id: fldNb0z9WDBxSzEKL
+    type: singleSelect
+    choices:
+    - Niet van toepassing
+    - TODO
+    - BLOCKED
+    - DRAFT
+    - FINAL
+    - CANCELED
+  - name: Prioriteit
+    id: fld24n58pAO58U7Ez
+    type: singleSelect
+    choices:
+    - Low
+    - Medium
+    - High
+  - name: Verwerkt Hubspot
+    id: fldyDl6ksBYGl3UKC
+    type: singleSelect
+    choices:
+    - niet van toepassing
+    - nog niet verwerkt
+    - verwerkt
+  - name: Taal
+    id: fldJqnezDjxK6yZC8
+    type: multipleSelects
+    choices:
+    - NL
+    - EN
+    - DE
+    - Taalonafhankelijk
+    - FR
+    - SE
+  - name: Versie
+    id: fldiakZoENx5Qj6vo
+    type: number
+    integer: true
+  - name: Deadline
+    id: fldEHzgez2rOYTfnq
+    type: date
+  - name: Verantwoordelijk
+    id: fldgb9In9xtxjJxjz
+    type: singleLineText
+  - name: Volgende actie
+    id: fldzjg55sCY1EJh2R
+    type: singleLineText
+  - name: Notities
+    id: fldDIbvBQpdelCISc
+    type: richText
+  - name: URL Design final
+    id: fldZhfcYM1y5NCNML
+    type: url
+  - name: Type media
+    id: fldOBJxNFz3HBLr58
+    type: multipleSelects
+    choices:
+    - Storyboard/Animatie
+    - Marketing
+    - Productie
+    - Social
+    - Overig
+    - Micro-animaties
+    - Gametag
+    - Logo/icoon
+    - Spelvariant
+    - Mediakaart
+    - Handleiding
+    - Technical Documentation
+    - (Mix & Match) quiz
+    - Template
+    - How to
+    - Sales
+    - UX
+    - Projectdocument
+    - Werkinstructies
+    - Spelconcept
+    - Label template
+    - AI photos
+    - Software
+  - name: ID
+    id: fldvaT2pGG2cAFeWg
+    type: multilineText
+  - name: URL content
+    id: fldEwF1UQ2MtmVFdm
+    type: url
+  - name: content_file_id
+    id: fld10nnw23gctpHOD
+    type: multilineText
+  - name: Comments
+    id: fldqxA0XPNH0pDUDC
+    type: singleLineText
+  - name: URL design draft
+    id: fld70TFAcARecvZU3
+    type: url
+  - name: Design revisies
+    id: fldVlLWaUDLeKgyJy
+    type: singleLineText
+  - name: hubspot_url
+    id: fldC5344HoPoPJDyp
+    type: url
+  - name: Taken
+    id: fldjIjST8UXOIHS5w
+    type: link
+    linkedTable: Taken
+    linkedTableId: tblW5PkBL4mysdN7t
+  - name: Interface URL
+    id: fldptikQmM6vhb7mw
+    type: multilineText
+  - name: Button interface URL
+    id: fldok5844ofZ7WKw4
+    type: button
+  - name: status_content
+    id: fldL68vEyRIH0nN56
+    type: singleSelect
+    choices:
+    - Niet van toepassing
+    - TODO
+    - BLOCKED
+    - DRAFT
+    - FINAL
+    - CANCELED
+  - name: status_asset
+    id: fld44MznGXjKNChI7
+    type: singleSelect
+    choices:
+    - DRAFT
+    - FINAL
+    - CANCELED
+  - name: Projecten
+    id: fld54XRj5xgDvejkR
+    type: singleLineText
+- name: Marketing campagne
+  id: tblDC54JL45jkOU2i
+  fields:
+  - name: Name
+    id: fldrZrzAF3bNLHHlq
+    type: formula
+    result: singleLineText
+    formula: DATETIME_FORMAT({fld3zgK49p1G7aMwW}, 'YYYY-MM-DD') & " - " & IF({fldJ8mda4d1QW4uzA},
+      {fldJ8mda4d1QW4uzA} & " (" & {fldOAKkyBwq3DPQyc}&")", {fldGeSUWNsUJ5RLZN})
+  - name: Projecten
+    id: fldOAKkyBwq3DPQyc
+    type: link
+    linkedTable: Projecten
+    linkedTableId: tblNDZDbjxejZDmnQ
+  - name: Project naam (from Projecten)
+    id: fldGeSUWNsUJ5RLZN
+    type: multipleLookupValues
+    via: Projecten
+    result: singleLineText
+  - name: Start campagne
+    id: fld3zgK49p1G7aMwW
+    type: date
+  - name: Eind campagne
+    id: fldzvzvOCp3Nk9lnV
+    type: date
+  - name: Doelgroep
+    id: fldEAccroaFh5hSDz
+    type: multipleSelects
+    choices:
+    - EDU
+    - BSO
+    - VO
+    - Bestaande klanten
+    - Nieuwe leads
+    - besn
+    - nieu
+  - name: Notes
+    id: fldmpPHYL8PCgxseh
+    type: multilineText
+  - name: Status
+    id: fldJs0VkIMQLBqgmZ
+    type: singleSelect
+    choices:
+    - In preparation
+    - In progress
+    - Done
+  - name: Kanalen
+    id: fldett6MppkzbNMXS
+    type: multipleSelects
+    choices:
+    - Social media
+    - Social media (ads)
+    - Nieuwsbrief
+    - Servicebrief
+    - (Online) magazine
+    - Flyer
+    - Overig
+  - name: Open Record Interface
+    id: fld0kw1srRf2PQwXM
+    type: formula
+    result: singleLineText
+    formula: '"https://airtable.com/appopJMiQr8csSHhh/pagdgVkcdASHEPC2w?vAKLY=" &
+      RECORD_ID()'
+  - name: Campagne naam
+    id: fldJ8mda4d1QW4uzA
+    type: singleLineText
+- name: Project updates
+  id: tbl6X2i1Kp84g5AVw
+  fields:
+  - name: Name
+    id: fldUe8d6MhQJXq5hj
+    type: singleLineText
+  - name: Projecten
+    id: fldDojV9Xld8QUQLs
+    type: link
+    linkedTable: Projecten
+    linkedTableId: tblNDZDbjxejZDmnQ
+  - name: Date
+    id: fldSkK0RQ32kOu3bh
+    type: date
+  - name: Update
+    id: fldaTuaanQN5kqDnl
+    type: multilineText
+- name: Assets
+  id: tblWVfKlDuYYWRoib
+  fields:
+  - name: Name
+    id: fldoRPBcYNVrRQWl6
+    type: multilineText
+  - name: ID
+    id: fldWLWlkcLIF4h4LW
+    type: multilineText
+  - name: Titel
+    id: fld8tBA3WNioIogMh
+    type: singleLineText
+  - name: latest_version_interface_url
+    id: fldnK0rev3uF6lE3w
+    type: singleLineText
+  - name: status_latest_version
+    id: fldKkZFfQq0Y0ddxJ
+    type: multipleSelects
+    choices:
+    - DRAFT
+    - FINAL
+    - CANCELED
+  - name: Open asset
+    id: fldaEs5XGejCpzuMO
+    type: button
+  - name: Projecten
+    id: fldeSoWPZdgYYxOXU
+    type: link
+    linkedTable: Projecten
+    linkedTableId: tblNDZDbjxejZDmnQ
+  - name: Projecten last modified by
+    id: fldZoueIym3q3AfLh
+    type: lastModifiedBy
+  - name: Type media
+    id: fldhqJrpE4mOyS6oT
+    type: singleSelect
+    choices:
+    - Storyboard/Animatie
+    - Marketing
+    - Productie
+    - Social
+    - Overig
+    - Micro-animaties
+    - Gametag
+    - Logo/icoon
+    - Spelvariant
+    - Mediakaart
+    - Handleiding
+    - Technical Documentation
+    - (Mix & Match) quiz
+    - Template
+    - How to
+    - Sales
+    - UX
+    - Projectdocument
+    - Werkinstructies
+    - Spelconcept
+    - Label template
+    - AI photos
+    - Software
+  - name: URL content (latest, from Versies)
+    id: fldylxNFu7YvA4eLI
+    type: singleLineText
+- name: Projectplanning 2026
+  id: tblhpZ8bLZxY1r6zY
+  fields:
+  - name: Project
+    id: fldb2qZ0vQGJBjGHt
+    type: multilineText
+  - name: Prioriteit
+    id: fldSN7I4DNu03YWHR
+    type: formula
+    result: singleSelect
+    formula: "IF(\n  {fldI7AJ1wDrv6ldIm} >= 3,\n  IF({fldFcpQggZkE9VY6K} < 3, \"\U0001F680\
+      \ Quick Win\", \"\U0001F3D7️ Major Project\"),\n  IF({fldFcpQggZkE9VY6K} <=\
+      \ 3, \"☕ Fill-in\", \"\U0001F422 Thankless Task\")\n)"
+  - name: Actief in
+    id: fldmNFQ7S9lFFeqoL
+    type: multipleSelects
+    choices:
+    - Q1
+    - Q2
+    - Q3
+    - Q4
+  - name: Projecten
+    id: fld3Rx89ewOZ1MvNB
+    type: link
+    linkedTable: Projecten
+    linkedTableId: tblNDZDbjxejZDmnQ
+  - name: Status (from Projecten)
+    id: fldhUTWZCmTibhtxc
+    type: multipleLookupValues
+    via: Projecten
+    result: singleSelect
+    resultChoices:
+    - Tentative
+    - Todo
+    - In progress
+    - On hold
+    - Done
+    - Geannulleerd
+  - name: Einde project (from Projecten)
+    id: fldASmEPna79hzF2P
+    type: multipleLookupValues
+    via: Projecten
+    result: date
+  - name: Doel
+    id: fldcLwxHgDkuKE8kg
+    type: multilineText
+  - name: Doorlooptijd (maanden)
+    id: fldja6PA1XpcBMCgn
+    type: number
+    integer: true
+  - name: Impact - voor de klant
+    id: fldjO6B3k3DnmfMX7
+    type: number
+    integer: true
+  - name: Impact - voor Picoo
+    id: fldnPd129xDY73PQN
+    type: number
+    integer: true
+  - name: Effort - tijd
+    id: fldsBSJnFqhkdjOaG
+    type: number
+    integer: true
+  - name: Effort - geld
+    id: fldmBGP8D0ljsNFoL
+    type: number
+    integer: true
+  - name: Impactscore
+    id: fldI7AJ1wDrv6ldIm
+    type: formula
+    result: number
+    formula: AVERAGE({fldnPd129xDY73PQN},{fldjO6B3k3DnmfMX7})
+  - name: Effortscore
+    id: fldFcpQggZkE9VY6K
+    type: formula
+    result: number
+    formula: AVERAGE({fldsBSJnFqhkdjOaG},{fldmBGP8D0ljsNFoL})
+  - name: Team
+    id: fldToU4HxBfAhuJ8S
+    type: multipleSelects
+    choices:
+    - Hele team
+    - Eindbazen
+    - Marketing
+    - Platform (app/web/backend)
+    - Product development
+    - Productie
+    - Sales
+    - Software
+    - UX/Design
+  - name: Allocaties 2026
+    id: fld5CKByAxIylkIHF
+    type: link
+    linkedTable: Allocaties 2026
+    linkedTableId: tblB50tDezPfFeMoK
+  - name: Teamleden
+    id: fld4XVdNbD4Rv9DL3
+    type: multipleLookupValues
+    via: Allocaties 2026
+    result: multipleRecordLinks
+  - name: Review
+    id: fldGcbvDXC5UhV2m5
+    type: richText
+  - name: Projecttrekker
+    id: fld4pHqX51v9ZL063
+    type: multipleLookupValues
+    via: Allocaties 2026
+    result: multipleRecordLinks
+- name: Allocaties 2026
+  id: tblB50tDezPfFeMoK
+  fields:
+  - name: Record
+    id: fldzN5HxqvfrH2M18
+    type: autoNumber
+  - name: Project
+    id: fldroEpoN0lRbohSa
+    type: link
+    linkedTable: Projectplanning 2026
+    linkedTableId: tblhpZ8bLZxY1r6zY
+  - name: Status (from Projecten) (from Project)
+    id: fld4AOGOSpz8djPrH
+    type: multipleLookupValues
+    via: Project
+    result: singleSelect
+    resultChoices:
+    - Tentative
+    - Todo
+    - In progress
+    - On hold
+    - Done
+    - Geannulleerd
+  - name: Project Type
+    id: flduz6X1UAL0PilCB
+    type: multipleLookupValues
+    via: Project
+    result: singleSelect
+    resultChoices:
+    - 🏗️ Major Project
+    - 🚀 Quick Win
+    - ☕ Fill-in
+    - 🐢 Thankless Task
+  - name: Effort - tijd (from Project)
+    id: fldHXhgLVVUGd2eeg
+    type: multipleLookupValues
+    via: Project
+    result: number
+  - name: Medewerker
+    id: fld1nEuA5e2PxXmhg
+    type: link
+    linkedTable: Picoo users
+    linkedTableId: tblBraAP1jnIZNyoU
+  - name: Rol
+    id: fld0vywMLS1npcqDZ
+    type: singleSelect
+    choices:
+    - Project Lead / Kartrekker
+    - Core Contributor
+    - Support / Ondersteunend
+    - Adviseur / Expert
+    - Volger / Stakeholder
+  - name: FTE
+    id: fld97JhZumXhBfDb6
+    type: number
+  - name: _Suggestie FTE
+    id: fldtGDdxKAACwFWNl
+    type: formula
+    result: number
+    formula: "MAX(\n  ROUND(\n    (\n      SWITCH({fld0vywMLS1npcqDZ},\n        \"\
+      Project Lead / Kartrekker\", 0.40,\n        \"Core Contributor\", 0.20,\n  \
+      \      \"Support / Ondersteunend\", 0.10,\n        \"Adviseur / Expert\", 0.05,\n\
+      \        \"Volger / Stakeholder\", 0.01,\n        1\n      )\n      *\n    \
+      \  ({fldHXhgLVVUGd2eeg} / 5)\n    ) / 0.05, \n    0\n  ) * 0.05,\n  0.05\n)"
+  - name: Actief in
+    id: fldhbeYqZqpcDDT2H
+    type: multipleLookupValues
+    via: Project
+    result: singleLineText
+  - name: Uren per week (gemiddeld)
+    id: fldhiDzUmtej31NVg
+    type: formula
+    result: number
+    formula: '{fld97JhZumXhBfDb6}*40'

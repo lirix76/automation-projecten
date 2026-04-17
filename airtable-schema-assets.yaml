@@ -1,0 +1,1282 @@
+base: Assets
+baseId: app0zzPtwBSKpGFRZ
+tables:
+- name: Assets
+  id: tblhRQAZ98kof2TbQ
+  fields:
+  - name: Name
+    id: fld7AOOHWu1a7fEo0
+    type: formula
+    result: singleLineText
+    formula: "{fldcqMs4OcyDHoAdg} & \" - \" & {fldnMuG9GDeM6ngXR} &\nIF(\n    {fldsTbY76c6iCpRpA},\
+      \ \n    \" - \" & {fldsTbY76c6iCpRpA}\n) &\nIF(\n    OR({fldtOVgcwdiDzcSx8},\
+      \ AND({fld7Q9x5KWHJPRLVC}, {fld7Q9x5KWHJPRLVC} != \"Taalonafhankelijk\")),\n\
+      \    \" [\" &\n    {fldtOVgcwdiDzcSx8} &\n    IF(\n        AND({fldtOVgcwdiDzcSx8},\
+      \ {fld7Q9x5KWHJPRLVC}, {fld7Q9x5KWHJPRLVC} != \"Taalonafhankelijk\"),\n    \
+      \    \" - \"\n    ) &\n    IF(\n        AND({fld7Q9x5KWHJPRLVC}, {fld7Q9x5KWHJPRLVC}\
+      \ != \"Taalonafhankelijk\"),\n        {fld7Q9x5KWHJPRLVC}\n    ) &\n    \"]\"\
+      \n)"
+  - name: ID
+    id: fldcqMs4OcyDHoAdg
+    type: formula
+    result: singleLineText
+    formula: RIGHT("00000" & {fldojQPX1izxjAQpP}, 5)
+  - name: Titel
+    id: fldnMuG9GDeM6ngXR
+    type: singleLineText
+  - name: Type media
+    id: fldtOVgcwdiDzcSx8
+    type: singleSelect
+    choices:
+    - Storyboard/Animatie
+    - Marketing
+    - Productie
+    - Social
+    - Overig
+    - Micro-animaties
+    - Gametag
+    - Logo/icoon
+    - Spelvariant
+    - Mediakaart
+    - Handleiding
+    - Technical Documentation
+    - (Mix & Match) quiz
+    - Template
+    - How to
+    - Sales
+    - UX
+    - Projectdocument
+    - Werkinstructies
+    - Spelconcept
+    - Label template
+    - AI photos
+    - Software
+  - name: latest_version_interface_url
+    id: flduwzISxR34qLl18
+    type: multipleLookupValues
+    via: Versies
+    result: singleLineText
+  - name: status_latest_version
+    id: fldKE3jaNcBYKTo44
+    type: multipleLookupValues
+    via: Versies
+    result: singleSelect
+    resultChoices:
+    - DRAFT
+    - FINAL
+    - CANCELED
+  - name: URL content (latest, from Versies)
+    id: fld0Y9teI4EbP8YLc
+    type: multipleLookupValues
+    via: Versies
+    result: url
+  - name: Versies
+    id: fldms3dycyQIK2cEo
+    type: link
+    linkedTable: Versies
+    linkedTableId: tblBcNQEJLJInQrNg
+  - name: Based off template
+    id: fldlbtJ3VEACM1Cwf
+    type: link
+    linkedTable: Versies
+    linkedTableId: tblBcNQEJLJInQrNg
+  - name: Autonumber
+    id: fldojQPX1izxjAQpP
+    type: number
+    description: This field is calculated by an automation
+    integer: true
+  - name: Created
+    id: fldOwma9yb5k0RaGQ
+    type: createdTime
+  - name: Last Modified
+    id: fldCeZZCXLxYb8K4P
+    type: lastModifiedTime
+  - name: Taal
+    id: fld7Q9x5KWHJPRLVC
+    type: multipleSelects
+    choices:
+    - NL
+    - EN
+    - DE
+    - Taalonafhankelijk
+    - FR
+    - SE
+  - name: Deadline
+    id: fldxiD0qKdHoO5pCz
+    type: date
+    description: 'In principe wordt de deadline van een handleiding overgenomen uit
+      de deadline van de gewenste final date van een spel. Het kan echter voorkomen
+      dat je de deadline wil aanpassen: vul dan een datum in het veld "Datum override"
+      in om de deadline van het spel te overschrijven.
+
+
+      Here''s how the formula works:
+
+
+      If Final is blank, it returns {Datum override}.
+
+      If {Datum override} is blank, it returns Final.
+
+
+      If both dates have a value, it compares them using IS_BEFORE() to determine
+      which date is in the future.
+
+
+      If neither date is in the future, it checks which date is closer to today and
+      returns that date.'
+  - name: Verantwoordelijk
+    id: fld6czaXHFXIfnbxl
+    type: link
+    description: Geef hier aan wie op dit moment verantwoordelijk is voor dit werk.
+      Dit kan uiteraard veranderen als er een status wijziging is!
+    linkedTable: Picoo
+    linkedTableId: tblSqaBn4uiHYlCG9
+  - name: Notities
+    id: fldbmf4vsgRWdTYze
+    type: richText
+  - name: Linked assets
+    id: fldofePU6yOXPqazr
+    type: link
+    linkedTable: Assets
+    linkedTableId: tblhRQAZ98kof2TbQ
+  - name: hubspot_url
+    id: fldE6Z2gznOJ24sbT
+    type: url
+  - name: Tag
+    id: fldJ1GzyY9WD5Sbcy
+    type: multipleSelects
+    choices:
+    - M&M Quiz 2025
+    - Safetysheet
+    - Steve - Print
+    - Steve - Digital
+    - Design 1.0
+    - Design 2.0
+    - Tekst revisie nodig
+    - Verhuur DE
+    - lead generation
+  - name: Partnrs
+    id: fldsTbY76c6iCpRpA
+    type: link
+    linkedTable: Partnrs
+    linkedTableId: tblhKKAiEHETYlVAA
+  - name: vertaling_van
+    id: fld1RB7CLhVwxMM22
+    type: link
+    linkedTable: Versies
+    linkedTableId: tblBcNQEJLJInQrNg
+  - name: Spelversies
+    id: fldCPAHSTSKizUws3
+    type: link
+    linkedTable: Spelversies
+    linkedTableId: tblSYSqnj7A7YNIwh
+  - name: Interface URL metadata asset
+    id: fldkioEH4aVJtMwnD
+    type: formula
+    result: singleLineText
+    formula: '"https://airtable.com/app0zzPtwBSKpGFRZ/pagn7isHYMuZPIb9X?WWj5r=" &
+      RECORD_ID()'
+  - name: open_latest_version
+    id: fldERwrpnK0cDLLIa
+    type: button
+  - name: latest_version_final_interface_url
+    id: fldNIJeqwX96jVOf4
+    type: multipleLookupValues
+    via: Versies
+    result: singleLineText
+  - name: Relationships (junction table)
+    id: fldmQJLXznhbnY3TY
+    type: singleLineText
+  - name: ID latest final
+    id: flda1Ct84wso7YBVQ
+    type: multipleLookupValues
+    via: Versies
+    result: number
+  - name: ID latest draft
+    id: fldSaPl6v9hBxe7rD
+    type: multipleLookupValues
+    via: Versies
+    result: number
+  - name: Projecten
+    id: fldoovxHB56BueBSV
+    type: link
+    linkedTable: Projecten
+    linkedTableId: tblyG1uWPJ7R6PYKc
+  - name: Open Detail Interface (from Projecten)
+    id: fld3o0hSh8LPY2fcd
+    type: multipleLookupValues
+    via: Projecten
+    result: url
+  - name: Project ID (from Projecten)
+    id: fld0rZDjpdFoVFn2U
+    type: multipleLookupValues
+    via: Projecten
+    result: number
+  - name: Projecten last modified by
+    id: fldVaWZsCtPRZORdW
+    type: lastModifiedBy
+  - name: Base off template at creation
+    id: fldlwdNSTAaQAuT2M
+    type: link
+    description: dit veld wordt alleen gebruikt tijdens creatie van een nieuw asset.
+    linkedTable: Assets
+    linkedTableId: tblhRQAZ98kof2TbQ
+  - name: 'From field: Base off template at creation'
+    id: fldp5bPTMPmyxD5ZP
+    type: link
+    linkedTable: Assets
+    linkedTableId: tblhRQAZ98kof2TbQ
+  - name: Spelbundel
+    id: fldbLtjUXms3xd9Y4
+    type: multipleLookupValues
+    via: Spelversies
+    result: singleLineText
+  - name: ID latest
+    id: fldFEd2IbTITZNFqK
+    type: rollup
+    via: Versies
+  - name: All translations
+    id: fldN890UUyGnOfSKn
+    type: link
+    linkedTable: Versies
+    linkedTableId: tblBcNQEJLJInQrNg
+  - name: is translation of latest NL
+    id: fldY1Povi9enIi9Sq
+    type: singleSelect
+    description: Do not update this field. This is automatically calculated by an
+      automation.
+    choices:
+    - 'TRUE'
+    - 'FALSE'
+  - name: fileId (latest final, from Versies)
+    id: fld2WTk7ndlanyH6t
+    type: multipleLookupValues
+    via: Versies
+    result: singleLineText
+  - name: recordId
+    id: fldhUk8zSw8ErAkSy
+    type: formula
+    result: singleLineText
+    formula: RECORD_ID()
+- name: Versies
+  id: tblBcNQEJLJInQrNg
+  fields:
+  - name: Name
+    id: fldrVL4mw7quf3c0q
+    type: formula
+    result: singleLineText
+    formula: "{fldwLJIJoPXXPc8PG} & \" - \" & {fldH7rWOggD6ebOzh} &\nIF(\n    OR({fldN9SwR6QHXH0q9y},\
+      \ {fldrb6NKkz63XFjx2}),\n    \" [\" &\n    {fldN9SwR6QHXH0q9y} &\n    IF(\n\
+      \        AND({fldN9SwR6QHXH0q9y}, {fldrb6NKkz63XFjx2}),\n        \" - \"\n \
+      \   ) &\n    {fldrb6NKkz63XFjx2} &\n    \"]\"\n)"
+  - name: Titel (from Assets)
+    id: fldH7rWOggD6ebOzh
+    type: multipleLookupValues
+    via: Assets
+    result: singleLineText
+  - name: status_content
+    id: fld1skjSTZNgXTJtT
+    type: singleSelect
+    choices:
+    - Niet van toepassing
+    - TODO
+    - BLOCKED
+    - DRAFT
+    - FINAL
+    - CANCELED
+  - name: status_design
+    id: fldnS7rcKB9Iv6ro3
+    type: singleSelect
+    choices:
+    - Niet van toepassing
+    - TODO
+    - BLOCKED
+    - DRAFT
+    - FINAL
+    - CANCELED
+  - name: status_asset
+    id: fldPcXDyi8a9Eo5BW
+    type: formula
+    result: singleSelect
+    formula: "IF(\n  OR(\n    AND(\n      OR({fldnS7rcKB9Iv6ro3} = \"Niet van toepassing\"\
+      , {fld1skjSTZNgXTJtT} = \"Niet van toepassing\"),\n      OR({fldnS7rcKB9Iv6ro3}\
+      \ = \"FINAL\", {fld1skjSTZNgXTJtT} = \"FINAL\")\n    ),\n    AND({fldnS7rcKB9Iv6ro3}\
+      \ = \"FINAL\", {fld1skjSTZNgXTJtT} = \"FINAL\")\n  ),\n  \"FINAL\",\n  IF(\n\
+      \    OR({fldnS7rcKB9Iv6ro3} = \"CANCELED\", {fld1skjSTZNgXTJtT} = \"CANCELED\"\
+      ),\n    \"CANCELED\",\n    \"DRAFT\"\n  )\n)"
+  - name: Taal (from Assets)
+    id: fldrb6NKkz63XFjx2
+    type: multipleLookupValues
+    via: Assets
+    result: multipleSelects
+    resultChoices:
+    - NL
+    - EN
+    - DE
+    - Taalonafhankelijk
+    - FR
+    - SE
+  - name: Versie
+    id: fldAuvKbxqylynejt
+    type: number
+    integer: true
+  - name: Deadline
+    id: fldRDAg5kQ6IWTXeZ
+    type: date
+    description: 'In principe wordt de deadline van een handleiding overgenomen uit
+      de deadline van de gewenste final date van een spel. Het kan echter voorkomen
+      dat je de deadline wil aanpassen: vul dan een datum in het veld "Datum override"
+      in om de deadline van het spel te overschrijven.
+
+
+      Here''s how the formula works:
+
+
+      If Final is blank, it returns {Datum override}.
+
+      If {Datum override} is blank, it returns Final.
+
+
+      If both dates have a value, it compares them using IS_BEFORE() to determine
+      which date is in the future.
+
+
+      If neither date is in the future, it checks which date is closer to today and
+      returns that date.'
+  - name: URL final
+    id: fld0WYbl7ihofFqVb
+    type: url
+  - name: Interface URL
+    id: fldjE5oH4u3cGD5Up
+    type: formula
+    result: singleLineText
+    formula: 'SWITCH({fldPcXDyi8a9Eo5BW},
+
+      "FINAL","https://airtable.com/app0zzPtwBSKpGFRZ/pagSzH2VzCExir7t8/"&RECORD_ID()&"?home=pag6j4uMMIdJiwBd3",
+
+      "CANCELED","https://airtable.com/app0zzPtwBSKpGFRZ/pagSzH2VzCExir7t8/"&RECORD_ID()&"?home=pag6j4uMMIdJiwBd3",
+
+      "DRAFT","https://airtable.com/app0zzPtwBSKpGFRZ/pagDrVIVp9DW6hdL4/"&RECORD_ID()&"?home=pag6j4uMMIdJiwBd3"
+
+      )'
+  - name: Spelversies
+    id: fldWaxXxtv9CHI44t
+    type: multipleLookupValues
+    via: Assets
+    result: multipleRecordLinks
+  - name: Prioriteit
+    id: fldBy30R2RduXYvL5
+    type: singleSelect
+    choices:
+    - Low
+    - Medium
+    - High
+  - name: Verwerkt Hubspot
+    id: flduCzVjLRwGUpejC
+    type: singleSelect
+    choices:
+    - niet van toepassing
+    - nog niet verwerkt
+    - verwerkt
+  - name: Verantwoordelijk
+    id: fldqxwqChim2nbJ9L
+    type: link
+    description: Geef hier aan wie op dit moment verantwoordelijk is voor dit werk.
+      Dit kan uiteraard veranderen als er een status wijziging is!
+    linkedTable: Picoo
+    linkedTableId: tblSqaBn4uiHYlCG9
+  - name: Volgende actie
+    id: fldAcDwOB00f5Btwi
+    type: link
+    linkedTable: Picoo
+    linkedTableId: tblSqaBn4uiHYlCG9
+  - name: Slack handle (from Volgende actie)
+    id: flduJ9miXXpN4FjKh
+    type: multipleLookupValues
+    via: Volgende actie
+    result: singleLineText
+  - name: Email (from Volgende actie)
+    id: fldLLdbfyn6WZh876
+    type: multipleLookupValues
+    via: Volgende actie
+    result: email
+  - name: Notities
+    id: fldvHcka2TgglHwbE
+    type: richText
+  - name: file_id_final
+    id: fldRCI9VR9b5lrVNR
+    type: formula
+    result: singleLineText
+    formula: "IF(\n AND(\n   NOT(BLANK({fld0WYbl7ihofFqVb})),\n   REGEX_MATCH({fld0WYbl7ihofFqVb},\
+      \ \"drive\\\\.google\\\\.com\\\\/file\\\\/d\\\\/\")\n ),\n REGEX_EXTRACT({fld0WYbl7ihofFqVb},\
+      \ \"\\\\/d\\\\/([^\\\\/]+)\"),\n \"\"\n)\n"
+  - name: Status drukwerk
+    id: fldCO1hhgJz0DSUDC
+    type: singleSelect
+    choices:
+    - Niet van toepassing
+    - Klaar om te bestellen
+    - Besteld
+    - Ontvangen
+  - name: Type media (from Assets)
+    id: fldN9SwR6QHXH0q9y
+    type: multipleLookupValues
+    via: Assets
+    result: singleSelect
+    resultChoices:
+    - Storyboard/Animatie
+    - Marketing
+    - Productie
+    - Social
+    - Overig
+    - Micro-animaties
+    - Gametag
+    - Logo/icoon
+    - Spelvariant
+    - Mediakaart
+    - Handleiding
+    - Technical Documentation
+    - (Mix & Match) quiz
+    - Template
+    - How to
+    - Sales
+    - UX
+    - Projectdocument
+    - Werkinstructies
+    - Spelconcept
+    - Label template
+    - AI photos
+    - Software
+  - name: Slack handle formatted
+    id: fld4pbeOI67VpdQzl
+    type: formula
+    result: singleLineText
+    formula: '"<@" & SUBSTITUTE(TRIM({flduJ9miXXpN4FjKh}), ", ", "> <@") & ">"'
+  - name: ID
+    id: fldwLJIJoPXXPc8PG
+    type: formula
+    result: singleLineText
+    formula: RIGHT("00000" & {fld2NQo1Y3nJqbUhn}, 5) & "." & RIGHT("00" & {fldAuvKbxqylynejt},
+      2)
+  - name: Create new version
+    id: fldZYbMrtNCN54c0d
+    type: checkbox
+  - name: URL content
+    id: fldXCROy6zC30xaYM
+    type: url
+    description: link naar Google Drive
+  - name: file_id_content
+    id: fld0VZyVTxfgWYLHH
+    type: formula
+    result: singleLineText
+    formula: "IF(\n  AND(\n    NOT(BLANK({fldXCROy6zC30xaYM})),\n    OR(\n      REGEX_MATCH({fldXCROy6zC30xaYM},\
+      \ \"docs\\\\.google\\\\.com\\\\/document\\\\/d\\\\/\"),\n      REGEX_MATCH({fldXCROy6zC30xaYM},\
+      \ \"docs\\\\.google\\\\.com\\\\/presentation\\\\/d\\\\/\"),\n      REGEX_MATCH({fldXCROy6zC30xaYM},\
+      \ \"docs\\\\.google\\\\.com\\\\/spreadsheets\\\\/d\\\\/\"),\n      REGEX_MATCH({fldXCROy6zC30xaYM},\
+      \ \"drive\\\\.google\\\\.com\\\\/file\\\\/d\\\\/\")\n    )\n  ),\n  REGEX_EXTRACT({fldXCROy6zC30xaYM},\
+      \ \"\\\\/d\\\\/([^\\\\/]+)\"),\n  \"\"\n)"
+  - name: Comments
+    id: fld0nOJ98mFs0jf9Y
+    type: singleLineText
+  - name: URL design draft
+    id: fldtjrBSlmqDljPmy
+    type: url
+  - name: Design revisies
+    id: fldumDbwGKeLGJbhq
+    type: link
+    linkedTable: Design revisies
+    linkedTableId: tblB9sUwC1zbR6J12
+  - name: hubspot_url
+    id: fldYrWiV90d3aS0Nj
+    type: url
+  - name: Tag
+    id: fld3mDPdyMlXdGJOY
+    type: multipleSelects
+    choices:
+    - M&M Quiz 2025
+    - Safetysheet
+    - Steve - Print
+    - Steve - Digital
+    - Design 1.0
+    - Design 2.0
+    - Tekst revisie nodig
+    - Verhuur DE
+    - lead generation
+    - Aanpassen Smartsleeves icoon
+    - FR draft done
+    - DE content ready
+    - Iris DE done
+    - Vertaling aangevraagd
+  - name: Partnrs
+    id: fldMe8eMGPvCKdp10
+    type: multipleLookupValues
+    via: Assets
+    result: multipleRecordLinks
+  - name: request_translation
+    id: fldVR1Tw0P0gYXfEG
+    type: link
+    linkedTable: Template languages
+    linkedTableId: tblym3j384O00W0bH
+  - name: Open interface URL
+    id: fld8jPigXl0SI3whM
+    type: button
+    description: Link naar interface
+  - name: Button interface URL DRAFT
+    id: fldkyCq0Ix8cqDUql
+    type: button
+  - name: create_pdf_from_gdoc
+    id: flda5NpMtWtXeexnf
+    type: checkbox
+  - name: Created
+    id: fld8RjqO8OuE8FIig
+    type: createdTime
+  - name: Last Modified
+    id: fldWzWfhxoWijWiGf
+    type: lastModifiedTime
+  - name: Assets
+    id: fld2zW8dwMe0ZFI9N
+    type: link
+    linkedTable: Assets
+    linkedTableId: tblhRQAZ98kof2TbQ
+  - name: ID (from Assets)
+    id: fld2NQo1Y3nJqbUhn
+    type: multipleLookupValues
+    via: Assets
+    result: singleLineText
+  - name: Interface URL metadata
+    id: fldrYEf455zwMj2Lv
+    type: multipleLookupValues
+    via: Assets
+    result: singleLineText
+  - name: Alle versies (from Assets)
+    id: fldYMm4EdVjyinIId
+    type: multipleLookupValues
+    via: Assets
+    result: multipleRecordLinks
+  - name: file_name_content
+    id: fldOSqaYQ8kjHCrjP
+    type: formula
+    description: filename on google drive
+    result: singleLineText
+    formula: "TRIM({fldwLJIJoPXXPc8PG} & \"\") &\nIF(\n    TRIM({fldH7rWOggD6ebOzh}\
+      \ & \"\") != \"\",\n    \" - \" & TRIM({fldH7rWOggD6ebOzh} & \"\"),\n    \"\"\
+      \n) &\nIF(\n    TRIM({fldMe8eMGPvCKdp10} & \"\") != \"\",\n    \" - \" & TRIM({fldMe8eMGPvCKdp10}\
+      \ & \"\"),\n    \"\"\n) &\nIF(\n    AND(\n        TRIM({fldrb6NKkz63XFjx2} &\
+      \ \"\") != \"\",\n        TRIM({fldrb6NKkz63XFjx2} & \"\") != \"Taalonafhankelijk\"\
+      \n    ),\n    \" - \" & TRIM({fldrb6NKkz63XFjx2} & \"\"),\n    \"\"\n) &\nIF(\n\
+      \    AND(\n        TRIM({fld1skjSTZNgXTJtT} & \"\") != \"\",\n        TRIM({fld1skjSTZNgXTJtT}\
+      \ & \"\") != \"Niet van toepassing\"\n    ),\n    \" - \" & TRIM({fld1skjSTZNgXTJtT}\
+      \ & \"\"),\n    \"\"\n)"
+  - name: vertalingen
+    id: fld92w9ZXlLUBvhc2
+    type: link
+    linkedTable: Assets
+    linkedTableId: tblhRQAZ98kof2TbQ
+  - name: vertaling_van (from Assets)
+    id: fldO3oCIGZ2awnbvX
+    type: multipleLookupValues
+    via: Assets
+    result: multipleRecordLinks
+  - name: request_translation_interface_url
+    id: fldHHT75snr1l9BiG
+    type: formula
+    result: singleLineText
+    formula: '"https://airtable.com/app0zzPtwBSKpGFRZ/pag0DVGgKVu189Nhn?WWj5r=" &
+      RECORD_ID()'
+  - name: request_translation_button
+    id: fldyIPqmoL6UnCMwD
+    type: button
+  - name: new_revision_url
+    id: fldhVHuNk9AAD5ik4
+    type: url
+  - name: based_on_template
+    id: fldOSd3hqNjY7p7vf
+    type: link
+    linkedTable: Assets
+    linkedTableId: tblhRQAZ98kof2TbQ
+  - name: create_doc_based_on_template
+    id: fldTyhD90vgrIIyqQ
+    type: checkbox
+  - name: status_create_based_on_template
+    id: fldan7Orya9wX3iNX
+    type: singleLineText
+  - name: ID latest draft (from Assets)
+    id: fldke6nqGiokwRt6e
+    type: multipleLookupValues
+    via: Assets
+    result: number
+  - name: ID latest final (from Assets)
+    id: fld9ed51TdrjXXvPx
+    type: multipleLookupValues
+    via: Assets
+    result: number
+  - name: is latest FINAL or DRAFT
+    id: fldFyg5KSGFt9IRgO
+    type: formula
+    result: singleSelect
+    formula: "SWITCH(\n  {fldPcXDyi8a9Eo5BW},\n  \"FINAL\", IF({fldAuvKbxqylynejt}={fld9ed51TdrjXXvPx},\"\
+      Latest FINAL\"),\n  \"DRAFT\", IF({fldAuvKbxqylynejt}={fldke6nqGiokwRt6e}, \"\
+      Latest DRAFT\")\n)"
+  - name: Open Detail Interface (from Projecten) (from Assets)
+    id: fldP3uBfLMuPdBa4V
+    type: multipleLookupValues
+    via: Assets
+    result: url
+  - name: Linked versions
+    id: fldZO1R47LmHv4ioc
+    type: link
+    linkedTable: Versies
+    linkedTableId: tblBcNQEJLJInQrNg
+  - name: 'From field: Linked versions'
+    id: fldbzDzHtjbeMSEG7
+    type: link
+    linkedTable: Versies
+    linkedTableId: tblBcNQEJLJInQrNg
+  - name: 'From field: Versies'
+    id: fldzTvGoWndOmorXL
+    type: singleLineText
+  - name: System messages
+    id: fldx1CkLiR4xbEoSA
+    type: richText
+  - name: last_filename_content
+    id: fld7IE3CPlq4xhxpD
+    type: singleLineText
+    description: last set filename on Google drive
+  - name: status_filename_on_drive
+    id: fldvUWnLJaJlIZAPS
+    type: formula
+    description: checks whether the filename on google drive needs to be updated
+    result: singleSelect
+    formula: "IF(\n  {fld2RYdkKU65Akjo7}, \n  \"⚠️ SYNC ERROR\",\n  IF(\n    OR(\n\
+      \      AND(\n        {fldOSqaYQ8kjHCrjP} != {fld7IE3CPlq4xhxpD},\n        {fldDin5l6ufuaC6Ro}\
+      \ = 0,\n        {fld1skjSTZNgXTJtT} != \"Niet van toepassing\",\n        NOT({fld0VZyVTxfgWYLHH}\
+      \ = \"\")\n      ),\n      AND(\n        {fldU7Siyi1Oh5pBUQ} != {fldeNv6DcLWmHE7OU},\n\
+      \        {flddt9Mswaq1AT3wH} = 0,\n        {fldnS7rcKB9Iv6ro3} != \"Niet van\
+      \ toepassing\",\n        NOT({fldRCI9VR9b5lrVNR} = \"\")\n      )\n    ),\n\
+      \    \"REQUIRES UPDATING\",\n    \"UP TO DATE\"\n  )\n)"
+  - name: create_copy_of_asset
+    id: fldirIuSSaT8x6uxi
+    type: checkbox
+  - name: RecordId
+    id: fldGOW20TgoswEafD
+    type: formula
+    result: singleLineText
+    formula: RECORD_ID()
+  - name: has_translations
+    id: fldkcwRxUex7Xf5rP
+    type: rollup
+    via: vertalingen
+  - name: Spelbundel (from Assets)
+    id: fldpbJ9qUHb10zcHN
+    type: multipleLookupValues
+    via: Assets
+    result: singleLineText
+  - name: missing_translations
+    id: fldTrQ89ZvUzUvO5J
+    type: formula
+    result: singleLineText
+    formula: "IF({fldrb6NKkz63XFjx2}=\"NL\",\nSUBSTITUTE(\n  TRIM(\n    IF(NOT(FIND(\"\
+      EN\", {fldkcwRxUex7Xf5rP} & \"\")), \"EN \", \"\") &\n    IF(NOT(FIND(\"DE\"\
+      , {fldkcwRxUex7Xf5rP} & \"\")), \"DE \", \"\") &\n    IF(NOT(FIND(\"FR\", {fldkcwRxUex7Xf5rP}\
+      \ & \"\")), \"FR \", \"\")\n  ),\n  \" \", \", \"\n)\n)"
+  - name: Interface URL design revisie
+    id: fldt3hRPkEePm9ckH
+    type: formula
+    result: singleLineText
+    formula: '"https://airtable.com/app0zzPtwBSKpGFRZ/pagIPjU093vZ7Z3Py?WWj5r=" &
+      RECORD_ID()'
+  - name: mark for deletion
+    id: fld7Iqk8UmxYgdtSy
+    type: checkbox
+  - name: ID latest (from Assets)
+    id: fld9KErO8uoAhlCDX
+    type: multipleLookupValues
+    via: Assets
+    result: number
+  - name: is latest
+    id: fldoDfpjWGTjHt6II
+    type: formula
+    result: singleSelect
+    formula: IF({fld9KErO8uoAhlCDX}={fldAuvKbxqylynejt},"LATEST")
+  - name: Interface URL metadata asset Rollup (from vertalingen)
+    id: fldvFjBb3thDaKiRq
+    type: rollup
+    via: vertalingen
+  - name: Translation base asset
+    id: fldzrMNkW7jvUXEKs
+    type: link
+    linkedTable: Assets
+    linkedTableId: tblhRQAZ98kof2TbQ
+  - name: Other translations
+    id: fldpHjhsSSLjzHDzY
+    type: multipleLookupValues
+    via: Translation base asset
+    result: multipleRecordLinks
+  - name: is translation of latest NL (from Assets)
+    id: fldIgZzPbRnMXcBVX
+    type: multipleLookupValues
+    via: Assets
+    result: singleSelect
+    resultChoices:
+    - 'TRUE'
+    - 'FALSE'
+  - name: last_filename_asset
+    id: fldeNv6DcLWmHE7OU
+    type: multilineText
+    description: last set filename on Google drive
+  - name: file_name_asset
+    id: fldU7Siyi1Oh5pBUQ
+    type: formula
+    description: filename on google drive
+    result: singleLineText
+    formula: "TRIM({fldwLJIJoPXXPc8PG} & \"\") &\nIF(\n    TRIM({fldH7rWOggD6ebOzh}\
+      \ & \"\") != \"\",\n    \" - \" & TRIM({fldH7rWOggD6ebOzh} & \"\"),\n    \"\"\
+      \n) &\nIF(\n    TRIM({fldMe8eMGPvCKdp10} & \"\") != \"\",\n    \" - \" & TRIM({fldMe8eMGPvCKdp10}\
+      \ & \"\"),\n    \"\"\n) &\nIF(\n    AND(\n        TRIM({fldrb6NKkz63XFjx2} &\
+      \ \"\") != \"\",\n        TRIM({fldrb6NKkz63XFjx2} & \"\") != \"Taalonafhankelijk\"\
+      \n    ),\n    \" - \" & TRIM({fldrb6NKkz63XFjx2} & \"\"),\n    \"\"\n) &\nIF(\n\
+      \    AND(\n        TRIM({fldnS7rcKB9Iv6ro3} & \"\") != \"\",\n        TRIM({fldnS7rcKB9Iv6ro3}\
+      \ & \"\") != \"Niet van toepassing\"\n    ),\n    \" - \" & TRIM({fldnS7rcKB9Iv6ro3}\
+      \ & \"\"),\n    \"\"\n)"
+  - name: lock_status_content
+    id: fldDin5l6ufuaC6Ro
+    type: checkbox
+    description: if true, the content file is locked on google drive
+  - name: lock_status_asset
+    id: flddt9Mswaq1AT3wH
+    type: checkbox
+    description: if true, the asset file is locked on google drive
+  - name: Translation Requests
+    id: fldxrMg8Ky3f4PwxZ
+    type: link
+    linkedTable: Translation Requests
+    linkedTableId: tbl6vEuEuwCGTMPNR
+  - name: sync_error_google_drive
+    id: fld2RYdkKU65Akjo7
+    type: checkbox
+  - name: Notities asset
+    id: fldV5s0O50xAPUT97
+    type: multipleLookupValues
+    via: Assets
+    result: richText
+  - name: Translation Requests 2
+    id: fldmk2wjlPeAOYdSD
+    type: link
+    linkedTable: Translation Requests
+    linkedTableId: tbl6vEuEuwCGTMPNR
+  - name: Status (from Translation Requests 2)
+    id: fldZYcKzfXjOsasRc
+    type: multipleLookupValues
+    via: Translation Requests 2
+    result: singleSelect
+    resultChoices:
+    - Todo
+    - In progress
+    - Ready for translation
+    - Sent to translation agency
+    - Done
+    - Error
+- name: Picoo
+  id: tblSqaBn4uiHYlCG9
+  fields:
+  - name: Name
+    id: fldDOq0Yhrh5quGsd
+    type: singleLineText
+  - name: Slack handle
+    id: fldGSBjqP81e3U5du
+    type: multilineText
+  - name: Formatted slack handle
+    id: fldIQogxee6Xjd44G
+    type: formula
+    result: singleLineText
+    formula: '"<@" & {fldGSBjqP81e3U5du} &">"'
+  - name: Email
+    id: fldUyqC8MZzVtx2RZ
+    type: email
+  - name: Vertalingen
+    id: fldbUHc63SyZOQ5NE
+    type: link
+    linkedTable: (DEPRECATED) Vertalingen
+    linkedTableId: tblyoR18LbbhxXrdO
+  - name: Vertalingen 2
+    id: fldasu4AA7ywNo2Pa
+    type: link
+    linkedTable: (DEPRECATED) Vertalingen
+    linkedTableId: tblyoR18LbbhxXrdO
+  - name: Status designwerk (verantwoordelijk)
+    id: fldX4RvUuBpOJfS1s
+    type: link
+    linkedTable: Versies
+    linkedTableId: tblBcNQEJLJInQrNg
+  - name: Status designwerk (volgende actie)
+    id: fldFMrANbIoapH7CK
+    type: link
+    linkedTable: Versies
+    linkedTableId: tblBcNQEJLJInQrNg
+  - name: Assets
+    id: fldjLDGjk7ieb4FfZ
+    type: singleLineText
+  - name: Comments
+    id: fldqRVX722EFb5MK3
+    type: singleLineText
+  - name: Template languages
+    id: fldVSp1GGIuYP2l9a
+    type: link
+    linkedTable: Template languages
+    linkedTableId: tblym3j384O00W0bH
+  - name: Status dienstverband
+    id: fldAOxAec1tjVFuHJ
+    type: singleSelect
+    choices:
+    - in dienst
+    - uit dienst
+  - name: Assets copy
+    id: fldDJUffUY0uBrkp2
+    type: link
+    linkedTable: Assets
+    linkedTableId: tblhRQAZ98kof2TbQ
+  - name: Assets copy
+    id: fldlruk8B5ZQhTz0k
+    type: singleLineText
+  - name: FTE
+    id: fldSfP6DQbyUKmx1A
+    type: number
+- name: Partnrs
+  id: tblhKKAiEHETYlVAA
+  fields:
+  - name: Item Code
+    id: fldSv2bRYlwU7uo2k
+    type: singleLineText
+  - name: Item Name
+    id: fldGpnAX1Sd4EsCxC
+    type: singleLineText
+  - name: Opmerking
+    id: fldMUDCjZVJyiYDwY
+    type: multilineText
+  - name: Ex btw prijs
+    id: fldhLlcKZG6t9q1Ak
+    type: currency
+    symbol: €
+  - name: Incl btw prijs
+    id: fldGwDmYo1h9e7Qm3
+    type: currency
+    symbol: €
+  - name: Assets
+    id: fldzZ0oByM6Nd7XDT
+    type: singleLineText
+  - name: Assets copy
+    id: fldfE38WY9Ht5jp1t
+    type: link
+    linkedTable: Assets
+    linkedTableId: tblhRQAZ98kof2TbQ
+- name: Projecten
+  id: tblyG1uWPJ7R6PYKc
+  fields:
+  - name: Project
+    id: fldDEriboCOnRGK7P
+    type: multilineText
+  - name: Project ID
+    id: fld8ERnVysG0K9LYZ
+    type: number
+    integer: true
+  - name: Project naam
+    id: fldyHUBa3xFwcIfNy
+    type: singleLineText
+  - name: Status
+    id: fldEYepTMMAJli3C8
+    type: singleSelect
+    choices:
+    - Tentative
+    - Todo
+    - In progress
+    - On hold
+    - Done
+    - Geannulleerd
+  - name: Notes
+    id: fldfcbmb7E68bYPkq
+    type: multilineText
+  - name: Start project
+    id: fldZv6ikLzq5j9YMa
+    type: date
+  - name: Einde project
+    id: flduo3ycmxV0tqLWU
+    type: date
+  - name: Medewerkers
+    id: fldkvdlplj2uapPXh
+    type: singleLineText
+  - name: Team
+    id: fldpB5wTambEDkLAw
+    type: multipleSelects
+    choices:
+    - App
+    - Backend
+    - MarCom
+    - Productie
+    - Sales
+    - Software
+    - UX
+    - Web
+  - name: ProjectDoc FileID
+    id: fldaDZOo9BCKYQCsT
+    type: multilineText
+  - name: Assets (local)
+    id: fldqjHbccR4ehHmAu
+    type: link
+    linkedTable: Assets
+    linkedTableId: tblhRQAZ98kof2TbQ
+  - name: Type media (from Assets (local))
+    id: fldDsvzQ90mL22sp1
+    type: multipleLookupValues
+    via: Assets (local)
+    result: singleSelect
+    resultChoices:
+    - Storyboard/Animatie
+    - Marketing
+    - Productie
+    - Social
+    - Overig
+    - Micro-animaties
+    - Gametag
+    - Logo/icoon
+    - Spelvariant
+    - Mediakaart
+    - Handleiding
+    - Technical Documentation
+    - (Mix & Match) quiz
+    - Template
+    - How to
+    - Sales
+    - UX
+    - Projectdocument
+    - Werkinstructies
+    - Spelconcept
+    - Label template
+    - AI photos
+    - Software
+  - name: ID (from Assets (local))
+    id: fldqLKZxPiLuIBk4V
+    type: multipleLookupValues
+    via: Assets (local)
+    result: singleLineText
+  - name: Last Modified By
+    id: fldK7wxcUigaNkKfQ
+    type: lastModifiedBy
+  - name: Open Detail Interface
+    id: fldB6GjzDavygNDgb
+    type: url
+  - name: Create project plan
+    id: fld8xaZk25N980ewW
+    type: checkbox
+- name: Design revisies
+  id: tblB9sUwC1zbR6J12
+  fields:
+  - name: Design revisies ID
+    id: fldvW1GLzR6Y8RPpS
+    type: formula
+    result: singleLineText
+    formula: '{fldSqZ8fKxaTdyUMN} & " - rev" & {flduMUKB19wREjQDH}  & " - " & {fldI0msucpaVU8MLg}'
+  - name: Versie
+    id: fldEGqJ27nm1hgA7m
+    type: link
+    linkedTable: Versies
+    linkedTableId: tblBcNQEJLJInQrNg
+  - name: Titel (from versie)
+    id: fldI0msucpaVU8MLg
+    type: multipleLookupValues
+    via: Versie
+    result: singleLineText
+  - name: design_id
+    id: fldSqZ8fKxaTdyUMN
+    type: multipleLookupValues
+    via: Versie
+    result: singleLineText
+  - name: Revisie
+    id: flduMUKB19wREjQDH
+    type: number
+    integer: true
+  - name: URL
+    id: fldmDSjIdR35cZQpm
+    type: url
+  - name: Assets copy
+    id: fldklttnxKXH9s2vW
+    type: singleLineText
+  - name: Created
+    id: fld3qfW4v45geOZ3N
+    type: createdTime
+- name: HowTos
+  id: tblGabcy8GNFnAIGM
+  fields:
+  - name: Name
+    id: fldmTBSiK3Ac216HZ
+    type: singleLineText
+  - name: URL
+    id: fldp2tpzmiDgW5uQq
+    type: url
+  - name: Status
+    id: fldHposPVa0DSL8i1
+    type: singleSelect
+    choices:
+    - DRAFT
+    - FINAL
+  - name: Order
+    id: fldm9mvn5bsn1BtiN
+    type: number
+    integer: true
+  - name: Open URL
+    id: fldoZF5tPTYnLjXJ8
+    type: button
+- name: Spelversies
+  id: tblSYSqnj7A7YNIwh
+  fields:
+  - name: versie_ID
+    id: fldWw3qNXkDisp2sa
+    type: number
+    integer: true
+  - name: Spelnaam / werktitel en versie
+    id: fldGgqSBhmYkQVomv
+    type: multilineText
+  - name: Spellen
+    id: fldoDlZlajBJa4XSv
+    type: singleLineText
+  - name: Spelnaam / werktitel (from Spellen)
+    id: fld3zwvwjRYXZTir2
+    type: singleLineText
+  - name: SW release (nieuwste versie van spel)
+    id: fldfIiZu3lWvrCW5S
+    type: singleLineText
+  - name: Versie
+    id: fldEiUprGvtDWQARD
+    type: number
+    integer: true
+  - name: Deadline handleiding
+    id: fldQ6XDCDt8xfcxSC
+    type: singleLineText
+  - name: request_asset
+    id: fld2mg4ApdwiA2dpU
+    type: checkbox
+  - name: request_gametag
+    id: fld0407qqkqVDR4Zc
+    type: checkbox
+  - name: Assets
+    id: fldKXeyJEnFhKqCTp
+    type: link
+    linkedTable: Assets
+    linkedTableId: tblhRQAZ98kof2TbQ
+  - name: Versies (from Asset)
+    id: fldw47AiljG8QGzLM
+    type: multipleLookupValues
+    via: Assets
+    result: multipleRecordLinks
+  - name: Spelbundel
+    id: fldlwLKVOiT9aVgOy
+    type: singleLineText
+- name: Template relationship types
+  id: tblfXLg4GaYVezcUU
+  fields:
+  - name: Relationship
+    id: fld0dULlqJbscgYyT
+    type: singleLineText
+  - name: Reverse relationship
+    id: fldIQ5w6xFRlzFhmM
+    type: singleLineText
+  - name: Relationships (junction table)
+    id: fld3lhdd9cPQcVKOk
+    type: singleLineText
+- name: (DEPRECATED) Vertalingen
+  id: tblyoR18LbbhxXrdO
+  fields:
+  - name: Omschrijving
+    id: fldx0qbd27ESqW7It
+    type: multilineText
+  - name: Prioriteit
+    id: fldoOCft8mC02yQuR
+    type: singleSelect
+    choices:
+    - ''
+    - '!!'
+    - '!'
+    - '!!!'
+    - '-'
+  - name: Deadline
+    id: fldTztpFKT4jByWlN
+    type: date
+  - name: Volgende actie
+    id: fldKD4y3roOnbjz8M
+    type: link
+    linkedTable: Picoo
+    linkedTableId: tblSqaBn4uiHYlCG9
+  - name: Aangevraagd door
+    id: fldxrEmC2GbHdkRI6
+    type: link
+    linkedTable: Picoo
+    linkedTableId: tblSqaBn4uiHYlCG9
+  - name: Status
+    id: fldDJL2dpNWJKB8wo
+    type: singleSelect
+    choices:
+    - Not started
+    - In progress
+    - Done
+  - name: URL Google drive
+    id: fld35uE4qCxNesIbq
+    type: multilineText
+  - name: Opmerkingen
+    id: fldvg4kojFPkby9rH
+    type: multilineText
+  - name: Taal
+    id: fldWMZuhcdLAfRbRk
+    type: singleSelect
+    choices:
+    - DE
+    - EN
+  - name: Naar design
+    id: fldxbjvkcGoSUI6gQ
+    type: singleSelect
+    choices:
+    - ''
+    - checked
+  - name: Email adres (from Aangevraagd door)
+    id: fldjTWFjeVJMOwKZu
+    type: multipleLookupValues
+    via: Aangevraagd door
+    result: email
+  - name: Type
+    id: fldHFQw8vldx8sZbs
+    type: singleSelect
+    choices:
+    - Handleiding
+    - Print
+    - Overig
+  - name: Assets
+    id: fldJ5xGpDIIKdZXin
+    type: singleLineText
+- name: Comments
+  id: tbl972z4yG2X9LxIS
+  fields:
+  - name: Comment ID
+    id: fldTOcqJMaQXGSznR
+    type: autoNumber
+  - name: Comment
+    id: fldzHRiUD4Q4ReUmd
+    type: richText
+  - name: recordID
+    id: fldicVExJQasKnbl2
+    type: singleLineText
+  - name: tableID
+    id: fldmh4pEj7fPpi8CQ
+    type: singleLineText
+  - name: Status
+    id: fldiTLursvxyQiWSy
+    type: singleSelect
+    choices:
+    - Success
+    - Error
+  - name: baseID
+    id: fldjq5bPb6xjRrznE
+    type: singleLineText
+  - name: Calculation
+    id: fldF20sl67I2s5XXQ
+    type: formula
+    result: singleLineText
+    formula: RECORD_ID()
+  - name: Datum
+    id: fldXtHgVfOMGQZMsY
+    type: createdTime
+- name: Translation Requests
+  id: tbl6vEuEuwCGTMPNR
+  fields:
+  - name: ID
+    id: fldDxhW04gxMDD3iZ
+    type: autoNumber
+  - name: Source
+    id: fld8uJbXL8pJtafNT
+    type: link
+    linkedTable: Versies
+    linkedTableId: tblBcNQEJLJInQrNg
+  - name: Target
+    id: fld5GUm3TuKDTimjB
+    type: link
+    linkedTable: Versies
+    linkedTableId: tblBcNQEJLJInQrNg
+  - name: Status
+    id: fld9JKGQRcKTcvVe0
+    type: singleSelect
+    choices:
+    - Todo
+    - In progress
+    - Ready for translation
+    - Sent to translation agency
+    - Done
+    - Error
+  - name: Target language
+    id: fldHj8Vo3UjRQfsRI
+    type: singleSelect
+    choices:
+    - EN
+    - DE
+    - FR
+    - SE
+  - name: Error log
+    id: fldgLzjnhXmxo9bV9
+    type: multilineText
+  - name: file_id_content (from Source)
+    id: fldbQzTUlzr8iCrkO
+    type: multipleLookupValues
+    via: Source
+    result: singleLineText
+  - name: Titel (from Assets) (from Source)
+    id: fldemjefDhrTFWTuN
+    type: multipleLookupValues
+    via: Source
+    result: singleLineText
+  - name: Titel (from Assets) (from Target)
+    id: fld9A2vpbXsAks4DI
+    type: multipleLookupValues
+    via: Target
+    result: singleLineText
+  - name: Taal (from Assets) (from Source)
+    id: fld5LvQB51XBloO9X
+    type: multipleLookupValues
+    via: Source
+    result: multipleSelects
+    resultChoices:
+    - NL
+    - EN
+    - DE
+    - Taalonafhankelijk
+    - FR
+    - SE
+  - name: Omschrijving
+    id: fldLzhVmPoBfkj9Uc
+    type: formula
+    result: singleLineText
+    formula: '{fld5LvQB51XBloO9X} & " → " &{fldHj8Vo3UjRQfsRI} & " - " &  {fld9A2vpbXsAks4DI}'
+  - name: URL content (from Target)
+    id: fldhZGKdSkR6TLeJ1
+    type: multipleLookupValues
+    via: Target
+    result: url
+  - name: record_id
+    id: fldyqOxpBQqQgPreT
+    type: formula
+    result: singleLineText
+    formula: RECORD_ID()
+- name: Template languages
+  id: tblym3j384O00W0bH
+  fields:
+  - name: Name
+    id: fldJRBs0KJgfrz7xY
+    type: singleLineText
+  - name: Requested translations
+    id: fldLmAhs0fFlKGk8L
+    type: link
+    linkedTable: Versies
+    linkedTableId: tblBcNQEJLJInQrNg
+  - name: Vertaler
+    id: fld5Pajv4BUf3goqL
+    type: link
+    linkedTable: Picoo
+    linkedTableId: tblSqaBn4uiHYlCG9
+  - name: Assets
+    id: fldj1YwItRLtJMnb0
+    type: singleLineText
