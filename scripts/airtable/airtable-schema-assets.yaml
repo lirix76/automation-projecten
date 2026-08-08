@@ -51,6 +51,7 @@ tables:
     - Label template
     - AI photos
     - Software
+    - Product Informatie document
   - name: latest_version_interface_url
     id: flduwzISxR34qLl18
     type: multipleLookupValues
@@ -65,6 +66,7 @@ tables:
     - DRAFT
     - FINAL
     - CANCELED
+    - DEPRECATED
   - name: URL content (latest, from Versies)
     id: fld0Y9teI4EbP8YLc
     type: multipleLookupValues
@@ -284,6 +286,7 @@ tables:
     - DRAFT
     - FINAL
     - CANCELED
+    - DEPRECATED
   - name: status_design
     id: fldnS7rcKB9Iv6ro3
     type: singleSelect
@@ -294,16 +297,19 @@ tables:
     - DRAFT
     - FINAL
     - CANCELED
+    - DEPRECATED
   - name: status_asset
     id: fldPcXDyi8a9Eo5BW
     type: formula
     result: singleSelect
-    formula: "IF(\n  OR(\n    AND(\n      OR({fldnS7rcKB9Iv6ro3} = \"Niet van toepassing\"\
-      , {fld1skjSTZNgXTJtT} = \"Niet van toepassing\"),\n      OR({fldnS7rcKB9Iv6ro3}\
-      \ = \"FINAL\", {fld1skjSTZNgXTJtT} = \"FINAL\")\n    ),\n    AND({fldnS7rcKB9Iv6ro3}\
-      \ = \"FINAL\", {fld1skjSTZNgXTJtT} = \"FINAL\")\n  ),\n  \"FINAL\",\n  IF(\n\
-      \    OR({fldnS7rcKB9Iv6ro3} = \"CANCELED\", {fld1skjSTZNgXTJtT} = \"CANCELED\"\
-      ),\n    \"CANCELED\",\n    \"DRAFT\"\n  )\n)"
+    formula: "IF(\n  OR({fldnS7rcKB9Iv6ro3} = \"DEPRECATED\", {fld1skjSTZNgXTJtT}\
+      \ = \"DEPRECATED\"),\n  \"DEPRECATED\",\n  IF(\n    OR(\n      AND(\n      \
+      \  OR({fldnS7rcKB9Iv6ro3} = \"Niet van toepassing\", {fld1skjSTZNgXTJtT} = \"\
+      Niet van toepassing\"),\n        OR({fldnS7rcKB9Iv6ro3} = \"FINAL\", {fld1skjSTZNgXTJtT}\
+      \ = \"FINAL\")\n      ),\n      AND({fldnS7rcKB9Iv6ro3} = \"FINAL\", {fld1skjSTZNgXTJtT}\
+      \ = \"FINAL\")\n    ),\n    \"FINAL\",\n    IF(\n      OR({fldnS7rcKB9Iv6ro3}\
+      \ = \"CANCELED\", {fld1skjSTZNgXTJtT} = \"CANCELED\"),\n      \"CANCELED\",\n\
+      \      \"DRAFT\"\n    )\n  )\n)\n"
   - name: Taal (from Assets)
     id: fldrb6NKkz63XFjx2
     type: multipleLookupValues
@@ -447,6 +453,7 @@ tables:
     - Label template
     - AI photos
     - Software
+    - Product Informatie document
   - name: Slack handle formatted
     id: fld4pbeOI67VpdQzl
     type: formula
@@ -647,13 +654,14 @@ tables:
     type: formula
     description: checks whether the filename on google drive needs to be updated
     result: singleSelect
-    formula: "IF(\n  {fld2RYdkKU65Akjo7}, \n  \"⚠️ SYNC ERROR\",\n  IF(\n    OR(\n\
-      \      AND(\n        {fldOSqaYQ8kjHCrjP} != {fld7IE3CPlq4xhxpD},\n        {fldDin5l6ufuaC6Ro}\
-      \ = 0,\n        {fld1skjSTZNgXTJtT} != \"Niet van toepassing\",\n        NOT({fld0VZyVTxfgWYLHH}\
-      \ = \"\")\n      ),\n      AND(\n        {fldU7Siyi1Oh5pBUQ} != {fldeNv6DcLWmHE7OU},\n\
-      \        {flddt9Mswaq1AT3wH} = 0,\n        {fldnS7rcKB9Iv6ro3} != \"Niet van\
-      \ toepassing\",\n        NOT({fldRCI9VR9b5lrVNR} = \"\")\n      )\n    ),\n\
-      \    \"REQUIRES UPDATING\",\n    \"UP TO DATE\"\n  )\n)"
+    formula: "IF(\n  {fld2RYdkKU65Akjo7},\n  \"⚠️ SYNC ERROR\",\n  IF(\n    OR(\n\
+      \      AND(\n        {fldOSqaYQ8kjHCrjP} != {fld7IE3CPlq4xhxpD},\n        OR({fldDin5l6ufuaC6Ro}\
+      \ = 0, {fld1skjSTZNgXTJtT} = \"DEPRECATED\"),\n        {fld1skjSTZNgXTJtT} !=\
+      \ \"Niet van toepassing\",\n        NOT({fld0VZyVTxfgWYLHH} = \"\")\n      ),\n\
+      \      AND(\n        {fldU7Siyi1Oh5pBUQ} != {fldeNv6DcLWmHE7OU},\n        OR({flddt9Mswaq1AT3wH}\
+      \ = 0, {fldnS7rcKB9Iv6ro3} = \"DEPRECATED\"),\n        {fldnS7rcKB9Iv6ro3} !=\
+      \ \"Niet van toepassing\",\n        NOT({fldRCI9VR9b5lrVNR} = \"\")\n      )\n\
+      \    ),\n    \"REQUIRES UPDATING\",\n    \"UP TO DATE\"\n  )\n)\n"
   - name: create_copy_of_asset
     id: fldirIuSSaT8x6uxi
     type: checkbox
@@ -772,6 +780,7 @@ tables:
     resultChoices:
     - Todo
     - In progress
+    - Hold
     - Ready for translation
     - Sent to translation agency
     - Done
@@ -953,6 +962,7 @@ tables:
     - Label template
     - AI photos
     - Software
+    - Product Informatie document
   - name: ID (from Assets (local))
     id: fldqLKZxPiLuIBk4V
     type: multipleLookupValues
@@ -1198,12 +1208,23 @@ tables:
     type: link
     linkedTable: Versies
     linkedTableId: tblBcNQEJLJInQrNg
+  - name: file_id_content (from Target)
+    id: fld74uCAl2fAEUDnz
+    type: multipleLookupValues
+    via: Target
+    result: singleLineText
+  - name: file_name_content (from Target)
+    id: flddeKnZ4N0IjU9bh
+    type: multipleLookupValues
+    via: Target
+    result: singleLineText
   - name: Status
     id: fld9JKGQRcKTcvVe0
     type: singleSelect
     choices:
     - Todo
     - In progress
+    - Hold
     - Ready for translation
     - Sent to translation agency
     - Done
@@ -1261,6 +1282,9 @@ tables:
     type: formula
     result: singleLineText
     formula: RECORD_ID()
+  - name: lastModified
+    id: fldimup7yHmDYfx3l
+    type: lastModifiedTime
 - name: Template languages
   id: tblym3j384O00W0bH
   fields:

@@ -290,6 +290,7 @@ tables:
     - DRAFT
     - FINAL
     - CANCELED
+    - DEPRECATED
   - name: Assets URL
     id: fldIlAl5EN5AajtUc
     type: multipleLookupValues
@@ -484,6 +485,11 @@ tables:
   - name: Name
     id: fldan7gBqfGMbOlP9
     type: multilineText
+  - name: recordId
+    id: fldUxEQJQp2ggQEje
+    type: formula
+    result: singleLineText
+    formula: RECORD_ID()
   - name: Titel
     id: fld0YxwsXTwClm1kt
     type: singleLineText
@@ -497,6 +503,7 @@ tables:
     - DRAFT
     - FINAL
     - CANCELED
+    - DEPRECATED
   - name: Prioriteit
     id: fld24n58pAO58U7Ez
     type: singleSelect
@@ -567,6 +574,7 @@ tables:
     - Label template
     - AI photos
     - Software
+    - Product Informatie document
   - name: ID
     id: fldvaT2pGG2cAFeWg
     type: multilineText
@@ -609,6 +617,7 @@ tables:
     - DRAFT
     - FINAL
     - CANCELED
+    - DEPRECATED
   - name: status_asset
     id: fld44MznGXjKNChI7
     type: singleSelect
@@ -616,6 +625,7 @@ tables:
     - DRAFT
     - FINAL
     - CANCELED
+    - DEPRECATED
   - name: Projecten
     id: fld54XRj5xgDvejkR
     type: singleLineText
@@ -724,6 +734,7 @@ tables:
     - DRAFT
     - FINAL
     - CANCELED
+    - DEPRECATED
   - name: Open asset
     id: fldaEs5XGejCpzuMO
     type: button
@@ -762,6 +773,7 @@ tables:
     - Label template
     - AI photos
     - Software
+    - Product Informatie document
   - name: URL content (latest, from Versies)
     id: fldylxNFu7YvA4eLI
     type: singleLineText
