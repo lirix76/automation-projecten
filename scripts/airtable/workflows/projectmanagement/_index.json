@@ -1,0 +1,68 @@
+[
+  {
+    "id": "wflCQOBMwMMjMUIsh",
+    "name": "Email update openstaande taken - deprecated",
+    "deploymentStatus": "undeployed",
+    "link": "https://airtable.com/appopJMiQr8csSHhh/wflCQOBMwMMjMUIsh"
+  },
+  {
+    "id": "wflV3YXw9FJdfH1bk",
+    "name": "Create Slack channel for new projects",
+    "deploymentStatus": "deployed",
+    "link": "https://airtable.com/appopJMiQr8csSHhh/wflV3YXw9FJdfH1bk"
+  },
+  {
+    "id": "wfltxt8QNlwFGg0qZ",
+    "name": "Catch webhook to link asset to project",
+    "deploymentStatus": "deployed",
+    "link": "https://airtable.com/appopJMiQr8csSHhh/wfltxt8QNlwFGg0qZ"
+  },
+  {
+    "id": "wfl7riPnuIND7eCfQ",
+    "name": "Update projectdoc when an asset with type project is found",
+    "deploymentStatus": "deployed",
+    "link": "https://airtable.com/appopJMiQr8csSHhh/wfl7riPnuIND7eCfQ"
+  },
+  {
+    "id": "wfloELHW3LNdBtahl",
+    "name": "Create projectplan (with checks)",
+    "deploymentStatus": "deployed",
+    "link": "https://airtable.com/appopJMiQr8csSHhh/wfloELHW3LNdBtahl"
+  },
+  {
+    "id": "wflIblYpX9Mys6q3Y",
+    "name": "Bereken voorstel aantal uren",
+    "deploymentStatus": "deployed",
+    "link": "https://airtable.com/appopJMiQr8csSHhh/wflIblYpX9Mys6q3Y"
+  },
+  {
+    "id": "wflMlK41ftY2t6pa1",
+    "name": "Email update openstaande taken",
+    "deploymentStatus": "deployed",
+    "link": "https://airtable.com/appopJMiQr8csSHhh/wflMlK41ftY2t6pa1"
+  },
+  {
+    "id": "wflecUGSZaSAV5QLg",
+    "name": "Taak Iris",
+    "deploymentStatus": "deployed",
+    "link": "https://airtable.com/appopJMiQr8csSHhh/wflecUGSZaSAV5QLg"
+  },
+  {
+    "id": "wflPlb5ExaZdZkD8z",
+    "name": "Create planning record",
+    "deploymentStatus": "deployed",
+    "link": "https://airtable.com/appopJMiQr8csSHhh/wflPlb5ExaZdZkD8z"
+  },
+  {
+    "id": "wflpsJp2NjbxYeSgf",
+    "name": "Match taken-versie records",
+    "deploymentStatus": "deployed",
+    "link": "https://airtable.com/appopJMiQr8csSHhh/wflpsJp2NjbxYeSgf"
+  },
+  {
+    "id": "wflTiaLg3V2iteIa1",
+    "name": "Scheduled retry for match taken-versie records",
+    "deploymentStatus": "deployed",
+    "link": "https://airtable.com/appopJMiQr8csSHhh/wflTiaLg3V2iteIa1"
+  }
+]
