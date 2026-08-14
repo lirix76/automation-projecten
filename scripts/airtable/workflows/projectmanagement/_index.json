@@ -1,11 +1,5 @@
 [
   {
-    "id": "wflCQOBMwMMjMUIsh",
-    "name": "Email update openstaande taken - deprecated",
-    "deploymentStatus": "undeployed",
-    "link": "https://airtable.com/appopJMiQr8csSHhh/wflCQOBMwMMjMUIsh"
-  },
-  {
     "id": "wflV3YXw9FJdfH1bk",
     "name": "Create Slack channel for new projects",
     "deploymentStatus": "deployed",
@@ -64,5 +58,17 @@
     "name": "Scheduled retry for match taken-versie records",
     "deploymentStatus": "deployed",
     "link": "https://airtable.com/appopJMiQr8csSHhh/wflTiaLg3V2iteIa1"
+  },
+  {
+    "id": "wflf5XVtDqScYKysm",
+    "name": "Backfill versie_id from manually-linked Versions",
+    "deploymentStatus": "deployed",
+    "link": "https://airtable.com/appopJMiQr8csSHhh/wflf5XVtDqScYKysm"
+  },
+  {
+    "id": "wflRAIinrRyD60YAN",
+    "name": "Scheduled retry for backfill versie_id from manually-linked Versions",
+    "deploymentStatus": "deployed",
+    "link": "https://airtable.com/appopJMiQr8csSHhh/wflRAIinrRyD60YAN"
   }
 ]

@@ -1,0 +1,238 @@
+{
+  "id": "wflRAIinrRyD60YAN",
+  "name": "Scheduled retry for backfill versie_id from manually-linked Versions",
+  "description": "Companion to wflf5XVtDqScYKysm (mirrors the existing wflpsJp2NjbxYeSgf / wflTiaLg3V2iteIa1 pair). The instant automation's recordMatchesConditions trigger only fires for Taken that newly enter the \"Versions set, versie_id empty\" state after activation -- it does not retroactively process records already in that state when turned on. This daily sweep finds all currently-pending Taken and backfills versie_id for each, covering the pre-existing 62 manually-linked records (and acting as an ongoing safety net going forward). No-code, same pattern as wflf5XVtDqScYKysm: findRecords + repeatingGroup + (nested findRecords + conditionalGroup + updateRecord). Single-linked-Versie case only -- guarded on each loop item's OWN Versions link count (fixed 2026-08-14: an earlier version of this guard incorrectly checked the nested findRecords match count instead, which is always 1 regardless of how many Versies are linked; this mis-processed one multi-Versie Taken via the sibling instant automation before the fix).",
+  "deploymentStatus": "deployed",
+  "deploymentError": null,
+  "link": "https://airtable.com/appopJMiQr8csSHhh/wflRAIinrRyD60YAN",
+  "trigger": {
+    "type": "cron",
+    "inputs": {
+      "type": "daily",
+      "config": {
+        "obj": {
+          "localTriggerTimes": [{ "obj": { "hour": 0, "minute": 20, "second": 0 } }],
+          "tz": "Europe/Amsterdam",
+          "dateModified": "2026-08-14T14:25:30.000Z",
+          "width": 1
+        }
+      },
+      "start": "2026-08-14T14:25:30.000Z"
+    }
+  },
+  "nodes": [
+    {
+      "key": "waczjQhjabsqJFk2H",
+      "type": "findRecords",
+      "description": "Find all Taken currently matching Versions set + versie_id empty, including ones that already matched before the instant automation was turned on",
+      "inputs": {
+        "limit": 1000,
+        "tableId": "tblW5PkBL4mysdN7t",
+        "queryType": "filtersObj",
+        "filtersObj": {
+          "obj": {
+            "operator": "and",
+            "operands": {
+              "tuple": [
+                { "obj": { "operator": "isNotEmpty", "operands": { "tuple": ["fldBeKksYIUA1nXkv"] } } },
+                { "obj": { "operator": "isEmpty", "operands": { "tuple": ["fldI42625LH8zyLh3"] } } }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "key": "wdek1sajP5cTp1Fvl",
+      "type": "repeatingGroup",
+      "name": "For each pending Taak",
+      "inputs": { "items": { "$ref": "waczjQhjabsqJFk2H", "path": ["records"] } },
+      "nodes": [
+        {
+          "key": "wacVfejX0apJ9OcFG",
+          "type": "findRecords",
+          "description": "Resolve the current Taak's linked Versions record by its own recordId formula field",
+          "inputs": {
+            "limit": 1,
+            "tableId": "tbl4jDE911lJl6j7f",
+            "queryType": "filtersObj",
+            "filtersObj": {
+              "obj": {
+                "operator": "and",
+                "operands": {
+                  "tuple": [
+                    {
+                      "obj": {
+                        "operator": "=",
+                        "operands": {
+                          "tuple": [
+                            "fldUxEQJQp2ggQEje",
+                            {
+                              "fn": "first",
+                              "args": [
+                                {
+                                  "fn": "map",
+                                  "args": [
+                                    {
+                                      "fn": "readProperty",
+                                      "args": [
+                                        {
+                                          "fn": "readProperty",
+                                          "args": [
+                                            { "fn": "pickBranchData", "args": [{ "$ref": "wdek1sajP5cTp1Fvl", "path": ["selectedNextNodes"] }] },
+                                            "cellValuesByFieldId"
+                                          ]
+                                        },
+                                        "fldBeKksYIUA1nXkv"
+                                      ]
+                                    },
+                                    { "fn": "propertyGetter", "args": ["id"] }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "key": "wde5ZDTRlbjbdPxib",
+          "type": "conditionalGroup",
+          "branches": [
+            {
+              "name": "Exactly one linked Versie, and it resolved to exactly one Versions match",
+              "condition": {
+                "conjunction": "and",
+                "conditions": [
+                  {
+                    "left": {
+                      "fn": "length",
+                      "args": [
+                        {
+                          "fn": "readProperty",
+                          "args": [
+                            {
+                              "fn": "readProperty",
+                              "args": [
+                                { "fn": "pickBranchData", "args": [{ "$ref": "wdek1sajP5cTp1Fvl", "path": ["selectedNextNodes"] }] },
+                                "cellValuesByFieldId"
+                              ]
+                            },
+                            "fldBeKksYIUA1nXkv"
+                          ]
+                        }
+                      ]
+                    },
+                    "operator": "=",
+                    "right": 1,
+                    "valueType": "number",
+                    "dataType": "literal"
+                  },
+                  {
+                    "left": { "fn": "length", "args": [{ "$ref": "wacVfejX0apJ9OcFG", "path": ["records"] }] },
+                    "operator": "=",
+                    "right": 1,
+                    "valueType": "number",
+                    "dataType": "literal"
+                  }
+                ]
+              },
+              "nodes": [
+                {
+                  "key": "wacXu9y5xJNFvjSNa",
+                  "type": "updateRecord",
+                  "description": "Copy the matched Versions record's recordIdVersion into this Taak's versie_id",
+                  "inputs": {
+                    "updateRecordMethod": "customFields",
+                    "tableId": "tblW5PkBL4mysdN7t",
+                    "rowId": { "template": [{ "fn": "readProperty", "args": [{ "fn": "pickBranchData", "args": [{ "$ref": "wdek1sajP5cTp1Fvl", "path": ["selectedNextNodes"] }] }, "id"] }] },
+                    "fields": {
+                      "obj": {
+                        "fldI42625LH8zyLh3": {
+                          "template": [
+                            {
+                              "fn": "readProperty",
+                              "args": [
+                                {
+                                  "fn": "first",
+                                  "args": [
+                                    {
+                                      "fn": "map",
+                                      "args": [
+                                        { "$ref": "wacVfejX0apJ9OcFG", "path": ["records"] },
+                                        { "fn": "propertyGetter", "args": ["cellValuesByFieldId"] }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "fld8vXT2sNGqYtRDo"
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Multiple linked Versies, or no unambiguous match -- accepted gap, log and skip",
+              "condition": null,
+              "nodes": [
+                {
+                  "key": "wac2yGH0uYWKOYfAU",
+                  "type": "updateRecord",
+                  "description": "Log why this record was skipped instead of silently doing nothing",
+                  "inputs": {
+                    "updateRecordMethod": "customFields",
+                    "tableId": "tblW5PkBL4mysdN7t",
+                    "rowId": { "template": [{ "fn": "readProperty", "args": [{ "fn": "pickBranchData", "args": [{ "$ref": "wdek1sajP5cTp1Fvl", "path": ["selectedNextNodes"] }] }, "id"] }] },
+                    "fields": {
+                      "obj": {
+                        "fld4kYetFjPFM8BcP": {
+                          "template": [
+                            "SKIPPED versie_id backfill (scheduled sweep): linked Versie count is ",
+                            {
+                              "fn": "length",
+                              "args": [
+                                {
+                                  "fn": "readProperty",
+                                  "args": [
+                                    {
+                                      "fn": "readProperty",
+                                      "args": [
+                                        { "fn": "pickBranchData", "args": [{ "$ref": "wdek1sajP5cTp1Fvl", "path": ["selectedNextNodes"] }] },
+                                        "cellValuesByFieldId"
+                                      ]
+                                    },
+                                    "fldBeKksYIUA1nXkv"
+                                  ]
+                                }
+                              ]
+                            },
+                            " (expected exactly 1) or Versions match count is ",
+                            { "fn": "length", "args": [{ "$ref": "wacVfejX0apJ9OcFG", "path": ["records"] }] },
+                            " (expected exactly 1) -- accepted gap for multi-Versie Taken"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "deployedVersion": null,
+  "configurationStatus": "valid"
+}

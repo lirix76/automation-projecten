@@ -411,7 +411,7 @@ tables:
   - name: Omschrijving
     id: fldwK4oXwt9wMEVdq
     type: richText
-  - name: Assignee
+  - name: Toewijzen aan
     id: fld3YCjA3KSJQRvPW
     type: link
     linkedTable: Picoo users
@@ -419,7 +419,7 @@ tables:
   - name: Slack (from Assignee)
     id: fldaELXZHLcggN1fN
     type: multipleLookupValues
-    via: Assignee
+    via: Toewijzen aan
     result: multilineText
   - name: Status
     id: fldVOsyRlR76odsA0
@@ -481,7 +481,7 @@ tables:
     type: link
     linkedTable: Taken
     linkedTableId: tblW5PkBL4mysdN7t
-  - name: Assets
+  - name: Versions
     id: fldBeKksYIUA1nXkv
     type: link
     linkedTable: Versions
@@ -489,7 +489,7 @@ tables:
   - name: Status designwerk (from Assets)
     id: fldhjYVOCkGYOvp7U
     type: multipleLookupValues
-    via: Assets
+    via: Versions
     result: singleSelect
     resultChoices:
     - Niet van toepassing
@@ -502,7 +502,7 @@ tables:
   - name: Assets URL
     id: fldIlAl5EN5AajtUc
     type: multipleLookupValues
-    via: Assets
+    via: Versions
     result: multilineText
   - name: Interface URL
     id: fldZ9hO1xf6s2c7UN
@@ -569,6 +569,30 @@ tables:
     - On hold
     - Done
     - Geannulleerd
+  - name: versie_id
+    id: fldI42625LH8zyLh3
+    type: multilineText
+    description: Do not rename this field. The "Nieuwe taak" form's prefill URL (built
+      by Versies.create_task_url) references it by name (prefill_versie_id), not by
+      field ID — field-ID prefill was tested and breaks the form's submit button.
+      A rename would silently break the asset-to-task link.
+  - name: systemMessages
+    id: fld4kYetFjPFM8BcP
+    type: multilineText
+  - name: Aangevraagd door
+    id: fldgxT07Z3wTELd8b
+    type: link
+    linkedTable: Picoo users
+    linkedTableId: tblBraAP1jnIZNyoU
+  - name: include_in_email
+    id: fldcjF4qPLSDyh4IN
+    type: formula
+    result: checkbox
+    formula: "OR(\n  {fldvaTT0fp6LVYRNG} = BLANK(),\n  FIND(\"In progress\", ARRAYJOIN({fldAITAKGoRg491Rf}))\
+      \ > 0\n)"
+  - name: link_versions_version_id
+    id: fldNx3vaovlqp1p9h
+    type: checkbox
 - name: Updates
   id: tblc2GJcRzgdArNua
   fields:
@@ -673,6 +697,9 @@ tables:
   - name: Name
     id: fldW1Tc5L59mAhZTP
     type: singleLineText
+  - name: Taken overzicht URL
+    id: fldurepaBJrBNWeq6
+    type: url
   - name: Slack
     id: fldpwE3DXE2FTdwCO
     type: multilineText
@@ -762,6 +789,11 @@ tables:
     - Support / Ondersteunend
     - Adviseur / Expert
     - Volger / Stakeholder
+  - name: Taken 2
+    id: fldJjCvgCm9ItyOGu
+    type: link
+    linkedTable: Taken
+    linkedTableId: tblW5PkBL4mysdN7t
 - name: Versions
   id: tbl4jDE911lJl6j7f
   fields:
@@ -773,6 +805,9 @@ tables:
     type: formula
     result: singleLineText
     formula: RECORD_ID()
+  - name: recordIdVersion
+    id: fld8vXT2sNGqYtRDo
+    type: multilineText
   - name: Titel
     id: fld0YxwsXTwClm1kt
     type: singleLineText

@@ -1,0 +1,165 @@
+{
+  "id": "wflf5XVtDqScYKysm",
+  "name": "Backfill versie_id from manually-linked Versions",
+  "description": "No-code reverse of \"Match taken-versie records\" (wflpsJp2NjbxYeSgf): when a Taken record already has a Versions link (e.g. linked manually in the UI, not via the Nieuwe taak form) but no versie_id, find that same Versions record via its own recordId formula field and copy its recordIdVersion (the Assets-base record ID) into Taken.versie_id. Keeps versie_id populated as a permanent cross-base trace regardless of how the Taken/Versie link was made -- the Assets base's \"Link task to versions\" automation (wflLEzbMBJHdbtukc) depends on versie_id being set to build its reciprocal Versies -> Taken link. Only handles the single-linked-Versie case -- guarded on the trigger record's OWN Versions link count (fixed 2026-08-14: an earlier version of this guard incorrectly checked the findRecords match count instead, which is always 1 regardless of how many Versies are linked, and mis-processed one multi-Versie Taken by silently using only its first link).",
+  "deploymentStatus": "deployed",
+  "deploymentError": null,
+  "link": "https://airtable.com/appopJMiQr8csSHhh/wflf5XVtDqScYKysm",
+  "trigger": {
+    "type": "recordMatchesConditions",
+    "inputs": {
+      "tableId": "tblW5PkBL4mysdN7t",
+      "filtersObj": {
+        "obj": {
+          "operator": "and",
+          "operands": {
+            "tuple": [
+              { "obj": { "operator": "isNotEmpty", "operands": { "tuple": ["fldBeKksYIUA1nXkv"] } } },
+              { "obj": { "operator": "isEmpty", "operands": { "tuple": ["fldI42625LH8zyLh3"] } } }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "nodes": [
+    {
+      "key": "wacRvyyChfVAxG0V1",
+      "type": "findRecords",
+      "description": "Find the PM-local Versions record already linked via Taken.Versions, by its own recordId formula field, to read its recordIdVersion (the Assets-base record ID)",
+      "inputs": {
+        "limit": 1,
+        "tableId": "tbl4jDE911lJl6j7f",
+        "queryType": "filtersObj",
+        "filtersObj": {
+          "obj": {
+            "operator": "and",
+            "operands": {
+              "tuple": [
+                {
+                  "obj": {
+                    "operator": "=",
+                    "operands": {
+                      "tuple": [
+                        "fldUxEQJQp2ggQEje",
+                        {
+                          "fn": "first",
+                          "args": [
+                            {
+                              "fn": "map",
+                              "args": [
+                                { "$ref": "trigger", "path": ["cellValuesByFieldId", "fldBeKksYIUA1nXkv"] },
+                                { "fn": "propertyGetter", "args": ["id"] }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "key": "wdeCAXGGZO4E0lXsn",
+      "type": "conditionalGroup",
+      "branches": [
+        {
+          "name": "Exactly one linked Versie, and it resolved to exactly one Versions match",
+          "condition": {
+            "conjunction": "and",
+            "conditions": [
+              {
+                "left": { "fn": "length", "args": [{ "$ref": "trigger", "path": ["cellValuesByFieldId", "fldBeKksYIUA1nXkv"] }] },
+                "operator": "=",
+                "right": 1,
+                "valueType": "number",
+                "dataType": "literal"
+              },
+              {
+                "left": { "fn": "length", "args": [{ "$ref": "wacRvyyChfVAxG0V1", "path": ["records"] }] },
+                "operator": "=",
+                "right": 1,
+                "valueType": "number",
+                "dataType": "literal"
+              }
+            ]
+          },
+          "nodes": [
+            {
+              "key": "wacIsJdvmCvzKP6gF",
+              "type": "updateRecord",
+              "description": "Copy the matched Versions record's recordIdVersion into Taken.versie_id",
+              "inputs": {
+                "updateRecordMethod": "customFields",
+                "tableId": "tblW5PkBL4mysdN7t",
+                "rowId": { "template": [{ "$ref": "trigger", "path": ["id"] }] },
+                "fields": {
+                  "obj": {
+                    "fldI42625LH8zyLh3": {
+                      "template": [
+                        {
+                          "fn": "readProperty",
+                          "args": [
+                            {
+                              "fn": "first",
+                              "args": [
+                                {
+                                  "fn": "map",
+                                  "args": [
+                                    { "$ref": "wacRvyyChfVAxG0V1", "path": ["records"] },
+                                    { "fn": "propertyGetter", "args": ["cellValuesByFieldId"] }
+                                  ]
+                                }
+                              ]
+                            },
+                            "fld8vXT2sNGqYtRDo"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Multiple linked Versies, or no unambiguous match -- accepted gap, log and skip",
+          "condition": null,
+          "nodes": [
+            {
+              "key": "wacYDcE6Q7fKEarTv",
+              "type": "updateRecord",
+              "description": "Log why this record was skipped instead of silently doing nothing",
+              "inputs": {
+                "updateRecordMethod": "customFields",
+                "tableId": "tblW5PkBL4mysdN7t",
+                "rowId": { "template": [{ "$ref": "trigger", "path": ["id"] }] },
+                "fields": {
+                  "obj": {
+                    "fld4kYetFjPFM8BcP": {
+                      "template": [
+                        "SKIPPED versie_id backfill: linked Versie count is ",
+                        { "fn": "length", "args": [{ "$ref": "trigger", "path": ["cellValuesByFieldId", "fldBeKksYIUA1nXkv"] }] },
+                        " (expected exactly 1) or Versions match count is ",
+                        { "fn": "length", "args": [{ "$ref": "wacRvyyChfVAxG0V1", "path": ["records"] }] },
+                        " (expected exactly 1) -- accepted gap for multi-Versie Taken"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "deployedVersion": null,
+  "configurationStatus": "valid"
+}
