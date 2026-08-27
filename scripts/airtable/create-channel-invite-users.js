@@ -5,19 +5,19 @@
 //          triggering record's Airtable record ID.
 // TABLES:  Projecten (tblNDZDbjxejZDmnQ), Picoo users (tblBraAP1jnIZNyoU)
 // DESCRIPTION: Creates a Slack channel for the project, then invites
-//              everyone linked via "Medewerkers", "Verantwoordelijk"
-//              and "Teamleden" (resolved through Picoo users), posts a
-//              welcome message with project links, and pins it.
+//              everyone linked via "Verantwoordelijk" and "Teamleden"
+//              (resolved through Picoo users), posts a welcome message
+//              with project links, and pins it.
 // ============================================================
 
 // -------------------------------------------------------------------------
 // Field / table IDs
 // -------------------------------------------------------------------------
 const PROJECTEN_TABLE_ID = "tblNDZDbjxejZDmnQ";
-const FIELD_SLACK_FROM_MEDEWERKERS = "fldCajroxijsQ2w2y"; // Slack ID (from Medewerkers)
 const FIELD_SLACK_FROM_VERANTWOORDELIJK = "fldn3cJ1E6smFznXM"; // Slack ID (from Verantwoordelijk)
 const FIELD_TEAMLEDEN = "fldI7witEWD8TyOi0"; // Teamleden (lookup -> linked Picoo users records)
 const FIELD_SCRIPT_LOG = "fld0IowHqbNeloFqs"; // Script Log (single line text)
+const FIELD_CREATE_SLACK_CHANNEL = "fldLB4mBrLyfR6Drk"; // create-slack-channel (checkbox; also this automation's trigger field)
 
 const PICOO_USERS_TABLE_ID = "tblBraAP1jnIZNyoU";
 const FIELD_PICOO_USER_SLACK = "fldpwE3DXE2FTdwCO"; // Slack
@@ -71,17 +71,16 @@ async function logScriptStatus(message) {
 }
 
 /**
- * Collects the Slack IDs of Medewerkers, Verantwoordelijk and Teamleden
- * for the triggering record, resolving Teamleden through Picoo users
- * (Teamleden is a lookup of a linked-record field, so it returns record
- * references rather than Slack ID text).
+ * Collects the Slack IDs of Verantwoordelijk and Teamleden for the
+ * triggering record, resolving Teamleden through Picoo users (Teamleden
+ * is a lookup of a linked-record field, so it returns record references
+ * rather than Slack ID text).
  */
 async function getSlackUserIds() {
     const record = await projectenTable.selectRecordAsync(recordId, {
-        fields: [FIELD_SLACK_FROM_MEDEWERKERS, FIELD_SLACK_FROM_VERANTWOORDELIJK, FIELD_TEAMLEDEN]
+        fields: [FIELD_SLACK_FROM_VERANTWOORDELIJK, FIELD_TEAMLEDEN]
     });
 
-    const medewerkersSlack = record.getCellValue(FIELD_SLACK_FROM_MEDEWERKERS) || [];
     const verantwoordelijkSlack = record.getCellValue(FIELD_SLACK_FROM_VERANTWOORDELIJK) || [];
     // Teamleden looks up a linked-record field (Allocaties -> Medewerker), so
     // Airtable returns an array of arrays (one sub-array per Allocatie record,
@@ -104,7 +103,7 @@ async function getSlackUserIds() {
             .filter(Boolean);
     }
 
-    const allSlackIds = [...medewerkersSlack, ...verantwoordelijkSlack, ...teamledenSlack].filter(Boolean);
+    const allSlackIds = [...verantwoordelijkSlack, ...teamledenSlack].filter(Boolean);
     return [...new Set(allSlackIds)];
 }
 
@@ -283,6 +282,12 @@ try {
     try {
         if (recordId) {
             await logScriptStatus(`ERROR: ${error.message}`);
+            // Reset the trigger checkbox so the record doesn't sit stuck
+            // "matched" with no Slack channel ever created - unchecking it
+            // (then rechecking) lets the automation be retried.
+            await projectenTable.updateRecordAsync(recordId, {
+                [FIELD_CREATE_SLACK_CHANNEL]: false
+            });
         }
     } catch (_) {}
     throw error;
