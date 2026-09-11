@@ -8,6 +8,6 @@
 # N8N_SYNC_WORKFLOWS="Daily ERPNext Purchase Orders Sync to Airtable"
 
 # Airtable
-AIRTABLE_API_KEY="op://Employee/Airtable PAT - read schema/password"
+AIRTABLE_API_KEY="op://CEO/Airtable/PAT projecten"
 #AIRTABLE_BASE_ID=appopJMiQr8csSHhh,app0zzPtwBSKpGFRZ #Projecten base and assets base
 AIRTABLE_BASE_ID=appopJMiQr8csSHhh #Projecten base
