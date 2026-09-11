@@ -25,7 +25,7 @@ All scripts run from this project folder using the shared `tools/` venv:
 
 ```bash
 # Sync Airtable schema to airtable-schema-project-planning.yaml
-op run --env-file .env -- ../tools/.venv/bin/python ../tools/sync-airtable-schema.py
+op run --env-file=.env.tpl -- ../tools/.venv/bin/python ../tools/sync-airtable-schema.py
 
 # Sync n8n workflows to ./workflows/
 ../tools/.venv/bin/python ../tools/sync-n8n.py
@@ -40,8 +40,20 @@ cd ../tools && ./setup.sh
 
 ## Credentials
 
-- `.env` — Airtable credentials injected via 1Password CLI (`op run`). Contains `AIRTABLE_API_KEY` (as `op://` reference) and `AIRTABLE_BASE_ID` (`appopJMiQr8csSHhh`).
+- `.env.tpl` — Airtable credentials, resolved via 1Password CLI (`op run --env-file=.env.tpl`). Contains only `op://` references (`AIRTABLE_API_KEY`) and the non-secret `AIRTABLE_BASE_ID` (`appopJMiQr8csSHhh`), so it's safe to commit — no separate `.env` copy needed. Requires the 1Password app unlocked and access to the referenced vault.
 - `../tools/.env` — Shared n8n credentials (`N8N_API_KEY`, `N8N_DOMAIN`).
+
+## Airtable Access
+
+Use the `airtable-mcp` CLI (https://github.com/Airtable/airtable-mcp-cli), not the interactive `mcp__claude_ai_Airtable__*` MCP tools, for all Airtable reads/writes in this project. Invoke it via Bash with the token resolved from `.env.tpl`:
+
+```bash
+op run --env-file=.env.tpl -- bash -c 'AIRTABLE_TOKEN="$AIRTABLE_API_KEY" airtable-mcp <tool> [--flags]'
+```
+
+- `airtable-mcp tools` lists every available tool (same surface as the MCP server: `list-tables-for-base`, `get-table-schema`, `list-records-for-table`, `create-records-for-table`, `update-records-for-table`, etc.) — each has `--help`.
+- This project's base ID is `$AIRTABLE_BASE_ID` from `.env.tpl` (`appopJMiQr8csSHhh`); pass it as `--baseId`.
+- Requires the 1Password app unlocked and the `airtable-mcp` binary on `PATH` (installed by `tools/setup.sh`, see `../tools/CLAUDE.md`).
 
 ## Airtable Schema
 
