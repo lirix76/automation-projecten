@@ -4,12 +4,12 @@
 //          (tblW5PkBL4mysdN7t), trigger type recordCreated — fires once
 //          per newly created record, regardless of field values.
 // TABLES:  Taken (tblW5PkBL4mysdN7t)
-// LINK:    (automation not created yet — Airtable API rejected
-//          create_automation with 403 Forbidden using the "read schema"
-//          PAT in .env.tpl; the trigger itself still needs to be created
-//          with a token that has automation-write scope. Fill in this
-//          LINK line with https://airtable.com/appopJMiQr8csSHhh/<wflId>
-//          once that trigger exists.)
+// LINK:    https://airtable.com/appopJMiQr8csSHhh/wflDCbwhn29AOZO34
+//          Draft automation created with the recordCreated trigger below,
+//          but customScript nodes cannot be created via any Airtable MCP
+//          tool (readOnlyNodeType) — a placeholder "updateRecord" node
+//          stands in and must be replaced with a "Run a script" action
+//          pasting in this file before the automation is turned on.
 // DESCRIPTION: If the triggering record has more than one person in
 //              "Toewijzen aan", keeps the record for the first assignee
 //              and creates one duplicate per remaining assignee, copying
