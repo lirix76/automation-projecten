@@ -3,26 +3,29 @@
 // TRIGGER: Automation "Split multi-assignee task" on Taken
 //          (tblW5PkBL4mysdN7t), trigger type recordCreated — fires once
 //          per newly created record, regardless of field values.
+//          Runs inside a conditionalGroup gated on
+//          length(Toewijzen aan) > 1, added by the user directly in the
+//          Airtable UI, so the script only executes for records that
+//          already have 2+ assignees.
 // TABLES:  Taken (tblW5PkBL4mysdN7t)
 // LINK:    https://airtable.com/appopJMiQr8csSHhh/wflDCbwhn29AOZO34
-//          Draft automation created with the recordCreated trigger below,
-//          but customScript nodes cannot be created via any Airtable MCP
-//          tool (readOnlyNodeType) — a placeholder "updateRecord" node
-//          stands in and must be replaced with a "Run a script" action
-//          pasting in this file before the automation is turned on.
 // DESCRIPTION: If the triggering record has more than one person in
 //              "Toewijzen aan", keeps the record for the first assignee
 //              and creates one duplicate per remaining assignee, copying
 //              every other writable field. Every record this script
 //              creates has exactly one assignee, so it re-fires this
-//              same automation harmlessly as a no-op — no extra guard
-//              field needed. Does not link the resulting records to each
-//              other. See openspec/changes/split-multi-assignee-task/
-//              specs/task-assignee-split/spec.md for the full behavior
+//              same automation harmlessly (the conditionalGroup gate
+//              skips it) — no extra guard field needed. Does not link
+//              the resulting records to each other. See
+//              openspec/changes/split-multi-assignee-task/specs/
+//              task-assignee-split/spec.md for the full behavior
 //              contract.
 //
 // REQUIRED INPUT VARIABLES (set these in the Run a Script action):
 //   recordId -> Trigger > Record ID
+//
+// STATUS: Deployed and confirmed working 2026-09-11 (verified against
+//         live production splits, e.g. rec7uAiD0AnLmtzTo -> recnx43wFSDmrHGE0).
 // ============================================================
 
 const TABLE_ID = "tblW5PkBL4mysdN7t";
