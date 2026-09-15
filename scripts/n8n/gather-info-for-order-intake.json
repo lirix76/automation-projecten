@@ -1,0 +1,2616 @@
+{
+  "updatedAt": "2026-09-14T16:22:59.588Z",
+  "createdAt": "2026-09-01T14:41:31.825Z",
+  "id": "fsS6w8kKG4JDIa3A",
+  "name": "gather-info-for-order-intake",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "order-intake-gather",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        304
+      ],
+      "id": "webhook",
+      "name": "Webhook",
+      "webhookId": "order-intake-gather"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst recordId = body.recordId;\nconst ordererEmail = body.ordererEmail || null;\nconst bestelbonRaw = body.bestelbonExtractie || null;\n\nconst empty = {\n  companyName: null,\n  shippingContactName: null, shippingContactEmail: null, shippingContactPhone: null,\n  shippingStreet: null, shippingPostalCode: null, shippingCity: null, shippingCountry: null,\n  billingContactName: null, billingContactEmail: null, billingContactPhone: null,\n  billingStreet: null, billingPostalCode: null, billingCity: null, billingCountry: null,\n  vatNumber: null, poReferenceNumber: null,\n  confirmationContactName: null, confirmationContactEmail: null, costCenter: null,\n};\n\nlet bestelbon = { ...empty };\nlet bestelbonError = null;\nlet bestelbonFieldsFound = [];\n\nif (bestelbonRaw) {\n  try {\n    let text = bestelbonRaw.trim();\n    text = text.replace(/^```json\\s*/i, '').replace(/^```\\s*/, '').replace(/```\\s*$/, '');\n    const parsed = JSON.parse(text);\n    bestelbon = { ...empty, ...parsed };\n    bestelbonFieldsFound = Object.keys(empty).filter((k) => bestelbon[k] !== null && bestelbon[k] !== '');\n  } catch (e) {\n    bestelbonError = `Bestelbon JSON parse error: ${e.message}. Raw: ${bestelbonRaw.slice(0, 500)}`;\n  }\n}\n\nreturn [{\n  json: {\n    recordId,\n    ordererEmail,\n    bestelbon,\n    bestelbonFieldsFound,\n    errors: bestelbonError ? [bestelbonError] : [],\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        304
+      ],
+      "id": "parse_bestelbon",
+      "name": "Parse bestelbon JSON"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotAppToken",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"filterGroups\": [ { \"filters\": [ { \"propertyName\": \"email\", \"operator\": \"EQ\", \"value\": $json.ordererEmail } ] } ], \"properties\": [\"email\", \"firstname\", \"lastname\"] } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1680,
+        304
+      ],
+      "id": "hubspot_search_contact",
+      "name": "HubSpot: search contact",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "BR3SdqtdBbTqSSOt",
+          "name": "HubSpot App Token account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $('Join Airtable customer branch').first().json;\nconst res = $input.first().json;\nconst results = (res && res.results) || [];\nconst contact = results[0] || null;\nconst searchError = (res && (res.error || res.status === 'error')) ? `HubSpot contact search error: ${JSON.stringify(res).slice(0, 300)}` : null;\n\nreturn [{\n  json: {\n    ...prev,\n    hubspotContactId: contact ? contact.id : null,\n    errors: [...prev.errors, ...(searchError ? [searchError] : [])],\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        304
+      ],
+      "id": "extract_contact_id",
+      "name": "Extract contact id"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.hubspotContactId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2160,
+        304
+      ],
+      "id": "if_has_contact",
+      "name": "Has HubSpot contact?"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.hubapi.com/crm/v3/objects/contacts/{{ $json.hubspotContactId }}?associations=companies",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotAppToken",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2400,
+        144
+      ],
+      "id": "hubspot_get_contact_assoc",
+      "name": "HubSpot: get contact associations",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "BR3SdqtdBbTqSSOt",
+          "name": "HubSpot App Token account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $('Extract contact id').first().json;\nconst res = $input.first().json;\nconst assoc = res && res.associations && res.associations.companies && res.associations.companies.results;\nconst companyId = (assoc && assoc[0] && assoc[0].id) || null;\nconst assocError = (res && res.error) ? `HubSpot associations error: ${JSON.stringify(res).slice(0, 300)}` : null;\n\nreturn [{\n  json: {\n    ...prev,\n    hubspotCompanyId: companyId,\n    errors: [...prev.errors, ...(assocError ? [assocError] : [])],\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2624,
+        128
+      ],
+      "id": "extract_company_id",
+      "name": "Extract company id"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { ...$json, hubspotCompanyId: null } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        464
+      ],
+      "id": "no_hubspot_contact",
+      "name": "No HubSpot contact"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        304
+      ],
+      "id": "join_contact_branch",
+      "name": "Join contact branch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.hubspotCompanyId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3120,
+        304
+      ],
+      "id": "if_has_company",
+      "name": "Has HubSpot company?"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.hubapi.com/crm/v3/objects/companies/{{ $json.hubspotCompanyId }}?properties=name,address,address2,city,zip,country",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotAppToken",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3360,
+        144
+      ],
+      "id": "hubspot_get_company",
+      "name": "HubSpot: get company",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "BR3SdqtdBbTqSSOt",
+          "name": "HubSpot App Token account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $('Join contact branch').first().json;\nconst res = $input.first().json;\nconst p = (res && res.properties) || {};\nconst companyError = (res && res.error) ? `HubSpot company fetch error: ${JSON.stringify(res).slice(0, 300)}` : null;\nconst hubspotCompany = (res && res.id) ? {\n  companyName: p.name || null,\n  street: [p.address, p.address2].filter(Boolean).join(' ') || null,\n  city: p.city || null,\n  postalCode: p.zip || null,\n  country: p.country || null,\n} : null;\n\nreturn [{\n  json: {\n    ...prev,\n    hubspotCompany,\n    errors: [...prev.errors, ...(companyError ? [companyError] : [])],\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3600,
+        144
+      ],
+      "id": "format_hubspot_company",
+      "name": "Format HubSpot company"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { ...$json, hubspotCompany: null } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3600,
+        464
+      ],
+      "id": "no_hubspot_company",
+      "name": "No HubSpot company"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3840,
+        304
+      ],
+      "id": "join_company_branch",
+      "name": "Join company branch"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://play-picoo.myshopify.com/admin/api/2024-07/customers/search.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "shopifyAccessTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ 'email:' + $json.ordererEmail }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4080,
+        304
+      ],
+      "id": "shopify_search_customer",
+      "name": "Shopify: search customer",
+      "credentials": {
+        "shopifyAccessTokenApi": {
+          "id": "oFqXoXFAaOpVnHGq",
+          "name": "Shopify Access Token account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $('Join company branch').first().json;\nconst shopifyItems = $input.all();\nconst shopifyRaw = shopifyItems.length ? shopifyItems[0].json : null;\nconst customer = (shopifyRaw && !shopifyRaw.error && Array.isArray(shopifyRaw.customers) && shopifyRaw.customers.length)\n  ? shopifyRaw.customers[0]\n  : null;\nconst shopifyErrors = [];\nif (shopifyRaw && shopifyRaw.error) shopifyErrors.push(`Shopify customer search error: ${JSON.stringify(shopifyRaw).slice(0, 300)}`);\n\nconst shopifyAddr = customer && customer.default_address ? customer.default_address : null;\nconst shopify = customer ? {\n  id: customer.id || null,\n  companyName: (shopifyAddr && shopifyAddr.company) || null,\n  contactName: [customer.first_name, customer.last_name].filter(Boolean).join(' ') || null,\n  contactEmail: customer.email || null,\n  contactPhone: customer.phone || null,\n  street: shopifyAddr ? [shopifyAddr.address1, shopifyAddr.address2].filter(Boolean).join(' ') : null,\n  city: shopifyAddr ? shopifyAddr.city : null,\n  postalCode: shopifyAddr ? shopifyAddr.zip : null,\n  country: shopifyAddr ? shopifyAddr.country : null,\n} : null;\n\nconst ac = base.airtableCustomer || {};\nconst b = base.bestelbon || {};\nconst hc = base.hubspotCompany || {};\nconst sh = shopify || {};\n\nconst pick = (...vals) => {\n  for (const v of vals) { if (v !== null && v !== undefined && v !== '') return v; }\n  return null;\n};\n\n// Priority order: Airtable's own linked Customer record (already-confirmed data\n// for this specific customer, in this same tool) > Bestelbon > Shopify > HubSpot.\n// Airtable customer data is shipping-only (like Shopify), not a billing fallback —\n// unlike HubSpot company, which is the one flat-address source used for both.\nconst merged = {\n  companyName: pick(ac.companyName, b.companyName, sh.companyName, hc.companyName),\n  shippingContactName: pick(ac.contactName, b.shippingContactName, sh.contactName),\n  shippingContactEmail: pick(ac.contactEmail, b.shippingContactEmail, sh.contactEmail, base.ordererEmail),\n  shippingContactPhone: pick(b.shippingContactPhone, sh.contactPhone),\n  shippingStreet: pick(ac.street, b.shippingStreet, sh.street, hc.street),\n  shippingPostalCode: pick(ac.postalCode, b.shippingPostalCode, sh.postalCode, hc.postalCode),\n  shippingCity: pick(ac.city, b.shippingCity, sh.city, hc.city),\n  shippingCountry: pick(ac.country, b.shippingCountry, sh.country, hc.country),\n  billingContactName: pick(b.billingContactName),\n  billingContactEmail: pick(b.billingContactEmail),\n  billingContactPhone: pick(b.billingContactPhone),\n  billingStreet: pick(b.billingStreet, hc.street),\n  billingPostalCode: pick(b.billingPostalCode, hc.postalCode),\n  billingCity: pick(b.billingCity, hc.city),\n  billingCountry: pick(b.billingCountry, hc.country),\n  vatNumber: pick(ac.vatNumber, b.vatNumber),\n  poReferenceNumber: pick(b.poReferenceNumber),\n  confirmationContactName: pick(b.confirmationContactName),\n  confirmationContactEmail: pick(b.confirmationContactEmail),\n  costCenter: pick(b.costCenter),\n};\n\nconst logLines = [];\nif (ac.street || ac.contactName) logLines.push(`Airtable customer record: ${ac.contactName || 'linked customer'}`);\nif (base.bestelbonFieldsFound && base.bestelbonFieldsFound.length) {\n  logLines.push(`Bestelbon: ${base.bestelbonFieldsFound.join(', ')}`);\n}\nif (base.hubspotContactId) logLines.push(`HubSpot contact: ${base.hubspotContactId}`);\nif (base.hubspotCompanyId) logLines.push(`HubSpot company: ${base.hubspotCompanyId} (fallback for empty address fields)`);\nif (shopify && shopify.id) logLines.push(`Shopify customer: ${shopify.id} (fallback for empty shipping fields)`);\nif (!logLines.length) logLines.push('No data found in Bestelbon, HubSpot, or Shopify — customer will need to fill in everything.');\n\nconst errors = [...(base.errors || []), ...shopifyErrors];\n\nreturn [{\n  json: {\n    recordId: base.recordId,\n    merged,\n    hubspotContactId: base.hubspotContactId || null,\n    hubspotCompanyId: base.hubspotCompanyId || null,\n    shopifyCustomerId: (shopify && shopify.id) ? String(shopify.id) : null,\n    gatherLog: logLines.join('\\n'),\n    errors,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4320,
+        304
+      ],
+      "id": "merge_final",
+      "name": "Merge all sources"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "appFLLCfzmMp1wswu"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblNA2Q0Mo4oGRdlt"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.recordId }}",
+            "Company name": "={{ $json.merged.companyName }}",
+            "HubSpot Company ID": "={{ $json.hubspotCompanyId }}",
+            "HubSpot Contact ID": "={{ $json.hubspotContactId }}",
+            "Shopify Customer ID": "={{ $json.shopifyCustomerId }}",
+            "Shipping contact name": "={{ $json.merged.shippingContactName }}",
+            "Shipping contact email": "={{ $json.merged.shippingContactEmail }}",
+            "Shipping contact phone": "={{ $json.merged.shippingContactPhone }}",
+            "Shipping street": "={{ $json.merged.shippingStreet }}",
+            "Shipping postal code": "={{ $json.merged.shippingPostalCode }}",
+            "Shipping city": "={{ $json.merged.shippingCity }}",
+            "Shipping country": "={{ $json.merged.shippingCountry }}",
+            "Billing contact name": "={{ $json.merged.billingContactName }}",
+            "Billing contact email": "={{ $json.merged.billingContactEmail }}",
+            "Billing contact phone": "={{ $json.merged.billingContactPhone }}",
+            "Billing street": "={{ $json.merged.billingStreet }}",
+            "Billing postal code": "={{ $json.merged.billingPostalCode }}",
+            "Billing city": "={{ $json.merged.billingCity }}",
+            "Billing country": "={{ $json.merged.billingCountry }}",
+            "VAT number": "={{ $json.merged.vatNumber }}",
+            "PO reference number": "={{ $json.merged.poReferenceNumber }}",
+            "Confirmation contact name": "={{ $json.merged.confirmationContactName }}",
+            "Confirmation contact email": "={{ $json.merged.confirmationContactEmail }}",
+            "Cost center": "={{ $json.merged.costCenter }}",
+            "Gather Log": "={{ $json.gatherLog }}",
+            "Automation Error Log": "={{ $json.errors.join('\\n') }}",
+            "Status": "Gegevens verzameld"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true
+            },
+            {
+              "id": "Orderer email",
+              "displayName": "Orderer email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Nieuw",
+                  "value": "Nieuw"
+                },
+                {
+                  "name": "Gegevens verzameld",
+                  "value": "Gegevens verzameld"
+                },
+                {
+                  "name": "Wacht op review",
+                  "value": "Wacht op review"
+                },
+                {
+                  "name": "Verzonden naar klant",
+                  "value": "Verzonden naar klant"
+                },
+                {
+                  "name": "Bevestigd door klant",
+                  "value": "Bevestigd door klant"
+                },
+                {
+                  "name": "Draft order aangemaakt",
+                  "value": "Draft order aangemaakt"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Offerte",
+              "displayName": "Offerte",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Customer",
+              "displayName": "Customer",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "HubSpot Company ID",
+              "displayName": "HubSpot Company ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "HubSpot Contact ID",
+              "displayName": "HubSpot Contact ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Shopify Customer ID",
+              "displayName": "Shopify Customer ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Bestelbon",
+              "displayName": "Bestelbon",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company name",
+              "displayName": "Company name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Shipping contact name",
+              "displayName": "Shipping contact name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Shipping contact email",
+              "displayName": "Shipping contact email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Shipping contact phone",
+              "displayName": "Shipping contact phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Shipping street",
+              "displayName": "Shipping street",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Shipping postal code",
+              "displayName": "Shipping postal code",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Shipping city",
+              "displayName": "Shipping city",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Shipping country",
+              "displayName": "Shipping country",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Netherlands",
+                  "value": "Netherlands"
+                },
+                {
+                  "name": "Belgium",
+                  "value": "Belgium"
+                },
+                {
+                  "name": "Germany",
+                  "value": "Germany"
+                },
+                {
+                  "name": "United States",
+                  "value": "United States"
+                },
+                {
+                  "name": "Iceland",
+                  "value": "Iceland"
+                },
+                {
+                  "name": "Netherlands Antilles",
+                  "value": "Netherlands Antilles"
+                },
+                {
+                  "name": "Poland",
+                  "value": "Poland"
+                },
+                {
+                  "name": "Albania",
+                  "value": "Albania"
+                },
+                {
+                  "name": "Greece",
+                  "value": "Greece"
+                },
+                {
+                  "name": "Afghanistan",
+                  "value": "Afghanistan"
+                },
+                {
+                  "name": "South Africa",
+                  "value": "South Africa"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Billing same as shipping address",
+              "displayName": "Billing same as shipping address",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Billing contact name",
+              "displayName": "Billing contact name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Billing contact email",
+              "displayName": "Billing contact email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Billing contact phone",
+              "displayName": "Billing contact phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Billing street",
+              "displayName": "Billing street",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Billing postal code",
+              "displayName": "Billing postal code",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Billing city",
+              "displayName": "Billing city",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Billing country",
+              "displayName": "Billing country",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Netherlands",
+                  "value": "Netherlands"
+                },
+                {
+                  "name": "Belgium",
+                  "value": "Belgium"
+                },
+                {
+                  "name": "Germany",
+                  "value": "Germany"
+                },
+                {
+                  "name": "United States",
+                  "value": "United States"
+                },
+                {
+                  "name": "Iceland",
+                  "value": "Iceland"
+                },
+                {
+                  "name": "Netherlands Antilles",
+                  "value": "Netherlands Antilles"
+                },
+                {
+                  "name": "Poland",
+                  "value": "Poland"
+                },
+                {
+                  "name": "Albania",
+                  "value": "Albania"
+                },
+                {
+                  "name": "Greece",
+                  "value": "Greece"
+                },
+                {
+                  "name": "Afghanistan",
+                  "value": "Afghanistan"
+                },
+                {
+                  "name": "South Africa",
+                  "value": "South Africa"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "VAT number",
+              "displayName": "VAT number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "PO reference number",
+              "displayName": "PO reference number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Confirmation contact name",
+              "displayName": "Confirmation contact name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Confirmation contact email",
+              "displayName": "Confirmation contact email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Cost center",
+              "displayName": "Cost center",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Gather Log",
+              "displayName": "Gather Log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Automation Error Log",
+              "displayName": "Automation Error Log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Verstuur naar klant",
+              "displayName": "Verstuur naar klant",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI assist - extract bestelbon",
+              "displayName": "AI assist - extract bestelbon",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        4560,
+        304
+      ],
+      "id": "update_airtable_record",
+      "name": "Update Order Intake record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "KvBvwuGLPypzc8xc",
+          "name": "Airtable PAT for Offerte Management Tool"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableTokenApi",
+        "resource": "record",
+        "operation": "get",
+        "base": {
+          "mode": "id",
+          "value": "appFLLCfzmMp1wswu"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblNA2Q0Mo4oGRdlt"
+        },
+        "id": "={{ $json.recordId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        480,
+        304
+      ],
+      "id": "airtable_get_order_intake",
+      "name": "Airtable: get Order Intake record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "KvBvwuGLPypzc8xc",
+          "name": "Airtable PAT for Offerte Management Tool"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ ($json.Customer || []).length > 0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        720,
+        304
+      ],
+      "id": "if_has_customer",
+      "name": "Has linked Customer?"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableTokenApi",
+        "resource": "record",
+        "operation": "get",
+        "base": {
+          "mode": "id",
+          "value": "appFLLCfzmMp1wswu"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tbl6ZV6QPB1tyheUf"
+        },
+        "id": "={{ $json.Customer[0] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        960,
+        144
+      ],
+      "id": "airtable_get_customer",
+      "name": "Airtable: get Customer record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "KvBvwuGLPypzc8xc",
+          "name": "Airtable PAT for Offerte Management Tool"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $('Parse bestelbon JSON').first().json;\nconst c = $input.first().json;\nconst customerError = (c && c.error) ? `Airtable customer fetch error: ${JSON.stringify(c).slice(0, 300)}` : null;\nconst airtableCustomer = (c && !c.error) ? {\n  companyName: c['Company'] || null,\n  contactName: [c['First name'], c['Last name']].filter(Boolean).join(' ') || null,\n  contactEmail: c['Email'] || null,\n  street: c['Address'] || null,\n  postalCode: c['Postal code'] || null,\n  city: c['City'] || null,\n  country: c['Country'] || null,\n  vatNumber: c['BTW nummer'] || null,\n} : null;\n\nreturn [{\n  json: {\n    ...prev,\n    airtableCustomer,\n    errors: [...(prev.errors || []), ...(customerError ? [customerError] : [])],\n  },\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        144
+      ],
+      "id": "format_airtable_customer",
+      "name": "Format Airtable customer"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $('Parse bestelbon JSON').first().json;\nreturn [{ json: { ...prev, airtableCustomer: null } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        464
+      ],
+      "id": "no_airtable_customer",
+      "name": "No Airtable customer"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        304
+      ],
+      "id": "join_airtable_customer_branch",
+      "name": "Join Airtable customer branch"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse bestelbon JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse bestelbon JSON": {
+      "main": [
+        [
+          {
+            "node": "Airtable: get Order Intake record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot: search contact": {
+      "main": [
+        [
+          {
+            "node": "Extract contact id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract contact id": {
+      "main": [
+        [
+          {
+            "node": "Has HubSpot contact?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has HubSpot contact?": {
+      "main": [
+        [
+          {
+            "node": "HubSpot: get contact associations",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No HubSpot contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot: get contact associations": {
+      "main": [
+        [
+          {
+            "node": "Extract company id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract company id": {
+      "main": [
+        [
+          {
+            "node": "Join contact branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No HubSpot contact": {
+      "main": [
+        [
+          {
+            "node": "Join contact branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Join contact branch": {
+      "main": [
+        [
+          {
+            "node": "Has HubSpot company?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has HubSpot company?": {
+      "main": [
+        [
+          {
+            "node": "HubSpot: get company",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No HubSpot company",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot: get company": {
+      "main": [
+        [
+          {
+            "node": "Format HubSpot company",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format HubSpot company": {
+      "main": [
+        [
+          {
+            "node": "Join company branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No HubSpot company": {
+      "main": [
+        [
+          {
+            "node": "Join company branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Join company branch": {
+      "main": [
+        [
+          {
+            "node": "Shopify: search customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify: search customer": {
+      "main": [
+        [
+          {
+            "node": "Merge all sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge all sources": {
+      "main": [
+        [
+          {
+            "node": "Update Order Intake record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: get Order Intake record": {
+      "main": [
+        [
+          {
+            "node": "Has linked Customer?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has linked Customer?": {
+      "main": [
+        [
+          {
+            "node": "Airtable: get Customer record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Airtable customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: get Customer record": {
+      "main": [
+        [
+          {
+            "node": "Format Airtable customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Airtable customer": {
+      "main": [
+        [
+          {
+            "node": "Join Airtable customer branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Airtable customer": {
+      "main": [
+        [
+          {
+            "node": "Join Airtable customer branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Join Airtable customer branch": {
+      "main": [
+        [
+          {
+            "node": "HubSpot: search contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "027fb906-82a8-4d4d-911b-6542a59e9bf1",
+  "activeVersionId": "027fb906-82a8-4d4d-911b-6542a59e9bf1",
+  "versionCounter": 29,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-09-01T14:41:31.828Z",
+      "createdAt": "2026-09-01T14:41:31.828Z",
+      "role": "workflow:owner",
+      "workflowId": "fsS6w8kKG4JDIa3A",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-09-14T16:22:59.590Z",
+    "createdAt": "2026-09-14T16:22:59.590Z",
+    "versionId": "027fb906-82a8-4d4d-911b-6542a59e9bf1",
+    "workflowId": "fsS6w8kKG4JDIa3A",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "order-intake-gather",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          304
+        ],
+        "id": "webhook",
+        "name": "Webhook",
+        "webhookId": "order-intake-gather"
+      },
+      {
+        "parameters": {
+          "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst recordId = body.recordId;\nconst ordererEmail = body.ordererEmail || null;\nconst bestelbonRaw = body.bestelbonExtractie || null;\n\nconst empty = {\n  companyName: null,\n  shippingContactName: null, shippingContactEmail: null, shippingContactPhone: null,\n  shippingStreet: null, shippingPostalCode: null, shippingCity: null, shippingCountry: null,\n  billingContactName: null, billingContactEmail: null, billingContactPhone: null,\n  billingStreet: null, billingPostalCode: null, billingCity: null, billingCountry: null,\n  vatNumber: null, poReferenceNumber: null,\n  confirmationContactName: null, confirmationContactEmail: null, costCenter: null,\n};\n\nlet bestelbon = { ...empty };\nlet bestelbonError = null;\nlet bestelbonFieldsFound = [];\n\nif (bestelbonRaw) {\n  try {\n    let text = bestelbonRaw.trim();\n    text = text.replace(/^```json\\s*/i, '').replace(/^```\\s*/, '').replace(/```\\s*$/, '');\n    const parsed = JSON.parse(text);\n    bestelbon = { ...empty, ...parsed };\n    bestelbonFieldsFound = Object.keys(empty).filter((k) => bestelbon[k] !== null && bestelbon[k] !== '');\n  } catch (e) {\n    bestelbonError = `Bestelbon JSON parse error: ${e.message}. Raw: ${bestelbonRaw.slice(0, 500)}`;\n  }\n}\n\nreturn [{\n  json: {\n    recordId,\n    ordererEmail,\n    bestelbon,\n    bestelbonFieldsFound,\n    errors: bestelbonError ? [bestelbonError] : [],\n  },\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          240,
+          304
+        ],
+        "id": "parse_bestelbon",
+        "name": "Parse bestelbon JSON"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.hubapi.com/crm/v3/objects/contacts/search",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "hubspotAppToken",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { \"filterGroups\": [ { \"filters\": [ { \"propertyName\": \"email\", \"operator\": \"EQ\", \"value\": $json.ordererEmail } ] } ], \"properties\": [\"email\", \"firstname\", \"lastname\"] } }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1680,
+          304
+        ],
+        "id": "hubspot_search_contact",
+        "name": "HubSpot: search contact",
+        "credentials": {
+          "hubspotAppToken": {
+            "id": "BR3SdqtdBbTqSSOt",
+            "name": "HubSpot App Token account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const prev = $('Join Airtable customer branch').first().json;\nconst res = $input.first().json;\nconst results = (res && res.results) || [];\nconst contact = results[0] || null;\nconst searchError = (res && (res.error || res.status === 'error')) ? `HubSpot contact search error: ${JSON.stringify(res).slice(0, 300)}` : null;\n\nreturn [{\n  json: {\n    ...prev,\n    hubspotContactId: contact ? contact.id : null,\n    errors: [...prev.errors, ...(searchError ? [searchError] : [])],\n  },\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1920,
+          304
+        ],
+        "id": "extract_contact_id",
+        "name": "Extract contact id"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "id": "c1",
+                "leftValue": "={{ $json.hubspotContactId }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          2160,
+          304
+        ],
+        "id": "if_has_contact",
+        "name": "Has HubSpot contact?"
+      },
+      {
+        "parameters": {
+          "url": "=https://api.hubapi.com/crm/v3/objects/contacts/{{ $json.hubspotContactId }}?associations=companies",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "hubspotAppToken",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2400,
+          144
+        ],
+        "id": "hubspot_get_contact_assoc",
+        "name": "HubSpot: get contact associations",
+        "credentials": {
+          "hubspotAppToken": {
+            "id": "BR3SdqtdBbTqSSOt",
+            "name": "HubSpot App Token account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const prev = $('Extract contact id').first().json;\nconst res = $input.first().json;\nconst assoc = res && res.associations && res.associations.companies && res.associations.companies.results;\nconst companyId = (assoc && assoc[0] && assoc[0].id) || null;\nconst assocError = (res && res.error) ? `HubSpot associations error: ${JSON.stringify(res).slice(0, 300)}` : null;\n\nreturn [{\n  json: {\n    ...prev,\n    hubspotCompanyId: companyId,\n    errors: [...prev.errors, ...(assocError ? [assocError] : [])],\n  },\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2624,
+          128
+        ],
+        "id": "extract_company_id",
+        "name": "Extract company id"
+      },
+      {
+        "parameters": {
+          "jsCode": "return [{ json: { ...$json, hubspotCompanyId: null } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2640,
+          464
+        ],
+        "id": "no_hubspot_contact",
+        "name": "No HubSpot contact"
+      },
+      {
+        "parameters": {
+          "jsCode": "return items;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2880,
+          304
+        ],
+        "id": "join_contact_branch",
+        "name": "Join contact branch"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "id": "c1",
+                "leftValue": "={{ $json.hubspotCompanyId }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          3120,
+          304
+        ],
+        "id": "if_has_company",
+        "name": "Has HubSpot company?"
+      },
+      {
+        "parameters": {
+          "url": "=https://api.hubapi.com/crm/v3/objects/companies/{{ $json.hubspotCompanyId }}?properties=name,address,address2,city,zip,country",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "hubspotAppToken",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          3360,
+          144
+        ],
+        "id": "hubspot_get_company",
+        "name": "HubSpot: get company",
+        "credentials": {
+          "hubspotAppToken": {
+            "id": "BR3SdqtdBbTqSSOt",
+            "name": "HubSpot App Token account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const prev = $('Join contact branch').first().json;\nconst res = $input.first().json;\nconst p = (res && res.properties) || {};\nconst companyError = (res && res.error) ? `HubSpot company fetch error: ${JSON.stringify(res).slice(0, 300)}` : null;\nconst hubspotCompany = (res && res.id) ? {\n  companyName: p.name || null,\n  street: [p.address, p.address2].filter(Boolean).join(' ') || null,\n  city: p.city || null,\n  postalCode: p.zip || null,\n  country: p.country || null,\n} : null;\n\nreturn [{\n  json: {\n    ...prev,\n    hubspotCompany,\n    errors: [...prev.errors, ...(companyError ? [companyError] : [])],\n  },\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3600,
+          144
+        ],
+        "id": "format_hubspot_company",
+        "name": "Format HubSpot company"
+      },
+      {
+        "parameters": {
+          "jsCode": "return [{ json: { ...$json, hubspotCompany: null } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3600,
+          464
+        ],
+        "id": "no_hubspot_company",
+        "name": "No HubSpot company"
+      },
+      {
+        "parameters": {
+          "jsCode": "return items;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3840,
+          304
+        ],
+        "id": "join_company_branch",
+        "name": "Join company branch"
+      },
+      {
+        "parameters": {
+          "method": "GET",
+          "url": "https://play-picoo.myshopify.com/admin/api/2024-07/customers/search.json",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "shopifyAccessTokenApi",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "query",
+                "value": "={{ 'email:' + $json.ordererEmail }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          4080,
+          304
+        ],
+        "id": "shopify_search_customer",
+        "name": "Shopify: search customer",
+        "credentials": {
+          "shopifyAccessTokenApi": {
+            "id": "oFqXoXFAaOpVnHGq",
+            "name": "Shopify Access Token account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const base = $('Join company branch').first().json;\nconst shopifyItems = $input.all();\nconst shopifyRaw = shopifyItems.length ? shopifyItems[0].json : null;\nconst customer = (shopifyRaw && !shopifyRaw.error && Array.isArray(shopifyRaw.customers) && shopifyRaw.customers.length)\n  ? shopifyRaw.customers[0]\n  : null;\nconst shopifyErrors = [];\nif (shopifyRaw && shopifyRaw.error) shopifyErrors.push(`Shopify customer search error: ${JSON.stringify(shopifyRaw).slice(0, 300)}`);\n\nconst shopifyAddr = customer && customer.default_address ? customer.default_address : null;\nconst shopify = customer ? {\n  id: customer.id || null,\n  companyName: (shopifyAddr && shopifyAddr.company) || null,\n  contactName: [customer.first_name, customer.last_name].filter(Boolean).join(' ') || null,\n  contactEmail: customer.email || null,\n  contactPhone: customer.phone || null,\n  street: shopifyAddr ? [shopifyAddr.address1, shopifyAddr.address2].filter(Boolean).join(' ') : null,\n  city: shopifyAddr ? shopifyAddr.city : null,\n  postalCode: shopifyAddr ? shopifyAddr.zip : null,\n  country: shopifyAddr ? shopifyAddr.country : null,\n} : null;\n\nconst ac = base.airtableCustomer || {};\nconst b = base.bestelbon || {};\nconst hc = base.hubspotCompany || {};\nconst sh = shopify || {};\n\nconst pick = (...vals) => {\n  for (const v of vals) { if (v !== null && v !== undefined && v !== '') return v; }\n  return null;\n};\n\n// Priority order: Airtable's own linked Customer record (already-confirmed data\n// for this specific customer, in this same tool) > Bestelbon > Shopify > HubSpot.\n// Airtable customer data is shipping-only (like Shopify), not a billing fallback —\n// unlike HubSpot company, which is the one flat-address source used for both.\nconst merged = {\n  companyName: pick(ac.companyName, b.companyName, sh.companyName, hc.companyName),\n  shippingContactName: pick(ac.contactName, b.shippingContactName, sh.contactName),\n  shippingContactEmail: pick(ac.contactEmail, b.shippingContactEmail, sh.contactEmail, base.ordererEmail),\n  shippingContactPhone: pick(b.shippingContactPhone, sh.contactPhone),\n  shippingStreet: pick(ac.street, b.shippingStreet, sh.street, hc.street),\n  shippingPostalCode: pick(ac.postalCode, b.shippingPostalCode, sh.postalCode, hc.postalCode),\n  shippingCity: pick(ac.city, b.shippingCity, sh.city, hc.city),\n  shippingCountry: pick(ac.country, b.shippingCountry, sh.country, hc.country),\n  billingContactName: pick(b.billingContactName),\n  billingContactEmail: pick(b.billingContactEmail),\n  billingContactPhone: pick(b.billingContactPhone),\n  billingStreet: pick(b.billingStreet, hc.street),\n  billingPostalCode: pick(b.billingPostalCode, hc.postalCode),\n  billingCity: pick(b.billingCity, hc.city),\n  billingCountry: pick(b.billingCountry, hc.country),\n  vatNumber: pick(ac.vatNumber, b.vatNumber),\n  poReferenceNumber: pick(b.poReferenceNumber),\n  confirmationContactName: pick(b.confirmationContactName),\n  confirmationContactEmail: pick(b.confirmationContactEmail),\n  costCenter: pick(b.costCenter),\n};\n\nconst logLines = [];\nif (ac.street || ac.contactName) logLines.push(`Airtable customer record: ${ac.contactName || 'linked customer'}`);\nif (base.bestelbonFieldsFound && base.bestelbonFieldsFound.length) {\n  logLines.push(`Bestelbon: ${base.bestelbonFieldsFound.join(', ')}`);\n}\nif (base.hubspotContactId) logLines.push(`HubSpot contact: ${base.hubspotContactId}`);\nif (base.hubspotCompanyId) logLines.push(`HubSpot company: ${base.hubspotCompanyId} (fallback for empty address fields)`);\nif (shopify && shopify.id) logLines.push(`Shopify customer: ${shopify.id} (fallback for empty shipping fields)`);\nif (!logLines.length) logLines.push('No data found in Bestelbon, HubSpot, or Shopify — customer will need to fill in everything.');\n\nconst errors = [...(base.errors || []), ...shopifyErrors];\n\nreturn [{\n  json: {\n    recordId: base.recordId,\n    merged,\n    hubspotContactId: base.hubspotContactId || null,\n    hubspotCompanyId: base.hubspotCompanyId || null,\n    shopifyCustomerId: (shopify && shopify.id) ? String(shopify.id) : null,\n    gatherLog: logLines.join('\\n'),\n    errors,\n  },\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          4320,
+          304
+        ],
+        "id": "merge_final",
+        "name": "Merge all sources"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "mode": "id",
+            "value": "appFLLCfzmMp1wswu"
+          },
+          "table": {
+            "mode": "id",
+            "value": "tblNA2Q0Mo4oGRdlt"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "id": "={{ $json.recordId }}",
+              "Company name": "={{ $json.merged.companyName }}",
+              "HubSpot Company ID": "={{ $json.hubspotCompanyId }}",
+              "HubSpot Contact ID": "={{ $json.hubspotContactId }}",
+              "Shopify Customer ID": "={{ $json.shopifyCustomerId }}",
+              "Shipping contact name": "={{ $json.merged.shippingContactName }}",
+              "Shipping contact email": "={{ $json.merged.shippingContactEmail }}",
+              "Shipping contact phone": "={{ $json.merged.shippingContactPhone }}",
+              "Shipping street": "={{ $json.merged.shippingStreet }}",
+              "Shipping postal code": "={{ $json.merged.shippingPostalCode }}",
+              "Shipping city": "={{ $json.merged.shippingCity }}",
+              "Shipping country": "={{ $json.merged.shippingCountry }}",
+              "Billing contact name": "={{ $json.merged.billingContactName }}",
+              "Billing contact email": "={{ $json.merged.billingContactEmail }}",
+              "Billing contact phone": "={{ $json.merged.billingContactPhone }}",
+              "Billing street": "={{ $json.merged.billingStreet }}",
+              "Billing postal code": "={{ $json.merged.billingPostalCode }}",
+              "Billing city": "={{ $json.merged.billingCity }}",
+              "Billing country": "={{ $json.merged.billingCountry }}",
+              "VAT number": "={{ $json.merged.vatNumber }}",
+              "PO reference number": "={{ $json.merged.poReferenceNumber }}",
+              "Confirmation contact name": "={{ $json.merged.confirmationContactName }}",
+              "Confirmation contact email": "={{ $json.merged.confirmationContactEmail }}",
+              "Cost center": "={{ $json.merged.costCenter }}",
+              "Gather Log": "={{ $json.gatherLog }}",
+              "Automation Error Log": "={{ $json.errors.join('\\n') }}",
+              "Status": "Gegevens verzameld"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true
+              },
+              {
+                "id": "Orderer email",
+                "displayName": "Orderer email",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Status",
+                "displayName": "Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Nieuw",
+                    "value": "Nieuw"
+                  },
+                  {
+                    "name": "Gegevens verzameld",
+                    "value": "Gegevens verzameld"
+                  },
+                  {
+                    "name": "Wacht op review",
+                    "value": "Wacht op review"
+                  },
+                  {
+                    "name": "Verzonden naar klant",
+                    "value": "Verzonden naar klant"
+                  },
+                  {
+                    "name": "Bevestigd door klant",
+                    "value": "Bevestigd door klant"
+                  },
+                  {
+                    "name": "Draft order aangemaakt",
+                    "value": "Draft order aangemaakt"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Offerte",
+                "displayName": "Offerte",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Customer",
+                "displayName": "Customer",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "HubSpot Company ID",
+                "displayName": "HubSpot Company ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "HubSpot Contact ID",
+                "displayName": "HubSpot Contact ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Shopify Customer ID",
+                "displayName": "Shopify Customer ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Bestelbon",
+                "displayName": "Bestelbon",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Company name",
+                "displayName": "Company name",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Shipping contact name",
+                "displayName": "Shipping contact name",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Shipping contact email",
+                "displayName": "Shipping contact email",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Shipping contact phone",
+                "displayName": "Shipping contact phone",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Shipping street",
+                "displayName": "Shipping street",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Shipping postal code",
+                "displayName": "Shipping postal code",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Shipping city",
+                "displayName": "Shipping city",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Shipping country",
+                "displayName": "Shipping country",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Netherlands",
+                    "value": "Netherlands"
+                  },
+                  {
+                    "name": "Belgium",
+                    "value": "Belgium"
+                  },
+                  {
+                    "name": "Germany",
+                    "value": "Germany"
+                  },
+                  {
+                    "name": "United States",
+                    "value": "United States"
+                  },
+                  {
+                    "name": "Iceland",
+                    "value": "Iceland"
+                  },
+                  {
+                    "name": "Netherlands Antilles",
+                    "value": "Netherlands Antilles"
+                  },
+                  {
+                    "name": "Poland",
+                    "value": "Poland"
+                  },
+                  {
+                    "name": "Albania",
+                    "value": "Albania"
+                  },
+                  {
+                    "name": "Greece",
+                    "value": "Greece"
+                  },
+                  {
+                    "name": "Afghanistan",
+                    "value": "Afghanistan"
+                  },
+                  {
+                    "name": "South Africa",
+                    "value": "South Africa"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Billing same as shipping address",
+                "displayName": "Billing same as shipping address",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Billing contact name",
+                "displayName": "Billing contact name",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Billing contact email",
+                "displayName": "Billing contact email",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Billing contact phone",
+                "displayName": "Billing contact phone",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Billing street",
+                "displayName": "Billing street",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Billing postal code",
+                "displayName": "Billing postal code",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Billing city",
+                "displayName": "Billing city",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Billing country",
+                "displayName": "Billing country",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Netherlands",
+                    "value": "Netherlands"
+                  },
+                  {
+                    "name": "Belgium",
+                    "value": "Belgium"
+                  },
+                  {
+                    "name": "Germany",
+                    "value": "Germany"
+                  },
+                  {
+                    "name": "United States",
+                    "value": "United States"
+                  },
+                  {
+                    "name": "Iceland",
+                    "value": "Iceland"
+                  },
+                  {
+                    "name": "Netherlands Antilles",
+                    "value": "Netherlands Antilles"
+                  },
+                  {
+                    "name": "Poland",
+                    "value": "Poland"
+                  },
+                  {
+                    "name": "Albania",
+                    "value": "Albania"
+                  },
+                  {
+                    "name": "Greece",
+                    "value": "Greece"
+                  },
+                  {
+                    "name": "Afghanistan",
+                    "value": "Afghanistan"
+                  },
+                  {
+                    "name": "South Africa",
+                    "value": "South Africa"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "VAT number",
+                "displayName": "VAT number",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "PO reference number",
+                "displayName": "PO reference number",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Confirmation contact name",
+                "displayName": "Confirmation contact name",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Confirmation contact email",
+                "displayName": "Confirmation contact email",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Cost center",
+                "displayName": "Cost center",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Gather Log",
+                "displayName": "Gather Log",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Automation Error Log",
+                "displayName": "Automation Error Log",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Verstuur naar klant",
+                "displayName": "Verstuur naar klant",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "AI assist - extract bestelbon",
+                "displayName": "AI assist - extract bestelbon",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {
+            "typecast": true
+          }
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          4560,
+          304
+        ],
+        "id": "update_airtable_record",
+        "name": "Update Order Intake record",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "KvBvwuGLPypzc8xc",
+            "name": "Airtable PAT for Offerte Management Tool"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "authentication": "airtableTokenApi",
+          "resource": "record",
+          "operation": "get",
+          "base": {
+            "mode": "id",
+            "value": "appFLLCfzmMp1wswu"
+          },
+          "table": {
+            "mode": "id",
+            "value": "tblNA2Q0Mo4oGRdlt"
+          },
+          "id": "={{ $json.recordId }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          480,
+          304
+        ],
+        "id": "airtable_get_order_intake",
+        "name": "Airtable: get Order Intake record",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "KvBvwuGLPypzc8xc",
+            "name": "Airtable PAT for Offerte Management Tool"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "id": "c1",
+                "leftValue": "={{ ($json.Customer || []).length > 0 }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          720,
+          304
+        ],
+        "id": "if_has_customer",
+        "name": "Has linked Customer?"
+      },
+      {
+        "parameters": {
+          "authentication": "airtableTokenApi",
+          "resource": "record",
+          "operation": "get",
+          "base": {
+            "mode": "id",
+            "value": "appFLLCfzmMp1wswu"
+          },
+          "table": {
+            "mode": "id",
+            "value": "tbl6ZV6QPB1tyheUf"
+          },
+          "id": "={{ $json.Customer[0] }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          960,
+          144
+        ],
+        "id": "airtable_get_customer",
+        "name": "Airtable: get Customer record",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "KvBvwuGLPypzc8xc",
+            "name": "Airtable PAT for Offerte Management Tool"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const prev = $('Parse bestelbon JSON').first().json;\nconst c = $input.first().json;\nconst customerError = (c && c.error) ? `Airtable customer fetch error: ${JSON.stringify(c).slice(0, 300)}` : null;\nconst airtableCustomer = (c && !c.error) ? {\n  companyName: c['Company'] || null,\n  contactName: [c['First name'], c['Last name']].filter(Boolean).join(' ') || null,\n  contactEmail: c['Email'] || null,\n  street: c['Address'] || null,\n  postalCode: c['Postal code'] || null,\n  city: c['City'] || null,\n  country: c['Country'] || null,\n  vatNumber: c['BTW nummer'] || null,\n} : null;\n\nreturn [{\n  json: {\n    ...prev,\n    airtableCustomer,\n    errors: [...(prev.errors || []), ...(customerError ? [customerError] : [])],\n  },\n}];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          144
+        ],
+        "id": "format_airtable_customer",
+        "name": "Format Airtable customer"
+      },
+      {
+        "parameters": {
+          "jsCode": "const prev = $('Parse bestelbon JSON').first().json;\nreturn [{ json: { ...prev, airtableCustomer: null } }];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          464
+        ],
+        "id": "no_airtable_customer",
+        "name": "No Airtable customer"
+      },
+      {
+        "parameters": {
+          "jsCode": "return items;\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1440,
+          304
+        ],
+        "id": "join_airtable_customer_branch",
+        "name": "Join Airtable customer branch"
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Parse bestelbon JSON",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse bestelbon JSON": {
+        "main": [
+          [
+            {
+              "node": "Airtable: get Order Intake record",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HubSpot: search contact": {
+        "main": [
+          [
+            {
+              "node": "Extract contact id",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract contact id": {
+        "main": [
+          [
+            {
+              "node": "Has HubSpot contact?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Has HubSpot contact?": {
+        "main": [
+          [
+            {
+              "node": "HubSpot: get contact associations",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "No HubSpot contact",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HubSpot: get contact associations": {
+        "main": [
+          [
+            {
+              "node": "Extract company id",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract company id": {
+        "main": [
+          [
+            {
+              "node": "Join contact branch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "No HubSpot contact": {
+        "main": [
+          [
+            {
+              "node": "Join contact branch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Join contact branch": {
+        "main": [
+          [
+            {
+              "node": "Has HubSpot company?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Has HubSpot company?": {
+        "main": [
+          [
+            {
+              "node": "HubSpot: get company",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "No HubSpot company",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HubSpot: get company": {
+        "main": [
+          [
+            {
+              "node": "Format HubSpot company",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format HubSpot company": {
+        "main": [
+          [
+            {
+              "node": "Join company branch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "No HubSpot company": {
+        "main": [
+          [
+            {
+              "node": "Join company branch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Join company branch": {
+        "main": [
+          [
+            {
+              "node": "Shopify: search customer",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Shopify: search customer": {
+        "main": [
+          [
+            {
+              "node": "Merge all sources",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge all sources": {
+        "main": [
+          [
+            {
+              "node": "Update Order Intake record",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable: get Order Intake record": {
+        "main": [
+          [
+            {
+              "node": "Has linked Customer?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Has linked Customer?": {
+        "main": [
+          [
+            {
+              "node": "Airtable: get Customer record",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "No Airtable customer",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable: get Customer record": {
+        "main": [
+          [
+            {
+              "node": "Format Airtable customer",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Airtable customer": {
+        "main": [
+          [
+            {
+              "node": "Join Airtable customer branch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "No Airtable customer": {
+        "main": [
+          [
+            {
+              "node": "Join Airtable customer branch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Join Airtable customer branch": {
+        "main": [
+          [
+            {
+              "node": "HubSpot: search contact",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Iris Soute",
+    "name": null,
+    "description": null
+  }
+}

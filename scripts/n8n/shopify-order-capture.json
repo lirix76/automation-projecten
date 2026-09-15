@@ -1,0 +1,1790 @@
+{
+  "updatedAt": "2026-09-02T12:14:25.068Z",
+  "createdAt": "2026-08-26T12:52:15.769Z",
+  "id": "zMV03hTkEtOz4FLg",
+  "name": "shopify-order-capture",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "8ed71b52-4489-4b35-a0ac-e3575cd0320d",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -656,
+        640
+      ],
+      "id": "395e8245-aaeb-4398-aabe-de84bf15ade3",
+      "name": "Webhook",
+      "webhookId": "8ed71b52-4489-4b35-a0ac-e3575cd0320d"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4a338f3e-1aec-4320-9c38-c95c490b05b6",
+              "leftValue": "={{ !!$json.body.test }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "9b43ddf3-47e0-4703-8724-fe44626df290",
+              "leftValue": "={{ $json.body.admin_graphql_api_id }}",
+              "rightValue": "^gid://shopify/Order/\\d+$",
+              "operator": {
+                "type": "string",
+                "operation": "notRegex"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -464,
+        640
+      ],
+      "id": "b664db6a-788d-4493-a83c-985952e607e9",
+      "name": "Skip test/invalid orders"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appOzDhFRxFTjBqMN",
+          "mode": "list",
+          "cachedResultName": "ERP Integrations",
+          "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblaXYFgEkroPjRu2",
+          "mode": "list",
+          "cachedResultName": "Sales Order Queue",
+          "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN/tblaXYFgEkroPjRu2"
+        },
+        "filterByFormula": "={{ '{order_id} = \"' + $('Webhook').item.json.body.admin_graphql_api_id.split('/').pop() + '\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -256,
+        688
+      ],
+      "id": "b1fb7a5f-79ad-43dd-bfd4-00a2193dfc0d",
+      "name": "Deduplication",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "VVi4cw1Gru6JhVPf",
+          "name": "Airtable PAT for ERP integrations"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d1ead0fe-a4cb-4faf-a47d-e1de28807116",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -80,
+        688
+      ],
+      "id": "84ba02ec-ac5c-4afe-ba7e-c01b7d981d5a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "200",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        304,
+        448
+      ],
+      "id": "e4e65dcf-2783-4cdb-8f70-f94693dfb6e4",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "get",
+        "orderId": "={{ $('Webhook').item.json.body.admin_graphql_api_id.split('/').pop() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        112,
+        688
+      ],
+      "id": "dec49187-15b0-42bb-9c80-6a5369275ed5",
+      "name": "Get an order",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "wuJPm2qVIiwx4ado",
+          "name": "Shopify read orders"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appOzDhFRxFTjBqMN",
+          "mode": "list",
+          "cachedResultName": "ERP Integrations",
+          "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblaXYFgEkroPjRu2",
+          "mode": "list",
+          "cachedResultName": "Sales Order Queue",
+          "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN/tblaXYFgEkroPjRu2"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "order_id": "={{ $('Webhook').item.json.body.admin_graphql_api_id.split('/').pop() }}",
+            "order_name": "={{ $('Webhook').item.json.body.order_number }}",
+            "retry_count": 0,
+            "status": "PENDING",
+            "line_items": "={{ JSON.stringify($('Webhook').item.json.body.line_items.map(({attributed_staffs, current_quantity, sales_line_item_group_id, selling_plan_id, ...rest}) => rest)) }}",
+            "created_at_shopify": "={{ $json.created_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "order_id",
+              "displayName": "order_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "PENDING",
+                  "value": "PENDING"
+                },
+                {
+                  "name": "PROCESSING",
+                  "value": "PROCESSING"
+                },
+                {
+                  "name": "DONE",
+                  "value": "DONE"
+                },
+                {
+                  "name": "ERROR",
+                  "value": "ERROR"
+                },
+                {
+                  "name": "SKIPPED",
+                  "value": "SKIPPED"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_at_airtable",
+              "displayName": "created_at_airtable",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "order_name",
+              "displayName": "order_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_at_shopify",
+              "displayName": "created_at_shopify",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "line_items",
+              "displayName": "line_items",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_attempted_at",
+              "displayName": "last_attempted_at",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "retry_count",
+              "displayName": "retry_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "erpnext_doc_id",
+              "displayName": "erpnext_doc_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Link",
+              "displayName": "Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Calculate ERPNext link",
+              "displayName": "Calculate ERPNext link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "system_messages",
+              "displayName": "system_messages",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        304,
+        688
+      ],
+      "id": "7d53bb24-5e73-45ab-a02d-9fe38527d72e",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "VVi4cw1Gru6JhVPf",
+          "name": "Airtable PAT for ERP integrations"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "200",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        496,
+        592
+      ],
+      "id": "ffcfdd70-5257-4d17-ab3f-40827f298694",
+      "name": "Respond to success to webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "500",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        496,
+        800
+      ],
+      "id": "aba18c43-3dc5-46f9-99a4-b6b564fb6b7c",
+      "name": "Respond to error to webhook"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Skip test/invalid orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplication": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get an order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "Respond to success to webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to error to webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip test/invalid orders": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Deduplication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get an order": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "HfMibyxcEoNMMdxm"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "picoo.app.n8n.cloud",
+            "user-agent": "Shopify-Captain-Hook",
+            "content-length": "10861",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "35.241.227.199",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "BE",
+            "cf-ray": "a3134c54dce6aea3-CDG",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-forwarded-for": "35.241.227.199, 172.71.232.16",
+            "x-forwarded-host": "picoo.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-23-7c57f74b7b-trgcn",
+            "x-is-trusted": "yes",
+            "x-real-ip": "35.241.227.199",
+            "x-shopify-api-version": "2026-07",
+            "x-shopify-event-id": "8abcd759-cfa8-436a-aba9-a47e8d9be601",
+            "x-shopify-hmac-sha256": "Ad9RxltuwIXOrP+D3n05F+Hl5JvvAW+4SZzGrs4Dynk=",
+            "x-shopify-shop-domain": "play-picoo.myshopify.com",
+            "x-shopify-test": "true",
+            "x-shopify-topic": "orders/create",
+            "x-shopify-triggered-at": "2026-08-26T13:49:08.779056466Z",
+            "x-shopify-webhook-id": "2dd65824-cbf1-5a3d-85e1-faa92d88b951"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "id": 820982911946154500,
+            "admin_graphql_api_id": "gid://shopify/Order/820982911946154508",
+            "app_id": null,
+            "browser_ip": null,
+            "buyer_accepts_marketing": true,
+            "cancel_reason": "customer",
+            "cancelled_at": "2026-08-26T15:49:08+02:00",
+            "cart_token": null,
+            "checkout_token": null,
+            "client_details": null,
+            "closed_at": null,
+            "company": null,
+            "confirmation_number": null,
+            "confirmed": false,
+            "contact_email": "jon@example.com",
+            "created_at": "2026-08-26T15:49:08+02:00",
+            "currency": "EUR",
+            "current_shipping_price_set": {
+              "shop_money": {
+                "amount": "0.00",
+                "currency_code": "EUR"
+              },
+              "presentment_money": {
+                "amount": "0.00",
+                "currency_code": "EUR"
+              }
+            },
+            "current_subtotal_price": "2009.48",
+            "current_subtotal_price_set": {
+              "shop_money": {
+                "amount": "2009.48",
+                "currency_code": "EUR"
+              },
+              "presentment_money": {
+                "amount": "2009.48",
+                "currency_code": "EUR"
+              }
+            },
+            "current_total_additional_fees_set": null,
+            "current_total_discounts": "0.00",
+            "current_total_discounts_set": {
+              "shop_money": {
+                "amount": "0.00",
+                "currency_code": "EUR"
+              },
+              "presentment_money": {
+                "amount": "0.00",
+                "currency_code": "EUR"
+              }
+            },
+            "current_total_duties_set": null,
+            "current_total_price": "2009.48",
+            "current_total_price_set": {
+              "shop_money": {
+                "amount": "2009.48",
+                "currency_code": "EUR"
+              },
+              "presentment_money": {
+                "amount": "2009.48",
+                "currency_code": "EUR"
+              }
+            },
+            "current_total_tax": "0.00",
+            "current_total_tax_set": {
+              "shop_money": {
+                "amount": "0.00",
+                "currency_code": "EUR"
+              },
+              "presentment_money": {
+                "amount": "0.00",
+                "currency_code": "EUR"
+              }
+            },
+            "customer_locale": "nl",
+            "device_id": null,
+            "discount_codes": [],
+            "duties_included": false,
+            "email": "jon@example.com",
+            "estimated_taxes": false,
+            "financial_status": "voided",
+            "fulfillment_status": null,
+            "landing_site": null,
+            "landing_site_ref": null,
+            "location_id": null,
+            "merchant_business_entity_id": "MTU0OTA0OTc5NjY0",
+            "merchant_of_record_app_id": null,
+            "name": "#9999",
+            "note": null,
+            "note_attributes": [],
+            "number": 234,
+            "order_number": 1234,
+            "order_status_url": "https://play-picoo.myshopify.com/54904979664/orders/123456abcd/authenticate?key=abcdefg",
+            "original_total_additional_fees_set": null,
+            "original_total_duties_set": null,
+            "payment_gateway_names": [
+              "visa",
+              "bogus"
+            ],
+            "phone": null,
+            "po_number": null,
+            "presentment_currency": "EUR",
+            "processed_at": "2026-08-26T15:49:08+02:00",
+            "reference": null,
+            "referring_site": null,
+            "source_identifier": null,
+            "source_name": "web",
+            "source_url": null,
+            "subtotal_price": "1999.48",
+            "subtotal_price_set": {
+              "shop_money": {
+                "amount": "1999.48",
+                "currency_code": "EUR"
+              },
+              "presentment_money": {
+                "amount": "1999.48",
+                "currency_code": "EUR"
+              }
+            },
+            "tags": "tag1, tag2",
+            "tax_exempt": false,
+            "tax_lines": [],
+            "taxes_included": false,
+            "test": true,
+            "token": "123456abcd",
+            "total_cash_rounding_payment_adjustment_set": {
+              "shop_money": {
+                "amount": "0.00",
+                "currency_code": "EUR"
+              },
+              "presentment_money": {
+                "amount": "0.00",
+                "currency_code": "EUR"
+              }
+            },
+            "total_cash_rounding_refund_adjustment_set": {
+              "shop_money": {
+                "amount": "0.00",
+                "currency_code": "EUR"
+              },
+              "presentment_money": {
+                "amount": "0.00",
+                "currency_code": "EUR"
+              }
+            },
+            "total_discounts": "20.00",
+            "total_discounts_set": {
+              "shop_money": {
+                "amount": "20.00",
+                "currency_code": "EUR"
+              },
+              "presentment_money": {
+                "amount": "20.00",
+                "currency_code": "EUR"
+              }
+            },
+            "total_line_items_price": "2009.48",
+            "total_line_items_price_set": {
+              "shop_money": {
+                "amount": "2009.48",
+                "currency_code": "EUR"
+              },
+              "presentment_money": {
+                "amount": "2009.48",
+                "currency_code": "EUR"
+              }
+            },
+            "total_outstanding": "2009.48",
+            "total_price": "1999.48",
+            "total_price_set": {
+              "shop_money": {
+                "amount": "1999.48",
+                "currency_code": "EUR"
+              },
+              "presentment_money": {
+                "amount": "1999.48",
+                "currency_code": "EUR"
+              }
+            },
+            "total_shipping_price_set": {
+              "shop_money": {
+                "amount": "10.00",
+                "currency_code": "EUR"
+              },
+              "presentment_money": {
+                "amount": "10.00",
+                "currency_code": "EUR"
+              }
+            },
+            "total_tax": "0.00",
+            "total_tax_set": {
+              "shop_money": {
+                "amount": "0.00",
+                "currency_code": "EUR"
+              },
+              "presentment_money": {
+                "amount": "0.00",
+                "currency_code": "EUR"
+              }
+            },
+            "total_tip_received": "0.00",
+            "total_weight": 0,
+            "updated_at": "2026-08-26T15:49:08+02:00",
+            "user_id": null,
+            "billing_address": {
+              "first_name": "Jan",
+              "address1": "Vruchtengaard 51",
+              "phone": "555-555-SHIP",
+              "city": "Doorn",
+              "zip": "3941 LG",
+              "province": "Utrecht",
+              "country": "Nederland",
+              "last_name": "Smit",
+              "address2": null,
+              "company": "Shipping Bedrijf",
+              "latitude": null,
+              "longitude": null,
+              "name": "Jan Smit",
+              "country_code": "*",
+              "province_code": null
+            },
+            "customer": {
+              "id": 115310627314723950,
+              "created_at": null,
+              "updated_at": null,
+              "first_name": "Jan",
+              "last_name": "Smit",
+              "state": "disabled",
+              "note": null,
+              "verified_email": true,
+              "multipass_identifier": null,
+              "tax_exempt": false,
+              "email": "john@example.com",
+              "phone": null,
+              "currency": "EUR",
+              "tax_exemptions": [],
+              "admin_graphql_api_id": "gid://shopify/Customer/115310627314723954",
+              "default_address": {
+                "id": 715243470612851200,
+                "customer_id": 115310627314723950,
+                "first_name": "John",
+                "last_name": "Smith",
+                "company": null,
+                "address1": "123 Elm St.",
+                "address2": null,
+                "city": "Ottawa",
+                "province": "Ontario",
+                "country": "Canada",
+                "zip": "K2H7A8",
+                "phone": "123-123-1234",
+                "name": "John Smith",
+                "province_code": "ON",
+                "country_code": "CA",
+                "country_name": "Canada",
+                "default": true
+              }
+            },
+            "discount_applications": [],
+            "fulfillments": [],
+            "line_items": [
+              {
+                "id": 866550311766439000,
+                "admin_graphql_api_id": "gid://shopify/LineItem/866550311766439020",
+                "attributed_staffs": [
+                  {
+                    "id": "gid://shopify/StaffMember/902541635",
+                    "quantity": 1
+                  }
+                ],
+                "current_quantity": 1,
+                "fulfillable_quantity": 1,
+                "fulfillment_service": "manual",
+                "fulfillment_status": null,
+                "gift_card": false,
+                "grams": 4000,
+                "name": "Picoo Educatie Pakket",
+                "price": "1599.00",
+                "price_set": {
+                  "shop_money": {
+                    "amount": "1599.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "1599.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "product_exists": true,
+                "product_id": 6545431888080,
+                "properties": [],
+                "quantity": 1,
+                "requires_shipping": true,
+                "sales_line_item_group_id": null,
+                "selling_plan_id": null,
+                "sku": "P1-0002-001-01-NL",
+                "taxable": true,
+                "title": "Picoo Educatie Pakket",
+                "total_discount": "0.00",
+                "total_discount_set": {
+                  "shop_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "variant_id": 40564291469520,
+                "variant_inventory_management": "shopify",
+                "variant_title": null,
+                "vendor": null,
+                "tax_lines": [],
+                "duties": [],
+                "discount_allocations": []
+              },
+              {
+                "id": 789012345678901200,
+                "admin_graphql_api_id": "gid://shopify/LineItem/789012345678901234",
+                "attributed_staffs": [],
+                "current_quantity": 1,
+                "fulfillable_quantity": 1,
+                "fulfillment_service": "manual",
+                "fulfillment_status": null,
+                "gift_card": false,
+                "grams": 0,
+                "name": "Lens Protection Plan (2 Year)",
+                "price": "19.99",
+                "price_set": {
+                  "shop_money": {
+                    "amount": "19.99",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "19.99",
+                    "currency_code": "EUR"
+                  }
+                },
+                "product_exists": false,
+                "product_id": null,
+                "properties": [],
+                "quantity": 1,
+                "requires_shipping": true,
+                "sales_line_item_group_id": 234567890123456800,
+                "selling_plan_id": null,
+                "sku": "LENS-PROTECT-2YR",
+                "taxable": true,
+                "title": "Lens Protection Plan (2 Year)",
+                "total_discount": "0.00",
+                "total_discount_set": {
+                  "shop_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "variant_id": null,
+                "variant_inventory_management": null,
+                "variant_title": null,
+                "vendor": null,
+                "tax_lines": [],
+                "duties": [],
+                "discount_allocations": []
+              },
+              {
+                "id": 890123456789012400,
+                "admin_graphql_api_id": "gid://shopify/LineItem/890123456789012345",
+                "attributed_staffs": [],
+                "current_quantity": 1,
+                "fulfillable_quantity": 1,
+                "fulfillment_service": "manual",
+                "fulfillment_status": null,
+                "gift_card": false,
+                "grams": 0,
+                "name": "Premium Leather Case",
+                "price": "24.99",
+                "price_set": {
+                  "shop_money": {
+                    "amount": "24.99",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "24.99",
+                    "currency_code": "EUR"
+                  }
+                },
+                "product_exists": false,
+                "product_id": null,
+                "properties": [],
+                "quantity": 1,
+                "requires_shipping": true,
+                "sales_line_item_group_id": 234567890123456800,
+                "selling_plan_id": null,
+                "sku": "CASE-LEATHER-PREM",
+                "taxable": true,
+                "title": "Premium Leather Case",
+                "total_discount": "0.00",
+                "total_discount_set": {
+                  "shop_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "variant_id": null,
+                "variant_inventory_management": null,
+                "variant_title": null,
+                "vendor": null,
+                "tax_lines": [],
+                "duties": [],
+                "discount_allocations": []
+              },
+              {
+                "id": 141249953214522980,
+                "admin_graphql_api_id": "gid://shopify/LineItem/141249953214522974",
+                "attributed_staffs": [],
+                "current_quantity": 1,
+                "fulfillable_quantity": 1,
+                "fulfillment_service": "manual",
+                "fulfillment_status": null,
+                "gift_card": false,
+                "grams": 900,
+                "name": "Starterset",
+                "price": "359.00",
+                "price_set": {
+                  "shop_money": {
+                    "amount": "359.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "359.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "product_exists": true,
+                "product_id": 6553372164304,
+                "properties": [],
+                "quantity": 1,
+                "requires_shipping": true,
+                "sales_line_item_group_id": 142831562,
+                "selling_plan_id": null,
+                "sku": "P1-0001-000-01-NL",
+                "taxable": true,
+                "title": "Starterset",
+                "total_discount": "0.00",
+                "total_discount_set": {
+                  "shop_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "variant_id": 40564291731664,
+                "variant_inventory_management": "shopify",
+                "variant_title": null,
+                "vendor": null,
+                "tax_lines": [],
+                "duties": [],
+                "discount_allocations": []
+              },
+              {
+                "id": 257004973105704600,
+                "admin_graphql_api_id": "gid://shopify/LineItem/257004973105704598",
+                "attributed_staffs": [],
+                "current_quantity": 1,
+                "fulfillable_quantity": 1,
+                "fulfillment_service": "manual",
+                "fulfillment_status": null,
+                "gift_card": false,
+                "grams": 0,
+                "name": "Vriendenboekje",
+                "price": "6.50",
+                "price_set": {
+                  "shop_money": {
+                    "amount": "6.50",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "6.50",
+                    "currency_code": "EUR"
+                  }
+                },
+                "product_exists": true,
+                "product_id": 6553375801552,
+                "properties": [],
+                "quantity": 1,
+                "requires_shipping": true,
+                "sales_line_item_group_id": 142831562,
+                "selling_plan_id": null,
+                "sku": "",
+                "taxable": true,
+                "title": "Vriendenboekje",
+                "total_discount": "0.00",
+                "total_discount_set": {
+                  "shop_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "variant_id": 39331420864720,
+                "variant_inventory_management": "shopify",
+                "variant_title": null,
+                "vendor": null,
+                "tax_lines": [],
+                "duties": [],
+                "discount_allocations": []
+              }
+            ],
+            "payment_terms": null,
+            "refunds": [],
+            "shipping_address": {
+              "first_name": "Jan",
+              "address1": "Vruchtengaard 51",
+              "phone": "555-555-SHIP",
+              "city": "Doorn",
+              "zip": "3941 LG",
+              "province": "Utrecht",
+              "country": "Nederland",
+              "last_name": "Smit",
+              "address2": null,
+              "company": "Shipping Bedrijf",
+              "latitude": null,
+              "longitude": null,
+              "name": "Jan Smit",
+              "country_code": "*",
+              "province_code": null
+            },
+            "shipping_lines": [
+              {
+                "id": 271878346596884000,
+                "carrier_identifier": null,
+                "code": null,
+                "current_discounted_price_set": {
+                  "shop_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "discounted_price": "0.00",
+                "discounted_price_set": {
+                  "shop_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "is_removed": false,
+                "phone": null,
+                "price": "10.00",
+                "price_set": {
+                  "shop_money": {
+                    "amount": "10.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "10.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "requested_fulfillment_service_id": null,
+                "source": "shopify",
+                "title": "Generic Shipping",
+                "tax_lines": [],
+                "discount_allocations": []
+              }
+            ],
+            "returns": [],
+            "line_item_groups": []
+          },
+          "webhookUrl": "https://picoo.app.n8n.cloud/webhook-test/8ed71b52-4489-4b35-a0ac-e3575cd0320d",
+          "executionMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "5eeb08b5-b083-4e49-a051-b7848bce8fb9",
+  "activeVersionId": "5eeb08b5-b083-4e49-a051-b7848bce8fb9",
+  "versionCounter": 26,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-08-26T12:52:15.773Z",
+      "createdAt": "2026-08-26T12:52:15.773Z",
+      "role": "workflow:owner",
+      "workflowId": "zMV03hTkEtOz4FLg",
+      "projectId": "QYuyi83fqQPToWGq",
+      "project": {
+        "updatedAt": "2026-02-11T09:43:01.934Z",
+        "createdAt": "2025-12-17T15:07:42.336Z",
+        "id": "QYuyi83fqQPToWGq",
+        "name": "Fiyo van ravenstein <fiyo.van.ravenstein@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-12-17T15:07:42.339Z",
+            "createdAt": "2025-12-17T15:07:42.339Z",
+            "userId": "f464bba4-661a-4422-ae0a-366cbcce6b98",
+            "projectId": "QYuyi83fqQPToWGq",
+            "user": {
+              "updatedAt": "2026-09-02T11:58:28.000Z",
+              "createdAt": "2025-12-17T15:07:42.331Z",
+              "id": "f464bba4-661a-4422-ae0a-366cbcce6b98",
+              "email": "fiyo.van.ravenstein@picoo.nl",
+              "firstName": "Fiyo",
+              "lastName": "van ravenstein",
+              "personalizationAnswers": null,
+              "settings": {
+                "firstSuccessfulWorkflowId": "6hqtqOdVGlqO810j",
+                "userActivated": true,
+                "userActivatedAt": 1770935400180,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1775567798325
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "updatedAt": "2026-08-26T13:39:50.857Z",
+      "createdAt": "2026-08-26T13:39:50.857Z",
+      "role": "workflow:editor",
+      "workflowId": "zMV03hTkEtOz4FLg",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-09-02T12:14:25.071Z",
+    "createdAt": "2026-09-02T12:14:25.071Z",
+    "versionId": "5eeb08b5-b083-4e49-a051-b7848bce8fb9",
+    "workflowId": "zMV03hTkEtOz4FLg",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "8ed71b52-4489-4b35-a0ac-e3575cd0320d",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -656,
+          640
+        ],
+        "id": "395e8245-aaeb-4398-aabe-de84bf15ade3",
+        "name": "Webhook",
+        "webhookId": "8ed71b52-4489-4b35-a0ac-e3575cd0320d"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "4a338f3e-1aec-4320-9c38-c95c490b05b6",
+                "leftValue": "={{ !!$json.body.test }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              },
+              {
+                "id": "9b43ddf3-47e0-4703-8724-fe44626df290",
+                "leftValue": "={{ $json.body.admin_graphql_api_id }}",
+                "rightValue": "^gid://shopify/Order/\\d+$",
+                "operator": {
+                  "type": "string",
+                  "operation": "notRegex"
+                }
+              }
+            ],
+            "combinator": "or"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -464,
+          640
+        ],
+        "id": "b664db6a-788d-4493-a83c-985952e607e9",
+        "name": "Skip test/invalid orders"
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "appOzDhFRxFTjBqMN",
+            "mode": "list",
+            "cachedResultName": "ERP Integrations",
+            "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblaXYFgEkroPjRu2",
+            "mode": "list",
+            "cachedResultName": "Sales Order Queue",
+            "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN/tblaXYFgEkroPjRu2"
+          },
+          "filterByFormula": "={{ '{order_id} = \"' + $('Webhook').item.json.body.admin_graphql_api_id.split('/').pop() + '\"' }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          -256,
+          688
+        ],
+        "id": "b1fb7a5f-79ad-43dd-bfd4-00a2193dfc0d",
+        "name": "Deduplication",
+        "alwaysOutputData": true,
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "VVi4cw1Gru6JhVPf",
+            "name": "Airtable PAT for ERP integrations"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "d1ead0fe-a4cb-4faf-a47d-e1de28807116",
+                "leftValue": "={{ $json.id }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -80,
+          688
+        ],
+        "id": "84ba02ec-ac5c-4afe-ba7e-c01b7d981d5a",
+        "name": "If"
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "200",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          304,
+          448
+        ],
+        "id": "e4e65dcf-2783-4cdb-8f70-f94693dfb6e4",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "authentication": "oAuth2",
+          "operation": "get",
+          "orderId": "={{ $('Webhook').item.json.body.admin_graphql_api_id.split('/').pop() }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.shopify",
+        "typeVersion": 1,
+        "position": [
+          112,
+          688
+        ],
+        "id": "dec49187-15b0-42bb-9c80-6a5369275ed5",
+        "name": "Get an order",
+        "credentials": {
+          "shopifyOAuth2Api": {
+            "id": "wuJPm2qVIiwx4ado",
+            "name": "Shopify read orders"
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "operation": "create",
+          "base": {
+            "__rl": true,
+            "value": "appOzDhFRxFTjBqMN",
+            "mode": "list",
+            "cachedResultName": "ERP Integrations",
+            "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblaXYFgEkroPjRu2",
+            "mode": "list",
+            "cachedResultName": "Sales Order Queue",
+            "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN/tblaXYFgEkroPjRu2"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "order_id": "={{ $('Webhook').item.json.body.admin_graphql_api_id.split('/').pop() }}",
+              "order_name": "={{ $('Webhook').item.json.body.order_number }}",
+              "retry_count": 0,
+              "status": "PENDING",
+              "line_items": "={{ JSON.stringify($('Webhook').item.json.body.line_items.map(({attributed_staffs, current_quantity, sales_line_item_group_id, selling_plan_id, ...rest}) => rest)) }}",
+              "created_at_shopify": "={{ $json.created_at }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "order_id",
+                "displayName": "order_id",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "PENDING",
+                    "value": "PENDING"
+                  },
+                  {
+                    "name": "PROCESSING",
+                    "value": "PROCESSING"
+                  },
+                  {
+                    "name": "DONE",
+                    "value": "DONE"
+                  },
+                  {
+                    "name": "ERROR",
+                    "value": "ERROR"
+                  },
+                  {
+                    "name": "SKIPPED",
+                    "value": "SKIPPED"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "created_at_airtable",
+                "displayName": "created_at_airtable",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "order_name",
+                "displayName": "order_name",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "created_at_shopify",
+                "displayName": "created_at_shopify",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "line_items",
+                "displayName": "line_items",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "last_attempted_at",
+                "displayName": "last_attempted_at",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "retry_count",
+                "displayName": "retry_count",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "erpnext_doc_id",
+                "displayName": "erpnext_doc_id",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Link",
+                "displayName": "Link",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Calculate ERPNext link",
+                "displayName": "Calculate ERPNext link",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "error_message",
+                "displayName": "error_message",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "system_messages",
+                "displayName": "system_messages",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          304,
+          688
+        ],
+        "id": "7d53bb24-5e73-45ab-a02d-9fe38527d72e",
+        "name": "Create a record",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "VVi4cw1Gru6JhVPf",
+            "name": "Airtable PAT for ERP integrations"
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "200",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          496,
+          592
+        ],
+        "id": "ffcfdd70-5257-4d17-ab3f-40827f298694",
+        "name": "Respond to success to webhook"
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "500",
+          "options": {
+            "responseCode": 500
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          496,
+          800
+        ],
+        "id": "aba18c43-3dc5-46f9-99a4-b6b564fb6b7c",
+        "name": "Respond to error to webhook"
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Skip test/invalid orders",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Deduplication": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Get an order",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create a record": {
+        "main": [
+          [
+            {
+              "node": "Respond to success to webhook",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond to error to webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Skip test/invalid orders": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Deduplication",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get an order": {
+        "main": [
+          [
+            {
+              "node": "Create a record",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Fiyo van ravenstein",
+    "name": null,
+    "description": null
+  }
+}

@@ -1,0 +1,3546 @@
+{
+  "updatedAt": "2026-08-31T10:04:15.786Z",
+  "createdAt": "2026-04-16T11:19:25.245Z",
+  "id": "dkA6ePlLAqTeJkQD",
+  "name": "Translation inbox sync",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3b0ee279-a344-4bc3-80ec-fd3997cb0e45",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "1BSEfjvRSAeQB4FrqGI_AxqUG4sw1bPx4",
+            "mode": "id"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "96919fca-762b-4df2-bc17-4f0f1a8d984a",
+      "name": "Get files from inbox",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7jmlqmj1JpGcdPBx",
+          "name": "Google auth (Iris)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "8f9d9164-c69e-4253-905b-b8342cf38baf",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "const filename = $input.item.json.name;\nconst match = filename.match(/(\\d{5}\\.\\d{2})/);\n\nreturn [{\n  json: {\n    ...($input.item.json),\n    versionId: match ? match[1] : null,\n    fileId: $input.item.json.id,\n    filename: filename,\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        96
+      ],
+      "id": "d459f913-7e68-4b1b-be35-f06ac010ebba",
+      "name": "Retrieve asset id of file"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "af7dee8e-3d3e-46ef-95c2-f3411211bef6",
+              "leftValue": "={{ $json.versionId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        96
+      ],
+      "id": "3baf970c-dcfa-44bc-9503-fd25d691d73f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "af7dee8e-3d3e-46ef-95c2-f3411211bef6",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "44860222-e263-472f-b740-1c004982d178",
+              "leftValue": "={{ $json['Status (from Translation Requests 2)'][0] }}",
+              "rightValue": "Sent to translation agency",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1280,
+        0
+      ],
+      "id": "b5bef333-d8dd-4d3b-a207-fe61ea6fd44f",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app0zzPtwBSKpGFRZ",
+          "mode": "list",
+          "cachedResultName": "Assets",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblBcNQEJLJInQrNg",
+          "mode": "list",
+          "cachedResultName": "Versies",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tblBcNQEJLJInQrNg"
+        },
+        "filterByFormula": "={ID} = \"{{ $json.versionId }}\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "84fe9780-a3e5-467a-ae7f-76154ee7cadf",
+      "name": "Get matching version",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PF5lafGOMUTYjUMy",
+          "name": "Airtable PAT assets base"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Retrieve asset id of file').item.json.id }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "value": "0ANPEo52GCfONUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Picoo - Algemeen",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0ANPEo52GCfONUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1oUtsxnD-r6433vfmBDYeHTNFVXkosNxk",
+          "mode": "list",
+          "cachedResultName": "Assets",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1oUtsxnD-r6433vfmBDYeHTNFVXkosNxk"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1504,
+        -16
+      ],
+      "id": "38ad89d3-29a5-4843-b60d-c803db994d55",
+      "name": "Move file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7jmlqmj1JpGcdPBx",
+          "name": "Google auth (Iris)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app0zzPtwBSKpGFRZ",
+          "mode": "list",
+          "cachedResultName": "Assets",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblBcNQEJLJInQrNg",
+          "mode": "list",
+          "cachedResultName": "Versies",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tblBcNQEJLJInQrNg"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Get matching version').item.json.id }}",
+            "URL content": "=https://drive.google.com/file/d/{{ $('Retrieve asset id of file').item.json.fileId }}/view"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Titel (from Assets)",
+              "displayName": "Titel (from Assets)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "status_content",
+              "displayName": "status_content",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Niet van toepassing",
+                  "value": "Niet van toepassing"
+                },
+                {
+                  "name": "TODO",
+                  "value": "TODO"
+                },
+                {
+                  "name": "BLOCKED",
+                  "value": "BLOCKED"
+                },
+                {
+                  "name": "DRAFT",
+                  "value": "DRAFT"
+                },
+                {
+                  "name": "FINAL",
+                  "value": "FINAL"
+                },
+                {
+                  "name": "CANCELED",
+                  "value": "CANCELED"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "status_design",
+              "displayName": "status_design",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Niet van toepassing",
+                  "value": "Niet van toepassing"
+                },
+                {
+                  "name": "TODO",
+                  "value": "TODO"
+                },
+                {
+                  "name": "BLOCKED",
+                  "value": "BLOCKED"
+                },
+                {
+                  "name": "DRAFT",
+                  "value": "DRAFT"
+                },
+                {
+                  "name": "FINAL",
+                  "value": "FINAL"
+                },
+                {
+                  "name": "CANCELED",
+                  "value": "CANCELED"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "status_asset",
+              "displayName": "status_asset",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Taal (from Assets)",
+              "displayName": "Taal (from Assets)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Versie",
+              "displayName": "Versie",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Deadline",
+              "displayName": "Deadline",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "URL final",
+              "displayName": "URL final",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Interface URL",
+              "displayName": "Interface URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Spelversies",
+              "displayName": "Spelversies",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Prioriteit",
+              "displayName": "Prioriteit",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Low",
+                  "value": "Low"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "High",
+                  "value": "High"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Verwerkt Hubspot",
+              "displayName": "Verwerkt Hubspot",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "niet van toepassing",
+                  "value": "niet van toepassing"
+                },
+                {
+                  "name": "nog niet verwerkt",
+                  "value": "nog niet verwerkt"
+                },
+                {
+                  "name": "verwerkt",
+                  "value": "verwerkt"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Verantwoordelijk",
+              "displayName": "Verantwoordelijk",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Volgende actie",
+              "displayName": "Volgende actie",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Slack handle (from Volgende actie)",
+              "displayName": "Slack handle (from Volgende actie)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Email (from Volgende actie)",
+              "displayName": "Email (from Volgende actie)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Notities",
+              "displayName": "Notities",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "file_id_final",
+              "displayName": "file_id_final",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Status drukwerk",
+              "displayName": "Status drukwerk",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Niet van toepassing",
+                  "value": "Niet van toepassing"
+                },
+                {
+                  "name": "Klaar om te bestellen",
+                  "value": "Klaar om te bestellen"
+                },
+                {
+                  "name": "Besteld",
+                  "value": "Besteld"
+                },
+                {
+                  "name": "Ontvangen",
+                  "value": "Ontvangen"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Type media (from Assets)",
+              "displayName": "Type media (from Assets)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Slack handle formatted",
+              "displayName": "Slack handle formatted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Create new version",
+              "displayName": "Create new version",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "URL content",
+              "displayName": "URL content",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "file_id_content",
+              "displayName": "file_id_content",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Comments",
+              "displayName": "Comments",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "URL design draft",
+              "displayName": "URL design draft",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Design revisies",
+              "displayName": "Design revisies",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "hubspot_url",
+              "displayName": "hubspot_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tag",
+              "displayName": "Tag",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "options": [
+                {
+                  "name": "M&M Quiz 2025",
+                  "value": "M&M Quiz 2025"
+                },
+                {
+                  "name": "Safetysheet",
+                  "value": "Safetysheet"
+                },
+                {
+                  "name": "Steve - Print",
+                  "value": "Steve - Print"
+                },
+                {
+                  "name": "Steve - Digital",
+                  "value": "Steve - Digital"
+                },
+                {
+                  "name": "Design 1.0",
+                  "value": "Design 1.0"
+                },
+                {
+                  "name": "Design 2.0",
+                  "value": "Design 2.0"
+                },
+                {
+                  "name": "Tekst revisie nodig",
+                  "value": "Tekst revisie nodig"
+                },
+                {
+                  "name": "Verhuur DE",
+                  "value": "Verhuur DE"
+                },
+                {
+                  "name": "lead generation",
+                  "value": "lead generation"
+                },
+                {
+                  "name": "Aanpassen Smartsleeves icoon",
+                  "value": "Aanpassen Smartsleeves icoon"
+                },
+                {
+                  "name": "FR draft done",
+                  "value": "FR draft done"
+                },
+                {
+                  "name": "DE content ready",
+                  "value": "DE content ready"
+                },
+                {
+                  "name": "Iris DE done",
+                  "value": "Iris DE done"
+                },
+                {
+                  "name": "Vertaling aangevraagd",
+                  "value": "Vertaling aangevraagd"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Partnrs",
+              "displayName": "Partnrs",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "request_translation",
+              "displayName": "request_translation",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Open interface URL",
+              "displayName": "Open interface URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Button interface URL DRAFT",
+              "displayName": "Button interface URL DRAFT",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "create_pdf_from_gdoc",
+              "displayName": "create_pdf_from_gdoc",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Created",
+              "displayName": "Created",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Last Modified",
+              "displayName": "Last Modified",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Assets",
+              "displayName": "Assets",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ID (from Assets)",
+              "displayName": "ID (from Assets)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Interface URL metadata",
+              "displayName": "Interface URL metadata",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Alle versies (from Assets)",
+              "displayName": "Alle versies (from Assets)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "file_name_content",
+              "displayName": "file_name_content",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "vertalingen",
+              "displayName": "vertalingen",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "vertaling_van (from Assets)",
+              "displayName": "vertaling_van (from Assets)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "request_translation_interface_url",
+              "displayName": "request_translation_interface_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "request_translation_button",
+              "displayName": "request_translation_button",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "new_revision_url",
+              "displayName": "new_revision_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "based_on_template",
+              "displayName": "based_on_template",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "create_doc_based_on_template",
+              "displayName": "create_doc_based_on_template",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "status_create_based_on_template",
+              "displayName": "status_create_based_on_template",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ID latest draft (from Assets)",
+              "displayName": "ID latest draft (from Assets)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "ID latest final (from Assets)",
+              "displayName": "ID latest final (from Assets)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "is latest FINAL or DRAFT",
+              "displayName": "is latest FINAL or DRAFT",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Open Detail Interface (from Projecten) (from Assets)",
+              "displayName": "Open Detail Interface (from Projecten) (from Assets)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Linked versions",
+              "displayName": "Linked versions",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "From field: Linked versions",
+              "displayName": "From field: Linked versions",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "From field: Versies",
+              "displayName": "From field: Versies",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "System messages",
+              "displayName": "System messages",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "last_filename_content",
+              "displayName": "last_filename_content",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "status_filename_on_drive",
+              "displayName": "status_filename_on_drive",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "create_copy_of_asset",
+              "displayName": "create_copy_of_asset",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "RecordId",
+              "displayName": "RecordId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "has_translations",
+              "displayName": "has_translations",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Spelbundel (from Assets)",
+              "displayName": "Spelbundel (from Assets)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "missing_translations",
+              "displayName": "missing_translations",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Interface URL design revisie",
+              "displayName": "Interface URL design revisie",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "mark for deletion",
+              "displayName": "mark for deletion",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ID latest (from Assets)",
+              "displayName": "ID latest (from Assets)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "is latest",
+              "displayName": "is latest",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Interface URL metadata asset Rollup (from vertalingen)",
+              "displayName": "Interface URL metadata asset Rollup (from vertalingen)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Translation base asset",
+              "displayName": "Translation base asset",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Other translations",
+              "displayName": "Other translations",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "is translation of latest NL (from Assets)",
+              "displayName": "is translation of latest NL (from Assets)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "last_filename_asset",
+              "displayName": "last_filename_asset",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "file_name_asset",
+              "displayName": "file_name_asset",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "lock_status_content",
+              "displayName": "lock_status_content",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "lock_status_asset",
+              "displayName": "lock_status_asset",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Translation Requests",
+              "displayName": "Translation Requests",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "sync_error_google_drive",
+              "displayName": "sync_error_google_drive",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Notities asset",
+              "displayName": "Notities asset",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Translation Requests 2",
+              "displayName": "Translation Requests 2",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status (from Translation Requests 2)",
+              "displayName": "Status (from Translation Requests 2)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1664,
+        -16
+      ],
+      "id": "207b0385-661d-4519-84f4-353b11c841bd",
+      "name": "Update versie record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PF5lafGOMUTYjUMy",
+          "name": "Airtable PAT assets base"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app0zzPtwBSKpGFRZ",
+          "mode": "list",
+          "cachedResultName": "Assets",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl6vEuEuwCGTMPNR",
+          "mode": "list",
+          "cachedResultName": "Translation Requests",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tbl6vEuEuwCGTMPNR"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.fields['Translation Requests 2'][0] }}",
+            "Status": "Done"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Target",
+              "displayName": "Target",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Todo",
+                  "value": "Todo"
+                },
+                {
+                  "name": "In progress",
+                  "value": "In progress"
+                },
+                {
+                  "name": "Ready for translation",
+                  "value": "Ready for translation"
+                },
+                {
+                  "name": "Sent to translation agency",
+                  "value": "Sent to translation agency"
+                },
+                {
+                  "name": "Done",
+                  "value": "Done"
+                },
+                {
+                  "name": "Error",
+                  "value": "Error"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Target language",
+              "displayName": "Target language",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "EN",
+                  "value": "EN"
+                },
+                {
+                  "name": "DE",
+                  "value": "DE"
+                },
+                {
+                  "name": "FR",
+                  "value": "FR"
+                },
+                {
+                  "name": "SE",
+                  "value": "SE"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Error log",
+              "displayName": "Error log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "file_id_content (from Source)",
+              "displayName": "file_id_content (from Source)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Titel (from Assets) (from Source)",
+              "displayName": "Titel (from Assets) (from Source)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Titel (from Assets) (from Target)",
+              "displayName": "Titel (from Assets) (from Target)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Taal (from Assets) (from Source)",
+              "displayName": "Taal (from Assets) (from Source)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Omschrijving",
+              "displayName": "Omschrijving",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "URL content (from Target)",
+              "displayName": "URL content (from Target)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1872,
+        -16
+      ],
+      "id": "b9b9f5df-9069-4ed9-8545-3a0b7614a18a",
+      "name": "Update translation record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PF5lafGOMUTYjUMy",
+          "name": "Airtable PAT assets base"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "05a6a2ab-6480-47e1-b8cb-054fa14440c2",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        152
+      ],
+      "id": "0245cede-f2f9-47e6-91f1-ed00b8eefb67",
+      "name": "Webhook",
+      "webhookId": "05a6a2ab-6480-47e1-b8cb-054fa14440c2"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get files from inbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get files from inbox": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Retrieve asset id of file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve asset id of file": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get matching version",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Move file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get matching version": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move file": {
+      "main": [
+        [
+          {
+            "node": "Update versie record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update versie record": {
+      "main": [
+        [
+          {
+            "node": "Update translation record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update translation record": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get files from inbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "8d97b7d8-f71f-487a-bedf-e5c170f0364e",
+  "activeVersionId": "8d97b7d8-f71f-487a-bedf-e5c170f0364e",
+  "versionCounter": 15,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-16T11:19:25.248Z",
+      "createdAt": "2026-04-16T11:19:25.248Z",
+      "role": "workflow:owner",
+      "workflowId": "dkA6ePlLAqTeJkQD",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-08-31T10:04:15.787Z",
+    "createdAt": "2026-08-31T10:04:15.787Z",
+    "versionId": "8d97b7d8-f71f-487a-bedf-e5c170f0364e",
+    "workflowId": "dkA6ePlLAqTeJkQD",
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "3b0ee279-a344-4bc3-80ec-fd3997cb0e45",
+        "name": "When clicking ‘Execute workflow’"
+      },
+      {
+        "parameters": {
+          "resource": "fileFolder",
+          "filter": {
+            "folderId": {
+              "__rl": true,
+              "value": "1BSEfjvRSAeQB4FrqGI_AxqUG4sw1bPx4",
+              "mode": "id"
+            }
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          208,
+          0
+        ],
+        "id": "96919fca-762b-4df2-bc17-4f0f1a8d984a",
+        "name": "Get files from inbox",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "7jmlqmj1JpGcdPBx",
+            "name": "Google auth (Iris)"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          416,
+          0
+        ],
+        "id": "8f9d9164-c69e-4253-905b-b8342cf38baf",
+        "name": "Loop Over Items"
+      },
+      {
+        "parameters": {
+          "jsCode": "const filename = $input.item.json.name;\nconst match = filename.match(/(\\d{5}\\.\\d{2})/);\n\nreturn [{\n  json: {\n    ...($input.item.json),\n    versionId: match ? match[1] : null,\n    fileId: $input.item.json.id,\n    filename: filename,\n  }\n}];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          624,
+          96
+        ],
+        "id": "d459f913-7e68-4b1b-be35-f06ac010ebba",
+        "name": "Retrieve asset id of file"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "af7dee8e-3d3e-46ef-95c2-f3411211bef6",
+                "leftValue": "={{ $json.versionId }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          832,
+          96
+        ],
+        "id": "3baf970c-dcfa-44bc-9503-fd25d691d73f",
+        "name": "If"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "af7dee8e-3d3e-46ef-95c2-f3411211bef6",
+                "leftValue": "={{ $json.id }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              },
+              {
+                "id": "44860222-e263-472f-b740-1c004982d178",
+                "leftValue": "={{ $json['Status (from Translation Requests 2)'][0] }}",
+                "rightValue": "Sent to translation agency",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1280,
+          0
+        ],
+        "id": "b5bef333-d8dd-4d3b-a207-fe61ea6fd44f",
+        "name": "If1"
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "app0zzPtwBSKpGFRZ",
+            "mode": "list",
+            "cachedResultName": "Assets",
+            "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblBcNQEJLJInQrNg",
+            "mode": "list",
+            "cachedResultName": "Versies",
+            "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tblBcNQEJLJInQrNg"
+          },
+          "filterByFormula": "={ID} = \"{{ $json.versionId }}\"",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1040,
+          0
+        ],
+        "id": "84fe9780-a3e5-467a-ae7f-76154ee7cadf",
+        "name": "Get matching version",
+        "alwaysOutputData": true,
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "PF5lafGOMUTYjUMy",
+            "name": "Airtable PAT assets base"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "move",
+          "fileId": {
+            "__rl": true,
+            "value": "={{ $('Retrieve asset id of file').item.json.id }}",
+            "mode": "id"
+          },
+          "driveId": {
+            "__rl": true,
+            "value": "0ANPEo52GCfONUk9PVA",
+            "mode": "list",
+            "cachedResultName": "Picoo - Algemeen",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/0ANPEo52GCfONUk9PVA"
+          },
+          "folderId": {
+            "__rl": true,
+            "value": "1oUtsxnD-r6433vfmBDYeHTNFVXkosNxk",
+            "mode": "list",
+            "cachedResultName": "Assets",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1oUtsxnD-r6433vfmBDYeHTNFVXkosNxk"
+          }
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          1504,
+          -16
+        ],
+        "id": "38ad89d3-29a5-4843-b60d-c803db994d55",
+        "name": "Move file",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "7jmlqmj1JpGcdPBx",
+            "name": "Google auth (Iris)"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "app0zzPtwBSKpGFRZ",
+            "mode": "list",
+            "cachedResultName": "Assets",
+            "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblBcNQEJLJInQrNg",
+            "mode": "list",
+            "cachedResultName": "Versies",
+            "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tblBcNQEJLJInQrNg"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "id": "={{ $('Get matching version').item.json.id }}",
+              "URL content": "=https://drive.google.com/file/d/{{ $('Retrieve asset id of file').item.json.fileId }}/view"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Name",
+                "displayName": "Name",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Titel (from Assets)",
+                "displayName": "Titel (from Assets)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "status_content",
+                "displayName": "status_content",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Niet van toepassing",
+                    "value": "Niet van toepassing"
+                  },
+                  {
+                    "name": "TODO",
+                    "value": "TODO"
+                  },
+                  {
+                    "name": "BLOCKED",
+                    "value": "BLOCKED"
+                  },
+                  {
+                    "name": "DRAFT",
+                    "value": "DRAFT"
+                  },
+                  {
+                    "name": "FINAL",
+                    "value": "FINAL"
+                  },
+                  {
+                    "name": "CANCELED",
+                    "value": "CANCELED"
+                  }
+                ],
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "status_design",
+                "displayName": "status_design",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Niet van toepassing",
+                    "value": "Niet van toepassing"
+                  },
+                  {
+                    "name": "TODO",
+                    "value": "TODO"
+                  },
+                  {
+                    "name": "BLOCKED",
+                    "value": "BLOCKED"
+                  },
+                  {
+                    "name": "DRAFT",
+                    "value": "DRAFT"
+                  },
+                  {
+                    "name": "FINAL",
+                    "value": "FINAL"
+                  },
+                  {
+                    "name": "CANCELED",
+                    "value": "CANCELED"
+                  }
+                ],
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "status_asset",
+                "displayName": "status_asset",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Taal (from Assets)",
+                "displayName": "Taal (from Assets)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Versie",
+                "displayName": "Versie",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Deadline",
+                "displayName": "Deadline",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "URL final",
+                "displayName": "URL final",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Interface URL",
+                "displayName": "Interface URL",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Spelversies",
+                "displayName": "Spelversies",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Prioriteit",
+                "displayName": "Prioriteit",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Low",
+                    "value": "Low"
+                  },
+                  {
+                    "name": "Medium",
+                    "value": "Medium"
+                  },
+                  {
+                    "name": "High",
+                    "value": "High"
+                  }
+                ],
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Verwerkt Hubspot",
+                "displayName": "Verwerkt Hubspot",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "niet van toepassing",
+                    "value": "niet van toepassing"
+                  },
+                  {
+                    "name": "nog niet verwerkt",
+                    "value": "nog niet verwerkt"
+                  },
+                  {
+                    "name": "verwerkt",
+                    "value": "verwerkt"
+                  }
+                ],
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Verantwoordelijk",
+                "displayName": "Verantwoordelijk",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Volgende actie",
+                "displayName": "Volgende actie",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Slack handle (from Volgende actie)",
+                "displayName": "Slack handle (from Volgende actie)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Email (from Volgende actie)",
+                "displayName": "Email (from Volgende actie)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Notities",
+                "displayName": "Notities",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "file_id_final",
+                "displayName": "file_id_final",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Status drukwerk",
+                "displayName": "Status drukwerk",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Niet van toepassing",
+                    "value": "Niet van toepassing"
+                  },
+                  {
+                    "name": "Klaar om te bestellen",
+                    "value": "Klaar om te bestellen"
+                  },
+                  {
+                    "name": "Besteld",
+                    "value": "Besteld"
+                  },
+                  {
+                    "name": "Ontvangen",
+                    "value": "Ontvangen"
+                  }
+                ],
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Type media (from Assets)",
+                "displayName": "Type media (from Assets)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Slack handle formatted",
+                "displayName": "Slack handle formatted",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "ID",
+                "displayName": "ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Create new version",
+                "displayName": "Create new version",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "URL content",
+                "displayName": "URL content",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "file_id_content",
+                "displayName": "file_id_content",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Comments",
+                "displayName": "Comments",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "URL design draft",
+                "displayName": "URL design draft",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Design revisies",
+                "displayName": "Design revisies",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "hubspot_url",
+                "displayName": "hubspot_url",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Tag",
+                "displayName": "Tag",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "options": [
+                  {
+                    "name": "M&M Quiz 2025",
+                    "value": "M&M Quiz 2025"
+                  },
+                  {
+                    "name": "Safetysheet",
+                    "value": "Safetysheet"
+                  },
+                  {
+                    "name": "Steve - Print",
+                    "value": "Steve - Print"
+                  },
+                  {
+                    "name": "Steve - Digital",
+                    "value": "Steve - Digital"
+                  },
+                  {
+                    "name": "Design 1.0",
+                    "value": "Design 1.0"
+                  },
+                  {
+                    "name": "Design 2.0",
+                    "value": "Design 2.0"
+                  },
+                  {
+                    "name": "Tekst revisie nodig",
+                    "value": "Tekst revisie nodig"
+                  },
+                  {
+                    "name": "Verhuur DE",
+                    "value": "Verhuur DE"
+                  },
+                  {
+                    "name": "lead generation",
+                    "value": "lead generation"
+                  },
+                  {
+                    "name": "Aanpassen Smartsleeves icoon",
+                    "value": "Aanpassen Smartsleeves icoon"
+                  },
+                  {
+                    "name": "FR draft done",
+                    "value": "FR draft done"
+                  },
+                  {
+                    "name": "DE content ready",
+                    "value": "DE content ready"
+                  },
+                  {
+                    "name": "Iris DE done",
+                    "value": "Iris DE done"
+                  },
+                  {
+                    "name": "Vertaling aangevraagd",
+                    "value": "Vertaling aangevraagd"
+                  }
+                ],
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Partnrs",
+                "displayName": "Partnrs",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "request_translation",
+                "displayName": "request_translation",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Open interface URL",
+                "displayName": "Open interface URL",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Button interface URL DRAFT",
+                "displayName": "Button interface URL DRAFT",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "create_pdf_from_gdoc",
+                "displayName": "create_pdf_from_gdoc",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Created",
+                "displayName": "Created",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Last Modified",
+                "displayName": "Last Modified",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Assets",
+                "displayName": "Assets",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "ID (from Assets)",
+                "displayName": "ID (from Assets)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Interface URL metadata",
+                "displayName": "Interface URL metadata",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Alle versies (from Assets)",
+                "displayName": "Alle versies (from Assets)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "file_name_content",
+                "displayName": "file_name_content",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "vertalingen",
+                "displayName": "vertalingen",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "vertaling_van (from Assets)",
+                "displayName": "vertaling_van (from Assets)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "request_translation_interface_url",
+                "displayName": "request_translation_interface_url",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "request_translation_button",
+                "displayName": "request_translation_button",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "new_revision_url",
+                "displayName": "new_revision_url",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "based_on_template",
+                "displayName": "based_on_template",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "create_doc_based_on_template",
+                "displayName": "create_doc_based_on_template",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "status_create_based_on_template",
+                "displayName": "status_create_based_on_template",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "ID latest draft (from Assets)",
+                "displayName": "ID latest draft (from Assets)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "ID latest final (from Assets)",
+                "displayName": "ID latest final (from Assets)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "is latest FINAL or DRAFT",
+                "displayName": "is latest FINAL or DRAFT",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Open Detail Interface (from Projecten) (from Assets)",
+                "displayName": "Open Detail Interface (from Projecten) (from Assets)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Linked versions",
+                "displayName": "Linked versions",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "From field: Linked versions",
+                "displayName": "From field: Linked versions",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "From field: Versies",
+                "displayName": "From field: Versies",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "System messages",
+                "displayName": "System messages",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "last_filename_content",
+                "displayName": "last_filename_content",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "status_filename_on_drive",
+                "displayName": "status_filename_on_drive",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "create_copy_of_asset",
+                "displayName": "create_copy_of_asset",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "RecordId",
+                "displayName": "RecordId",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "has_translations",
+                "displayName": "has_translations",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Spelbundel (from Assets)",
+                "displayName": "Spelbundel (from Assets)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "missing_translations",
+                "displayName": "missing_translations",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Interface URL design revisie",
+                "displayName": "Interface URL design revisie",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "mark for deletion",
+                "displayName": "mark for deletion",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "ID latest (from Assets)",
+                "displayName": "ID latest (from Assets)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "is latest",
+                "displayName": "is latest",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Interface URL metadata asset Rollup (from vertalingen)",
+                "displayName": "Interface URL metadata asset Rollup (from vertalingen)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Translation base asset",
+                "displayName": "Translation base asset",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Other translations",
+                "displayName": "Other translations",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "is translation of latest NL (from Assets)",
+                "displayName": "is translation of latest NL (from Assets)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "last_filename_asset",
+                "displayName": "last_filename_asset",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "file_name_asset",
+                "displayName": "file_name_asset",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "lock_status_content",
+                "displayName": "lock_status_content",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "lock_status_asset",
+                "displayName": "lock_status_asset",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Translation Requests",
+                "displayName": "Translation Requests",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "sync_error_google_drive",
+                "displayName": "sync_error_google_drive",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Notities asset",
+                "displayName": "Notities asset",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Translation Requests 2",
+                "displayName": "Translation Requests 2",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Status (from Translation Requests 2)",
+                "displayName": "Status (from Translation Requests 2)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1664,
+          -16
+        ],
+        "id": "207b0385-661d-4519-84f4-353b11c841bd",
+        "name": "Update versie record",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "PF5lafGOMUTYjUMy",
+            "name": "Airtable PAT assets base"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "app0zzPtwBSKpGFRZ",
+            "mode": "list",
+            "cachedResultName": "Assets",
+            "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbl6vEuEuwCGTMPNR",
+            "mode": "list",
+            "cachedResultName": "Translation Requests",
+            "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tbl6vEuEuwCGTMPNR"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "id": "={{ $json.fields['Translation Requests 2'][0] }}",
+              "Status": "Done"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "ID",
+                "displayName": "ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Source",
+                "displayName": "Source",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Target",
+                "displayName": "Target",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Status",
+                "displayName": "Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Todo",
+                    "value": "Todo"
+                  },
+                  {
+                    "name": "In progress",
+                    "value": "In progress"
+                  },
+                  {
+                    "name": "Ready for translation",
+                    "value": "Ready for translation"
+                  },
+                  {
+                    "name": "Sent to translation agency",
+                    "value": "Sent to translation agency"
+                  },
+                  {
+                    "name": "Done",
+                    "value": "Done"
+                  },
+                  {
+                    "name": "Error",
+                    "value": "Error"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Target language",
+                "displayName": "Target language",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "EN",
+                    "value": "EN"
+                  },
+                  {
+                    "name": "DE",
+                    "value": "DE"
+                  },
+                  {
+                    "name": "FR",
+                    "value": "FR"
+                  },
+                  {
+                    "name": "SE",
+                    "value": "SE"
+                  }
+                ],
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Error log",
+                "displayName": "Error log",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "file_id_content (from Source)",
+                "displayName": "file_id_content (from Source)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Titel (from Assets) (from Source)",
+                "displayName": "Titel (from Assets) (from Source)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Titel (from Assets) (from Target)",
+                "displayName": "Titel (from Assets) (from Target)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Taal (from Assets) (from Source)",
+                "displayName": "Taal (from Assets) (from Source)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Omschrijving",
+                "displayName": "Omschrijving",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "URL content (from Target)",
+                "displayName": "URL content (from Target)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1872,
+          -16
+        ],
+        "id": "b9b9f5df-9069-4ed9-8545-3a0b7614a18a",
+        "name": "Update translation record",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "PF5lafGOMUTYjUMy",
+            "name": "Airtable PAT assets base"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "path": "05a6a2ab-6480-47e1-b8cb-054fa14440c2",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          152
+        ],
+        "id": "0245cede-f2f9-47e6-91f1-ed00b8eefb67",
+        "name": "Webhook",
+        "webhookId": "05a6a2ab-6480-47e1-b8cb-054fa14440c2"
+      }
+    ],
+    "connections": {
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Get files from inbox",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get files from inbox": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loop Over Items": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Retrieve asset id of file",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Retrieve asset id of file": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Get matching version",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If1": {
+        "main": [
+          [
+            {
+              "node": "Move file",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get matching version": {
+        "main": [
+          [
+            {
+              "node": "If1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Move file": {
+        "main": [
+          [
+            {
+              "node": "Update versie record",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update versie record": {
+        "main": [
+          [
+            {
+              "node": "Update translation record",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update translation record": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Get files from inbox",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Iris Soute",
+    "name": null,
+    "description": null
+  }
+}

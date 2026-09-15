@@ -1,0 +1,715 @@
+{
+  "updatedAt": "2026-05-21T06:39:37.768Z",
+  "createdAt": "2026-05-21T06:39:08.564Z",
+  "id": "VzttuyH7P2WAwQVV",
+  "name": "TEST Weekly Shopify ↔ ERPNext Validation (Improved)",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "07b2d948-45e9-4047-8893-9f32069aa656",
+      "name": "Weekly Monday 09:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -752,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfg-1",
+              "name": "erpnextBaseUrl",
+              "value": "https://picoo.frappe.cloud",
+              "type": "string"
+            },
+            {
+              "id": "cfg-3",
+              "name": "slackChannel",
+              "value": "C08PFFV3NUT",
+              "type": "string"
+            },
+            {
+              "id": "cfg-4",
+              "name": "manualStartDate",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "cfg-5",
+              "name": "manualEndDate",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "c3f32bc7-9d73-4b13-be3d-fc808605ca09",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -512,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst now = new Date();\n\n// Gebruik handmatige datums uit de config indien ingevuld\nlet fDate = input.manualStartDate || \"\";\nlet tDate = input.manualEndDate || \"\";\n\nlet fromDate, toDate;\n\nif (fDate) {\n  // Handmatige start: begin van die dag\n  fromDate = fDate.includes('T') ? fDate : fDate + \"T00:00:00Z\";\n} else {\n  // Default: 7 dagen geleden\n  fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();\n}\n\nif (tDate) {\n  // Handmatige eind: einde van die dag\n  toDate = tDate.includes('T') ? tDate : tDate + \"T23:59:59Z\";\n} else {\n  // Default: nu (geen limiet)\n  toDate = now.toISOString();\n}\n\nreturn [{ json: { fromDate, toDate, isManual: !!fDate } }];"
+      },
+      "id": "a6ba3890-1d8b-48c8-bc5f-c13dbea622e8",
+      "name": "Calculate From Date",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst orders = input.orders || [input];\nreturn orders.map(o => ({ json: o }));\n"
+      },
+      "id": "63deb6da-bc54-4b9b-9e04-d036e8747a55",
+      "name": "Split Shopify Orders",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Workflow Configuration').first().json.erpnextBaseUrl }}/api/resource/Sales Order?filters=[[\"creation\",\">=\",\"{{ $('Calculate From Date').first().json.fromDate }}\"],[\"creation\",\"<=\",\"{{ $('Calculate From Date').first().json.toDate }}\"]]&fields=[\"name\",\"shopify_order_number\"]&limit_page_length=250",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "erpNextApi",
+        "options": {}
+      },
+      "id": "375a2acd-1b9f-4c80-ba75-b1b0b5fe7468",
+      "name": "Get SO List",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -80,
+        288
+      ],
+      "credentials": {
+        "erpNextApi": {
+          "id": "5YhqHtoMvOtwbP3j",
+          "name": "ERPNext account: iris.soute+shopify@picoo.nl"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Get SO List').first().json.data || [];\nreturn data.map(so => ({ json: so }));"
+      },
+      "id": "551bd8ff-07d1-4fad-98de-e77ae34d8e55",
+      "name": "Split SO Names",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Workflow Configuration').first().json.erpnextBaseUrl }}/api/resource/Sales Order/{{ $json.name }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "erpNextApi",
+        "options": {}
+      },
+      "id": "59a8b99a-cb00-4fe0-bcf0-69d1a50b03f4",
+      "name": "Get SO Details",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        368,
+        288
+      ],
+      "credentials": {
+        "erpNextApi": {
+          "id": "5YhqHtoMvOtwbP3j",
+          "name": "ERPNext account: iris.soute+shopify@picoo.nl"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Workflow Configuration').first().json.erpnextBaseUrl }}/api/resource/Delivery Note?filters=[[\"creation\",\">=\",\"{{ $('Calculate From Date').first().json.fromDate }}\"],[\"creation\",\"<=\",\"{{ $('Calculate From Date').first().json.toDate }}\"]]&fields=[\"name\",\"shopify_order_number\"]&limit_page_length=250",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "erpNextApi",
+        "options": {}
+      },
+      "id": "17a44e33-bfd6-4e17-93ac-071a71d9c6ae",
+      "name": "Get DN List",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -80,
+        672
+      ],
+      "credentials": {
+        "erpNextApi": {
+          "id": "5YhqHtoMvOtwbP3j",
+          "name": "ERPNext account: iris.soute+shopify@picoo.nl"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Get DN List').first().json.data || [];\nreturn data.map(dn => ({ json: dn }));"
+      },
+      "id": "1e3d6a0a-48b9-40dd-ab13-8c67944f3d04",
+      "name": "Split DN Names",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Workflow Configuration').first().json.erpnextBaseUrl }}/api/resource/Delivery Note/{{ $json.name }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "erpNextApi",
+        "options": {}
+      },
+      "id": "e098a657-2ef0-487f-84e3-f42877950a20",
+      "name": "Get DN Details",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        384,
+        672
+      ],
+      "credentials": {
+        "erpNextApi": {
+          "id": "5YhqHtoMvOtwbP3j",
+          "name": "ERPNext account: iris.soute+shopify@picoo.nl"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * n8n Code Node — Wekelijkse Validatie Logic\n *\n * ⚠️ Pas de node-namen en URLs hieronder aan naar jouw situatie!\n */\n\n// ══════════════════════════════════════════════════════════════\n// CONFIGURATIE\n// ══════════════════════════════════════════════════════════════\nconst NODE_NAME_SHOPIFY = \"Get many orders\";\nconst NODE_NAME_SO = \"Get SO Details\";\nconst NODE_NAME_DN = \"Get DN Details\";\nconst NODE_NAME_AIRTABLE_ERRORS = \"Get Existing Errors\"; // NAAM VAN JE AIRTABLE NODE\n\nconst SHOPIFY_STORE_URL = \"https://admin.shopify.com/store/play-picoo\"; // Pas aan!\nconst ERPNEXT_URL = \"https://picoo.frappe.cloud\";\n// ══════════════════════════════════════════════════════════════\n\n// ── 1. Haal data op ──\n\nconst rawShopifyItems = $(NODE_NAME_SHOPIFY).all().map(i => i.json);\n\n// Haal bestaande fouten op uit Airtable (zodat we niet dubbel rapporteren)\nlet existingErrors = [];\ntry {\n  // We halen de ID en de foutmelding op om specifiek te kunnen matchen\n  // De kolom in Airtable heet \"ID Shopify/ERPNext/Partnumber\"\n  existingErrors = $(NODE_NAME_AIRTABLE_ERRORS).all().map(i => {\n    const id = i.json[\"ID Shopify/ERPNext/Partnumber\"] || \"\";\n    const msg = i.json[\"Foutmelding\"] || \"\";\n    return `${id}|${msg}`;\n  });\n} catch (e) {\n  // Als de node nog niet bestaat of faalt, negeren we dit en checken we alles\n}\n\n// Shopify native node geeft elke order meerdere keren terug.\nconst orderMap = {};\nrawShopifyItems.forEach(item => {\n  const name = item.name || (\"#\" + item.order_number) || (\"#\" + item.id) || \"\";\n  if (!name) return;\n\n  if (!orderMap[name]) {\n    orderMap[name] = {\n      ...item,\n      name: name,\n      id: item.id,\n      line_items: item.line_items || [],\n      fulfillments: item.fulfillments || []\n    };\n  }\n});\n\nconst shopifyOrders = Object.values(orderMap);\n\n// ERPNext\nconst erpSalesOrders = $(NODE_NAME_SO).all().map(i => {\n  const item = i.json;\n  return item.data || item;\n});\n\nconst erpDeliveryNotes = $(NODE_NAME_DN).all().map(i => {\n  const item = i.json;\n  return item.data || item;\n});\n\nconst mismatchList = [];\n\n// ── 2. Bouw lookups ──\n\nconst soMap = {};\nerpSalesOrders.forEach(so => {\n  if (so && so.shopify_order_number) {\n    soMap[so.shopify_order_number] = so;\n  }\n});\n\nconst dnMap = {};\nerpDeliveryNotes.forEach(dn => {\n  if (!dn) return;\n  const key = dn.shopify_order_number || \"\";\n  if (!dnMap[key]) dnMap[key] = [];\n  dnMap[key].push(dn);\n});\n\n// ── 3. Per Shopify order vergelijken ──\n\nshopifyOrders.forEach(order => {\n  const name = order.name || \"\";\n  if (!name) return;\n\n  const orderIssues = [];\n\n  // === A. SALES ORDER CHECK ===\n  const so = soMap[name];\n  if (!so) {\n    orderIssues.push(\"Sales Order ontbreekt in ERPNext\");\n  } else {\n    const soLink = `${ERPNEXT_URL}/app/sales-order/${so.name}`;\n\n    if (so.docstatus !== 1) {\n      orderIssues.push(`SO <${soLink}|${so.name}> is niet submitted (docstatus=${so.docstatus})`);\n    }\n\n    // Item check\n    const shopifyItems = order.line_items || [];\n    const erpItems = so.items || [];\n\n    const shopifySKUs = {};\n    shopifyItems.forEach(li => {\n      const sku = li.sku || li.title || \"\";\n      if (sku) {\n        if (!shopifySKUs[sku]) shopifySKUs[sku] = { qty: 0, price: 0 };\n        shopifySKUs[sku].qty += (li.quantity || 1);\n        shopifySKUs[sku].price = parseFloat(li.price || 0);\n      }\n    });\n\n    const erpSKUs = {};\n    erpItems.forEach(ei => {\n      const ic = ei.item_code || \"\";\n      if (ic) {\n        if (!erpSKUs[ic]) erpSKUs[ic] = { qty: 0, rate: 0 };\n        erpSKUs[ic].qty += ei.qty;\n        erpSKUs[ic].rate = ei.rate || 0;\n      }\n    });\n\n    Object.keys(shopifySKUs).forEach(sku => {\n      if (!(sku in erpSKUs)) {\n        orderIssues.push(`SO <${soLink}|${so.name}>: SKU ${sku} ontbreekt`);\n      } else {\n        const s = shopifySKUs[sku];\n        const e = erpSKUs[sku];\n        if (e.qty !== s.qty) {\n          orderIssues.push(`SO <${soLink}|${so.name}>: SKU ${sku} aantal matcht niet (Shopify=${s.qty}, ERPNext=${e.qty})`);\n        }\n        if (Math.abs(e.rate - s.price) > 0.01) {\n          orderIssues.push(`SO <${soLink}|${so.name}>: SKU ${sku} prijsverschil (Shopify=€${s.price.toFixed(2)}, ERPNext=€${e.rate.toFixed(2)})`);\n        }\n      }\n    });\n\n    Object.keys(erpSKUs).forEach(ic => {\n      if (!(ic in shopifySKUs)) {\n        orderIssues.push(`SO <${soLink}|${so.name}>: SKU ${ic} staat in ERPNext maar niet in Shopify`);\n      }\n    });\n  }\n\n  // === B. DELIVERY NOTE CHECK ===\n  const fulfillments = order.fulfillments || [];\n  let matchingDNs = [];\n\n  if (fulfillments.length > 0) {\n    Object.keys(dnMap).forEach(key => {\n      if (key === name || key.startsWith(`${name}-`)) {\n        matchingDNs.push(...dnMap[key]);\n      }\n    });\n\n    if (matchingDNs.length === 0) {\n      orderIssues.push(\"Order fulfilled in Shopify, maar 0 Delivery Notes in ERPNext\");\n    } else if (matchingDNs.length < fulfillments.length) {\n      orderIssues.push(`Shopify: ${fulfillments.length} fulfillments, ERPNext: ${matchingDNs.length} DNs`);\n    }\n\n    matchingDNs.forEach(dn => {\n      const dnLink = `${ERPNEXT_URL}/app/delivery-note/${dn.name}`;\n      if (dn.docstatus !== 1) {\n        orderIssues.push(`DN <${dnLink}|${dn.name}> is niet submitted`);\n      }\n\n      // Check prices on DN as well\n      const dnItems = dn.items || [];\n      const sItems = order.line_items || [];\n      dnItems.forEach(di => {\n        const msi = sItems.find(si => (si.sku || si.title) === di.item_code);\n        if (msi) {\n          const sp = parseFloat(msi.price || 0);\n          if (Math.abs((di.rate || 0) - sp) > 0.01) {\n            orderIssues.push(`DN <${dnLink}|${dn.name}>: SKU ${di.item_code} prijsverschil (Shopify=€${sp.toFixed(2)}, ERPNext=€${(di.rate || 0).toFixed(2)})`);\n          }\n        }\n      });\n    });\n  }\n\n  // Filter issues die al in Airtable staan\n  const finalOrderIssues = orderIssues.filter(msg => {\n    const cleanMsg = msg.replace(/<[^|]+\\|([^>]+)>/g, '$1');\n    return !existingErrors.includes(`${name}|${cleanMsg}`);\n  });\n\n  // Voeg toe aan report en mismatchList\n  if (finalOrderIssues.length > 0) {\n    const shopifyLink = `${SHOPIFY_STORE_URL}/orders/${order.id}`;\n\n    let erpSoLink = \"\";\n    if (so && so.name) erpSoLink = `${ERPNEXT_URL}/app/sales-order/${so.name}`;\n\n    let erpDnLinks = \"\";\n    if (matchingDNs && matchingDNs.length > 0) {\n      erpDnLinks = matchingDNs.map(dn => `${ERPNEXT_URL}/app/delivery-note/${dn.name}`).join(\", \");\n    } else if (finalOrderIssues.some(msg => msg.includes(\"0 Delivery Notes\"))) {\n      erpDnLinks = \"Geen DN gevonden\";\n    }\n\n    const airtableFoutmelding = finalOrderIssues\n      .map(msg => msg.replace(/<[^|]+\\|([^>]+)>/g, '$1'))\n      .join(\"\\n\");\n\n    let formattedDate = \"\";\n    if (order.created_at) {\n      const d = new Date(order.created_at);\n      formattedDate = d.toISOString().split('T')[0];\n    }\n\n    mismatchList.push({\n      \"shopify order ID\": name,\n      \"shopify order datum\": formattedDate,\n      \"shopify order link\": shopifyLink,\n      \"shopify flow link\": `https://admin.shopify.com/store/play-picoo/apps/flow/activity?query=${order.id}`,\n      \"ERPNext SO link\": erpSoLink,\n      \"ERPNext DN link\": erpDnLinks,\n      \"foutmelding\": airtableFoutmelding\n    });\n  }\n});\n\n// ── 4. Output ──\n\nconst hasMismatches = mismatchList.length > 0;\n\nreturn [\n  {\n    json: {\n      hasMismatches,\n      issueCount: mismatchList.length,\n      ordersChecked: shopifyOrders.length,\n      mismatchList: mismatchList\n    }\n  }\n];\n"
+      },
+      "id": "3157b180-a9f7-444b-aeaf-0d0384eb5697",
+      "name": "Run Comparison",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $json.hasMismatches }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3f1523e3-a466-49ed-bd7b-15e58992422b",
+      "name": "Has Mismatches?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "getAll",
+        "returnAll": true,
+        "options": {
+          "updatedAtMin": "={{ $('Calculate From Date').item.json.fromDate }}"
+        }
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        480
+      ],
+      "id": "d92f4927-7b3f-4c8d-9b62-6e9fb3637467",
+      "name": "Get many orders",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "wuJPm2qVIiwx4ado",
+          "name": "Shopify read orders"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "mismatchList",
+        "options": {}
+      },
+      "id": "3f227c3b-17ec-4bf6-bed3-83113dcd2017",
+      "name": "Split Error Mismatches",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appiy9Q63eyvnPG9q"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblJbhiiwqtMUTwmu"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Foutmelding": "={{ $json.foutmelding }}",
+            "ERPNext DN/PR link": "={{ $json['ERPNext DN link'] }}",
+            "Opgelost?": false,
+            "Flow link": "={{ $json['shopify flow link'] }}",
+            "Datum": "={{ $json['shopify order datum'] }}",
+            "ID Shopify/ERPNext/Partnumber": "={{ $json['shopify order ID'] }}",
+            "Shopify/Airtable order link": "={{ $json['shopify order link'] }}",
+            "ERPNext SO/PO/Items link": "={{ $json['ERPNext SO link'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Opmerkingen (wat heb je gedaan)",
+              "displayName": "Opmerkingen (wat heb je gedaan)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Opgelost?",
+              "displayName": "Opgelost?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID Shopify/ERPNext/Partnumber",
+              "displayName": "ID Shopify/ERPNext/Partnumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Foutmelding",
+              "displayName": "Foutmelding",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Datum",
+              "displayName": "Datum",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Flow link",
+              "displayName": "Flow link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Shopify/Airtable order link",
+              "displayName": "Shopify/Airtable order link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ERPNext SO/PO/Items link",
+              "displayName": "ERPNext SO/PO/Items link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ERPNext DN/PR link",
+              "displayName": "ERPNext DN/PR link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "6147a3d8-10f7-43b5-b405-7192a93edebf",
+      "name": "Airtable Fout Opslaan",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1248,
+        720
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NhojfXxgc4twjfqI",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appiy9Q63eyvnPG9q"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblJbhiiwqtMUTwmu"
+        },
+        "filterByFormula": "NOT({Opgelost?})",
+        "options": {}
+      },
+      "id": "63da0be5-913b-4c76-8779-5a96e3eeff72",
+      "name": "Get Existing Errors",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        368,
+        480
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NhojfXxgc4twjfqI",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Weekly Monday 09:00": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Calculate From Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate From Date": {
+      "main": [
+        [
+          {
+            "node": "Get SO List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get SO List": {
+      "main": [
+        [
+          {
+            "node": "Split SO Names",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split SO Names": {
+      "main": [
+        [
+          {
+            "node": "Get SO Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get SO Details": {
+      "main": [
+        [
+          {
+            "node": "Get many orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many orders": {
+      "main": [
+        [
+          {
+            "node": "Split Shopify Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Shopify Orders": {
+      "main": [
+        [
+          {
+            "node": "Get Existing Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Existing Errors": {
+      "main": [
+        [
+          {
+            "node": "Get DN List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get DN List": {
+      "main": [
+        [
+          {
+            "node": "Split DN Names",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split DN Names": {
+      "main": [
+        [
+          {
+            "node": "Get DN Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get DN Details": {
+      "main": [
+        [
+          {
+            "node": "Run Comparison",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Comparison": {
+      "main": [
+        [
+          {
+            "node": "Has Mismatches?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Mismatches?": {
+      "main": [
+        [
+          {
+            "node": "Split Error Mismatches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Error Mismatches": {
+      "main": [
+        [
+          {
+            "node": "Airtable Fout Opslaan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "13674a2a-9219-4e6c-a712-c26552decad2",
+  "activeVersionId": null,
+  "versionCounter": 2,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-05-21T06:39:08.567Z",
+      "createdAt": "2026-05-21T06:39:08.567Z",
+      "role": "workflow:owner",
+      "workflowId": "VzttuyH7P2WAwQVV",
+      "projectId": "QYuyi83fqQPToWGq",
+      "project": {
+        "updatedAt": "2026-02-11T09:43:01.934Z",
+        "createdAt": "2025-12-17T15:07:42.336Z",
+        "id": "QYuyi83fqQPToWGq",
+        "name": "Fiyo van ravenstein <fiyo.van.ravenstein@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-12-17T15:07:42.339Z",
+            "createdAt": "2025-12-17T15:07:42.339Z",
+            "userId": "f464bba4-661a-4422-ae0a-366cbcce6b98",
+            "projectId": "QYuyi83fqQPToWGq",
+            "user": {
+              "updatedAt": "2026-09-02T11:58:28.000Z",
+              "createdAt": "2025-12-17T15:07:42.331Z",
+              "id": "f464bba4-661a-4422-ae0a-366cbcce6b98",
+              "email": "fiyo.van.ravenstein@picoo.nl",
+              "firstName": "Fiyo",
+              "lastName": "van ravenstein",
+              "personalizationAnswers": null,
+              "settings": {
+                "firstSuccessfulWorkflowId": "6hqtqOdVGlqO810j",
+                "userActivated": true,
+                "userActivatedAt": 1770935400180,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1775567798325
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

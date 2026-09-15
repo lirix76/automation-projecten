@@ -1,0 +1,206 @@
+{
+  "updatedAt": "2025-12-08T17:12:56.000Z",
+  "createdAt": "2025-12-08T17:06:12.624Z",
+  "id": "I6Df0THl5BHVYDuE",
+  "name": "Universal Airtable Commenter",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "universal-comment",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "9aa34818-4988-487c-9564-9f13d6842046",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -48
+      ],
+      "webhookId": "universal-comment"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.airtable.com/v0/{{ $json.body.baseId }}/{{ $json.body.tableId }}/{{ $json.body.recordId }}/comments",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "={{ $json.body.comment }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "db5cb801-cab2-4547-afc6-0e0637e2129f",
+      "name": "Post Comment to Airtable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        16,
+        -48
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "MQ4Em6xi5rJCEIBZ",
+          "name": "Airtable PAT for comments"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Post Comment to Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "a67c915f-a455-4cdd-b1a0-b237a1a5fe65",
+  "activeVersionId": "a67c915f-a455-4cdd-b1a0-b237a1a5fe65",
+  "versionCounter": 22,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-12-08T17:06:12.628Z",
+      "createdAt": "2025-12-08T17:06:12.628Z",
+      "role": "workflow:owner",
+      "workflowId": "I6Df0THl5BHVYDuE",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2025-12-08T17:12:56.800Z",
+    "createdAt": "2025-12-08T17:12:56.800Z",
+    "versionId": "a67c915f-a455-4cdd-b1a0-b237a1a5fe65",
+    "workflowId": "I6Df0THl5BHVYDuE",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "universal-comment",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "9aa34818-4988-487c-9564-9f13d6842046",
+        "name": "Webhook Trigger",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          -208,
+          -48
+        ],
+        "webhookId": "universal-comment"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://api.airtable.com/v0/{{ $json.body.baseId }}/{{ $json.body.tableId }}/{{ $json.body.recordId }}/comments",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "airtableTokenApi",
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "text",
+                "value": "={{ $json.body.comment }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "db5cb801-cab2-4547-afc6-0e0637e2129f",
+        "name": "Post Comment to Airtable",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.1,
+        "position": [
+          16,
+          -48
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "MQ4Em6xi5rJCEIBZ",
+            "name": "Airtable PAT for comments"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook Trigger": {
+        "main": [
+          [
+            {
+              "node": "Post Comment to Airtable",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Iris Soute",
+    "name": null,
+    "description": null
+  }
+}

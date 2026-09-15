@@ -1,0 +1,890 @@
+{
+  "updatedAt": "2026-07-03T14:46:02.744Z",
+  "createdAt": "2025-11-12T13:44:46.033Z",
+  "id": "eM3I2J38s0UJIpHH",
+  "name": "Airtable - Strapi sync - staging",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        320
+      ],
+      "id": "a051128d-6245-4c65-a1ef-e009313662e5",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "authentication": "token",
+        "operation": "getAll",
+        "contentType": "Games",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.strapi",
+      "typeVersion": 1,
+      "position": [
+        336,
+        224
+      ],
+      "id": "d19896e3-d925-441f-b823-4844015e6b4c",
+      "name": "Get many entries",
+      "credentials": {
+        "strapiTokenApi": {
+          "id": "BaYojewTGOwdRzPE",
+          "name": "Strapi account - staging"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appLJvoxq8WKQDku0",
+          "mode": "list",
+          "cachedResultName": "Spellen",
+          "cachedResultUrl": "https://airtable.com/appLJvoxq8WKQDku0"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl8cj31fQFNFpDFT",
+          "mode": "list",
+          "cachedResultName": "Spellen",
+          "cachedResultUrl": "https://airtable.com/appLJvoxq8WKQDku0/tbl8cj31fQFNFpDFT"
+        },
+        "options": {
+          "view": {
+            "__rl": true,
+            "value": "viwbdUPCLoezbIOI0",
+            "mode": "list",
+            "cachedResultName": "Game API 2.0 - staging",
+            "cachedResultUrl": "https://airtable.com/appLJvoxq8WKQDku0/tbl8cj31fQFNFpDFT/viwbdUPCLoezbIOI0"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        336,
+        416
+      ],
+      "id": "76ccff93-c53b-4587-96ed-a9eee14534c0",
+      "name": "Search records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "qQon6ZYo0wfNXuDJ",
+          "name": "Airtable - Spellen access token - read only"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "gameId",
+              "field2": "Game ID"
+            }
+          ]
+        },
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        560,
+        320
+      ],
+      "id": "781ef054-cb4f-477a-b71d-ad467f967d7b",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.Werktitel }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "empty",
+                      "singleValue": true
+                    },
+                    "id": "50b73030-8306-425a-bab3-2556b0aa0228"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "DELETE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "aa37f4cc-1c5f-4936-972a-7363605f3992",
+                    "leftValue": "={{ $json.airtableRecordId }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "empty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CREATE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c38e8a33-4954-4de4-a0e6-2007aeab04ef",
+                    "leftValue": "={{ $json[\"Last modified time\"] }}",
+                    "rightValue": "={{ $json.updatedAt }}",
+                    "operator": {
+                      "type": "dateTime",
+                      "operation": "after"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "UPDATE"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "DO NOTHING"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1008,
+        288
+      ],
+      "id": "182947cd-4f60-4d9d-8d6b-cb97e6155635",
+      "name": "Switch"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        656
+      ],
+      "id": "004fa0a9-ab07-4b15-a9ce-7fa83edfc956",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9f94851a-f68c-4b6a-99de-1dedfe7a2830",
+              "leftValue": "={{ $json.locale }}",
+              "rightValue": "nl",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1232,
+        176
+      ],
+      "id": "1fa66b0e-2047-4e33-9128-86c567d61602",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "data.gameId",
+              "field2": "Game ID"
+            }
+          ]
+        },
+        "joinMode": "enrichInput2",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1680,
+        176
+      ],
+      "id": "1aac7838-476b-4437-9d9c-e6b95b3188f7",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('baseURL').item.json.baseURL }}/api/games",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "strapiTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.strapiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1456,
+        80
+      ],
+      "id": "71f18626-e73e-443c-990c-3ba77a2601aa",
+      "name": "Create new documents in Strapi",
+      "credentials": {
+        "strapiTokenApi": {
+          "id": "BaYojewTGOwdRzPE",
+          "name": "Strapi account - staging"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $('baseURL').item.json.baseURL }}/api/games/{{ $json.data.documentId}}?locale={{ $json.locale }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "strapiTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.strapiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2128,
+        176
+      ],
+      "id": "33fb25a9-e0c5-4b64-8a0b-09643b036aaf",
+      "name": "Link localisations",
+      "credentials": {
+        "strapiTokenApi": {
+          "id": "BaYojewTGOwdRzPE",
+          "name": "Strapi account - staging"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7baa8e6f-efbe-41fc-b23f-1ef32ddc4019",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1904,
+        176
+      ],
+      "id": "d3f996df-f701-4107-a1e9-09432e4fa4b3",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1f8695f-ea4a-4e27-bea7-c83a7c9cd60d",
+              "name": "baseURL",
+              "value": "https://realistic-virtue-211395cb03.strapiapp.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        112,
+        416
+      ],
+      "id": "c15f7696-c9f3-411a-a968-4ef93b43c9ff",
+      "name": "baseURL"
+    },
+    {
+      "parameters": {
+        "content": "## IMPORTANT\n\nalways check baseURL!\nstaging = https://realistic-virtue-211395cb03.strapiapp.com",
+        "width": 592
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        -16
+      ],
+      "id": "410b2a61-a0f2-416b-84d4-eb4928e9321a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9f94851a-f68c-4b6a-99de-1dedfe7a2830",
+              "leftValue": "={{ $json.locale }}",
+              "rightValue": "nl",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1232,
+        464
+      ],
+      "id": "4037af56-eda3-4539-b5a0-e35266bb3596",
+      "name": "If1",
+      "notesInFlow": true,
+      "notes": "If a document needs to be updated, it is easiest to delete it (and all its locales) all together and create it a new. "
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://realistic-virtue-211395cb03.strapiapp.com/api/games/{{$json.documentId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "strapiTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "locale",
+              "value": "*"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1232,
+        -16
+      ],
+      "id": "8da2b561-84be-496a-a44a-2d50df134e0f",
+      "name": "Delete doc (incl locales)",
+      "credentials": {
+        "strapiTokenApi": {
+          "id": "BaYojewTGOwdRzPE",
+          "name": "Strapi account - staging"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $('baseURL').item.json.baseURL }}/api/games/{{ $json.documentId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "strapiTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.strapiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1456,
+        400
+      ],
+      "id": "83d83b41-c487-4b93-a01d-cc741d179a30",
+      "name": "Update default doc in strapi",
+      "credentials": {
+        "strapiTokenApi": {
+          "id": "BaYojewTGOwdRzPE",
+          "name": "Strapi account - staging"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "data.gameId",
+              "field2": "Game ID"
+            }
+          ]
+        },
+        "joinMode": "enrichInput2",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1680,
+        464
+      ],
+      "id": "e3e73fa3-92f9-4e78-bc5c-4d7c28a6ed3d",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7baa8e6f-efbe-41fc-b23f-1ef32ddc4019",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1904,
+        464
+      ],
+      "id": "6cd7985a-b2cf-4e97-8e01-1e1180f14b40",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $('baseURL').item.json.baseURL }}/api/games/{{ $json.data.documentId}}?locale={{ $json.locale }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "strapiTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.strapiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2128,
+        464
+      ],
+      "id": "848f3764-c8e9-4fcf-8e8f-fc4fcb3a7a08",
+      "name": "Update locales",
+      "credentials": {
+        "strapiTokenApi": {
+          "id": "BaYojewTGOwdRzPE",
+          "name": "Strapi account - staging"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "## IMPORTANT\n\nWhen adding/changing fields for sync update the \"code in Javascript\" node",
+        "height": 192,
+        "width": 224
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        736,
+        112
+      ],
+      "id": "8aafcb60-ddcb-42ae-bd37-55ab4d2fdb58",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the input items from the previous node\nconst items = $input.all();\n\n// Use flatMap to transform one incoming item into multiple outgoing items\nreturn items.flatMap(item => {\n  // Get the main JSON data from the current item\n  const gameData = item.json;\n\n  // Use destructuring to separate the translations string from the rest of the data.\n  const { translations_json, ...baseGameData } = gameData;\n\n  // --- CRITICAL CHANGE FOR UPSTREAM USAGE ---\n  // If translations_json is missing, we must NOT delete the item yet.\n  // It might be an item that needs to be DELETED by the Switch node later.\n  // We pass it through 'as is' so the Switch node can decide.\n  if (!translations_json) {\n    return [{\n      json: gameData,\n      pairedItem: item.pairedItem\n    }];\n  }\n  \n  // Parse the string into a JavaScript array of translation objects.\n  let translations = [];\n  try {\n    translations = JSON.parse(translations_json);\n  } catch (error) {\n    // If parsing fails, we still pass it through to avoid silent failures, \n    // or you can choose to log and skip.\n    console.error(`Could not parse translations_json for item ID: ${baseGameData.id}.`);\n    return [{\n      json: gameData,\n      pairedItem: item.pairedItem\n    }];\n  }\n\n  // Create a new array of n8n items, one for each translation.\n  return translations.map(translation => {\n    // 1. Merge the base game data with the specific translation data\n    const newJson = {\n      ...baseGameData,\n      ...translation\n    };\n\n    // 2. BUILD THE STRAPI PAYLOAD\n    newJson.strapiPayload = {\n      \"data\": {\n        \"worktitle\": newJson.Werktitel,\n        \"title\": newJson.title,\n        \"gameId\": newJson['Game ID'],\n        \"airtableRecordId\": newJson.RecordID,\n        \"locale\": newJson.locale,\n        \"summaryShort\": newJson.short_description,\n        \"summaryLong\": newJson.long_description,\n        \"age\": newJson['Leeftijd (geschikt vanaf)'],\n        \"targetGroup\": newJson.Doelgroep,\n        \"attributes\": newJson.Attributen,\n        \"urlManual\": newJson['URL manual'],\n        \"urlIcon\": newJson['URL icon'],\n        \"minPlayers\": newJson['Min. aantal spelers'],\n        \"maxPlayers\": newJson['Max. aantal spelers'],\n        \"tagId\": newJson['Tag ID'],\n        \"freeToPlay\": newJson.isFreeToPlayApi,\n        \"isBetaGame\": newJson.isBetaGameApi,\n        \"gameParameters\": newJson.gameParameters ? JSON.parse(newJson.gameParameters) : null\n      }\n    };\n\n    return {\n      json: newJson,\n      pairedItem: item.pairedItem\n    };\n  });\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        320
+      ],
+      "id": "48f7f925-c7fe-4f75-923a-422d8d43799d",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many entries",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "baseURL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get many entries": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Delete doc (incl locales)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create new documents in Strapi",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create new documents in Strapi": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Link localisations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "baseURL": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Update default doc in strapi",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Delete doc (incl locales)": {
+      "main": [
+        []
+      ]
+    },
+    "Update default doc in strapi": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Update locales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "Nr5XIxlFRFdp0BbY"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When clicking ‘Execute workflow’": [
+      {
+        "json": {}
+      }
+    ]
+  },
+  "versionId": "9ba832d9-b03f-430b-954f-34f3c8dd8da2",
+  "activeVersionId": null,
+  "versionCounter": 8,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2025-11-12T13:44:46.040Z",
+      "createdAt": "2025-11-12T13:44:46.040Z",
+      "role": "workflow:owner",
+      "workflowId": "eM3I2J38s0UJIpHH",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

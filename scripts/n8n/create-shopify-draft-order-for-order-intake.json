@@ -1,0 +1,984 @@
+{
+  "updatedAt": "2026-09-14T16:22:59.945Z",
+  "createdAt": "2026-09-08T10:21:30.395Z",
+  "id": "OS5r2EMAQ3J5ZyPy",
+  "name": "create-shopify-draft-order-for-order-intake",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "order-intake-draft-order",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        304
+      ],
+      "id": "webhook",
+      "name": "Webhook",
+      "webhookId": "order-intake-draft-order"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n-workflow: create-shopify-draft-order-for-order-intake\n// n8n-node: Parse webhook body\nconst body = $input.first().json.body || $input.first().json;\nreturn [{ json: { recordId: body.recordId } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        304
+      ],
+      "id": "parse_webhook_body",
+      "name": "Parse webhook body"
+    },
+    {
+      "parameters": {
+        "base": {
+          "mode": "id",
+          "value": "appFLLCfzmMp1wswu"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblNA2Q0Mo4oGRdlt"
+        },
+        "id": "={{ $json.recordId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        480,
+        304
+      ],
+      "id": "airtable_get_order_intake",
+      "name": "Airtable: get Order Intake record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "KvBvwuGLPypzc8xc",
+          "name": "Airtable PAT for Offerte Management Tool"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rec = $input.first().json;\n\nconst COUNTRY_CODES = {\n  Netherlands: 'NL',\n  Belgium: 'BE',\n  Germany: 'DE',\n  Sweden: 'SE',\n  UK: 'GB',\n};\n\nfunction splitName(full) {\n  if (!full) return { first_name: null, last_name: null };\n  const parts = full.trim().split(/\\s+/);\n  if (parts.length === 1) return { first_name: null, last_name: parts[0] };\n  return { first_name: parts.slice(0, -1).join(' '), last_name: parts[parts.length - 1] };\n}\n\nfunction buildAddress(street, city, postalCode, countryName, contactName, phone) {\n  if (!street && !city && !postalCode && !countryName) return null;\n  const { first_name, last_name } = splitName(contactName);\n  return {\n    first_name,\n    last_name,\n    company: rec['Company name'] || null,\n    address1: street,\n    city,\n    zip: postalCode,\n    country: countryName,\n    country_code: countryName ? (COUNTRY_CODES[countryName] || null) : null,\n    phone: phone || null,\n  };\n}\n\nconst shippingStreet = rec['Shipping street'] || null;\nconst shippingCity = rec['Shipping city'] || null;\nconst shippingPostalCode = rec['Shipping postal code'] || null;\nconst shippingCountry = rec['Shipping country'] || null;\nconst shippingContactName = rec['Shipping contact name'] || null;\nconst shippingPhone = rec['Shipping contact phone'] || null;\n\nconst shippingAddress = buildAddress(\n  shippingStreet, shippingCity, shippingPostalCode, shippingCountry, shippingContactName, shippingPhone\n);\n\nconst billingContactName = rec['Billing contact name'] || null;\nconst billingContactEmail = rec['Billing contact email'] || null;\nconst billingContactPhone = rec['Billing contact phone'] || null;\nconst billingStreet = rec['Billing street'] || null;\nconst billingCity = rec['Billing city'] || null;\nconst billingPostalCode = rec['Billing postal code'] || null;\nconst billingCountry = rec['Billing country'] || null;\n\nconst billingSameAsShipping = !!rec['Billing same as shipping address'];\n// Any billing field the customer filled in — not just address fields —\n// since a customer can fill in a billing contact/email without a full\n// billing address (see design.md's \"did the customer fill in billing\").\nconst anyBillingFieldFilled = !!(\n  billingContactName || billingContactEmail || billingContactPhone ||\n  billingStreet || billingCity || billingPostalCode || billingCountry\n);\n\n// Per-field fallback to shipping (design.md): omit billing_address entirely\n// when same-as-shipping is checked (Shopify defaults to shipping) or when\n// the customer left the whole billing section blank.\nconst billingAddress = (!billingSameAsShipping && anyBillingFieldFilled)\n  ? buildAddress(\n      billingStreet || shippingStreet,\n      billingCity || shippingCity,\n      billingPostalCode || shippingPostalCode,\n      billingCountry || shippingCountry,\n      billingContactName || shippingContactName,\n      billingContactPhone || shippingPhone\n    )\n  : null;\n\nconst noteLines = [];\nif (rec['PO reference number']) noteLines.push(`PO reference: ${rec['PO reference number']}`);\nif (rec['VAT number']) noteLines.push(`VAT number: ${rec['VAT number']}`);\n// Shopify draft orders have no billing-email field, so it's surfaced here.\nif (billingContactEmail) noteLines.push(`Billing email: ${billingContactEmail}`);\n// Shopify draft orders have no cost-center field either; the customer's own\n// purchase order instructs invoices to reference it, so it needs to survive here.\nif (rec['Cost center']) noteLines.push(`Cost center: ${rec['Cost center']}`);\n\n// Shopify's draft order API rejects a draft order with zero line items\n// (\"Add at least 1 product\") — this is a platform-level validation, not\n// a REST-only quirk. A single custom (non-product) line item satisfies\n// it without actually selecting a product; sales replaces/removes it\n// when adding the real line items, per design.md's non-goal.\nconst draftOrder = {\n  tags: 'Order Intake',\n  line_items: [{ title: 'Line items to be added by sales', price: '0.00', quantity: 1 }],\n};\nif (rec['Orderer email']) draftOrder.email = rec['Orderer email'];\nif (rec['Shopify Customer ID']) draftOrder.customer = { id: Number(rec['Shopify Customer ID']) };\nif (shippingAddress) draftOrder.shipping_address = shippingAddress;\nif (billingAddress) draftOrder.billing_address = billingAddress;\nif (noteLines.length) draftOrder.note = noteLines.join('\\n');\n\nreturn [{\n  json: {\n    recordId: rec.id,\n    draftOrder,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        304
+      ],
+      "id": "build_draft_order_payload",
+      "name": "Build draft order payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://play-picoo.myshopify.com/admin/api/2024-07/draft_orders.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "shopifyAccessTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { draft_order: $json.draftOrder } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        960,
+        304
+      ],
+      "id": "shopify_create_draft_order",
+      "name": "Shopify: create draft order",
+      "credentials": {
+        "shopifyAccessTokenApi": {
+          "id": "8P31mhDJiylr2HTo",
+          "name": "Shopify ERP integration"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.draft_order && $json.draft_order.id ? String($json.draft_order.id) : '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1200,
+        304
+      ],
+      "id": "if_draft_order_created",
+      "name": "Draft order created?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n-workflow: create-shopify-draft-order-for-order-intake\n// n8n-node: Format draft order success\nconst orig = $('Build draft order payload').first().json;\nconst res = $input.first().json;\nconst draftOrder = res.draft_order;\n\nreturn [{\n  json: {\n    recordId: orig.recordId,\n    draftOrderId: String(draftOrder.id),\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        192
+      ],
+      "id": "format_draft_order_success",
+      "name": "Format draft order success"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n-workflow: create-shopify-draft-order-for-order-intake\n// n8n-node: Format draft order failure\nconst orig = $('Build draft order payload').first().json;\nconst errRes = $input.first().json;\nconst existingLog = $('Airtable: get Order Intake record').first().json['Automation Error Log'] || '';\nconst now = new Date();\nconst timestamp = now.toISOString().slice(0, 16).replace('T', ' ');\nconst message = `${timestamp} - Shopify draft order creation failed: ${JSON.stringify(errRes).slice(0, 500)}`;\nconst updatedLog = existingLog ? `${message}\\n${existingLog}` : message;\n\nreturn [{\n  json: {\n    recordId: orig.recordId,\n    errorLog: updatedLog,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        432
+      ],
+      "id": "format_draft_order_failure",
+      "name": "Format draft order failure"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "appFLLCfzmMp1wswu"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblNA2Q0Mo4oGRdlt"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.recordId }}",
+            "Shopify Draft Order ID": "={{ $json.draftOrderId }}",
+            "Status": "Draft order aangemaakt",
+            "Automation Error Log": "={{ '' }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true
+            },
+            {
+              "id": "Shopify Draft Order ID",
+              "displayName": "Shopify Draft Order ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Nieuw",
+                  "value": "Nieuw"
+                },
+                {
+                  "name": "Gegevens verzameld",
+                  "value": "Gegevens verzameld"
+                },
+                {
+                  "name": "Wacht op review",
+                  "value": "Wacht op review"
+                },
+                {
+                  "name": "Verzonden naar klant",
+                  "value": "Verzonden naar klant"
+                },
+                {
+                  "name": "Bevestigd door klant",
+                  "value": "Bevestigd door klant"
+                },
+                {
+                  "name": "Draft order aangemaakt",
+                  "value": "Draft order aangemaakt"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Automation Error Log",
+              "displayName": "Automation Error Log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1680,
+        192
+      ],
+      "id": "update_order_intake_success",
+      "name": "Update Order Intake record (success)",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "KvBvwuGLPypzc8xc",
+          "name": "Airtable PAT for Offerte Management Tool"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "appFLLCfzmMp1wswu"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblNA2Q0Mo4oGRdlt"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.recordId }}",
+            "Automation Error Log": "={{ $json.errorLog }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true
+            },
+            {
+              "id": "Automation Error Log",
+              "displayName": "Automation Error Log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1680,
+        432
+      ],
+      "id": "update_order_intake_failure",
+      "name": "Update Order Intake record (failure)",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "KvBvwuGLPypzc8xc",
+          "name": "Airtable PAT for Offerte Management Tool"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse webhook body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse webhook body": {
+      "main": [
+        [
+          {
+            "node": "Airtable: get Order Intake record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: get Order Intake record": {
+      "main": [
+        [
+          {
+            "node": "Build draft order payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build draft order payload": {
+      "main": [
+        [
+          {
+            "node": "Shopify: create draft order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify: create draft order": {
+      "main": [
+        [
+          {
+            "node": "Draft order created?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft order created?": {
+      "main": [
+        [
+          {
+            "node": "Format draft order success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format draft order failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format draft order success": {
+      "main": [
+        [
+          {
+            "node": "Update Order Intake record (success)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format draft order failure": {
+      "main": [
+        [
+          {
+            "node": "Update Order Intake record (failure)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "picoo.app.n8n.cloud",
+            "user-agent": "curl/8.7.1",
+            "content-length": "32",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "185.184.108.151",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "NL",
+            "cf-ray": "a37d3f037c6e0b7d-AMS",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-forwarded-for": "185.184.108.151, 172.71.99.69",
+            "x-forwarded-host": "picoo.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-23-7c57f74b7b-dq87x",
+            "x-is-trusted": "yes",
+            "x-real-ip": "185.184.108.151"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "recordId": "recrwRYcw3dolmuBJ"
+          },
+          "webhookUrl": "https://picoo.app.n8n.cloud/webhook/order-intake-draft-order",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "versionId": "a02c3fc2-66d6-4b97-b4d6-1dedf86bb2e7",
+  "activeVersionId": "a02c3fc2-66d6-4b97-b4d6-1dedf86bb2e7",
+  "versionCounter": 17,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-09-08T10:21:30.399Z",
+      "createdAt": "2026-09-08T10:21:30.399Z",
+      "role": "workflow:owner",
+      "workflowId": "OS5r2EMAQ3J5ZyPy",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-09-14T16:22:59.946Z",
+    "createdAt": "2026-09-14T16:22:59.946Z",
+    "versionId": "a02c3fc2-66d6-4b97-b4d6-1dedf86bb2e7",
+    "workflowId": "OS5r2EMAQ3J5ZyPy",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "order-intake-draft-order",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          304
+        ],
+        "id": "webhook",
+        "name": "Webhook",
+        "webhookId": "order-intake-draft-order"
+      },
+      {
+        "parameters": {
+          "jsCode": "// n8n-workflow: create-shopify-draft-order-for-order-intake\n// n8n-node: Parse webhook body\nconst body = $input.first().json.body || $input.first().json;\nreturn [{ json: { recordId: body.recordId } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          240,
+          304
+        ],
+        "id": "parse_webhook_body",
+        "name": "Parse webhook body"
+      },
+      {
+        "parameters": {
+          "base": {
+            "mode": "id",
+            "value": "appFLLCfzmMp1wswu"
+          },
+          "table": {
+            "mode": "id",
+            "value": "tblNA2Q0Mo4oGRdlt"
+          },
+          "id": "={{ $json.recordId }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          480,
+          304
+        ],
+        "id": "airtable_get_order_intake",
+        "name": "Airtable: get Order Intake record",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "KvBvwuGLPypzc8xc",
+            "name": "Airtable PAT for Offerte Management Tool"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const rec = $input.first().json;\n\nconst COUNTRY_CODES = {\n  Netherlands: 'NL',\n  Belgium: 'BE',\n  Germany: 'DE',\n  Sweden: 'SE',\n  UK: 'GB',\n};\n\nfunction splitName(full) {\n  if (!full) return { first_name: null, last_name: null };\n  const parts = full.trim().split(/\\s+/);\n  if (parts.length === 1) return { first_name: null, last_name: parts[0] };\n  return { first_name: parts.slice(0, -1).join(' '), last_name: parts[parts.length - 1] };\n}\n\nfunction buildAddress(street, city, postalCode, countryName, contactName, phone) {\n  if (!street && !city && !postalCode && !countryName) return null;\n  const { first_name, last_name } = splitName(contactName);\n  return {\n    first_name,\n    last_name,\n    company: rec['Company name'] || null,\n    address1: street,\n    city,\n    zip: postalCode,\n    country: countryName,\n    country_code: countryName ? (COUNTRY_CODES[countryName] || null) : null,\n    phone: phone || null,\n  };\n}\n\nconst shippingStreet = rec['Shipping street'] || null;\nconst shippingCity = rec['Shipping city'] || null;\nconst shippingPostalCode = rec['Shipping postal code'] || null;\nconst shippingCountry = rec['Shipping country'] || null;\nconst shippingContactName = rec['Shipping contact name'] || null;\nconst shippingPhone = rec['Shipping contact phone'] || null;\n\nconst shippingAddress = buildAddress(\n  shippingStreet, shippingCity, shippingPostalCode, shippingCountry, shippingContactName, shippingPhone\n);\n\nconst billingContactName = rec['Billing contact name'] || null;\nconst billingContactEmail = rec['Billing contact email'] || null;\nconst billingContactPhone = rec['Billing contact phone'] || null;\nconst billingStreet = rec['Billing street'] || null;\nconst billingCity = rec['Billing city'] || null;\nconst billingPostalCode = rec['Billing postal code'] || null;\nconst billingCountry = rec['Billing country'] || null;\n\nconst billingSameAsShipping = !!rec['Billing same as shipping address'];\n// Any billing field the customer filled in — not just address fields —\n// since a customer can fill in a billing contact/email without a full\n// billing address (see design.md's \"did the customer fill in billing\").\nconst anyBillingFieldFilled = !!(\n  billingContactName || billingContactEmail || billingContactPhone ||\n  billingStreet || billingCity || billingPostalCode || billingCountry\n);\n\n// Per-field fallback to shipping (design.md): omit billing_address entirely\n// when same-as-shipping is checked (Shopify defaults to shipping) or when\n// the customer left the whole billing section blank.\nconst billingAddress = (!billingSameAsShipping && anyBillingFieldFilled)\n  ? buildAddress(\n      billingStreet || shippingStreet,\n      billingCity || shippingCity,\n      billingPostalCode || shippingPostalCode,\n      billingCountry || shippingCountry,\n      billingContactName || shippingContactName,\n      billingContactPhone || shippingPhone\n    )\n  : null;\n\nconst noteLines = [];\nif (rec['PO reference number']) noteLines.push(`PO reference: ${rec['PO reference number']}`);\nif (rec['VAT number']) noteLines.push(`VAT number: ${rec['VAT number']}`);\n// Shopify draft orders have no billing-email field, so it's surfaced here.\nif (billingContactEmail) noteLines.push(`Billing email: ${billingContactEmail}`);\n// Shopify draft orders have no cost-center field either; the customer's own\n// purchase order instructs invoices to reference it, so it needs to survive here.\nif (rec['Cost center']) noteLines.push(`Cost center: ${rec['Cost center']}`);\n\n// Shopify's draft order API rejects a draft order with zero line items\n// (\"Add at least 1 product\") — this is a platform-level validation, not\n// a REST-only quirk. A single custom (non-product) line item satisfies\n// it without actually selecting a product; sales replaces/removes it\n// when adding the real line items, per design.md's non-goal.\nconst draftOrder = {\n  tags: 'Order Intake',\n  line_items: [{ title: 'Line items to be added by sales', price: '0.00', quantity: 1 }],\n};\nif (rec['Orderer email']) draftOrder.email = rec['Orderer email'];\nif (rec['Shopify Customer ID']) draftOrder.customer = { id: Number(rec['Shopify Customer ID']) };\nif (shippingAddress) draftOrder.shipping_address = shippingAddress;\nif (billingAddress) draftOrder.billing_address = billingAddress;\nif (noteLines.length) draftOrder.note = noteLines.join('\\n');\n\nreturn [{\n  json: {\n    recordId: rec.id,\n    draftOrder,\n  },\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          304
+        ],
+        "id": "build_draft_order_payload",
+        "name": "Build draft order payload"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://play-picoo.myshopify.com/admin/api/2024-07/draft_orders.json",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "shopifyAccessTokenApi",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { draft_order: $json.draftOrder } }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          960,
+          304
+        ],
+        "id": "shopify_create_draft_order",
+        "name": "Shopify: create draft order",
+        "credentials": {
+          "shopifyAccessTokenApi": {
+            "id": "8P31mhDJiylr2HTo",
+            "name": "Shopify ERP integration"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "id": "c1",
+                "leftValue": "={{ $json.draft_order && $json.draft_order.id ? String($json.draft_order.id) : '' }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1200,
+          304
+        ],
+        "id": "if_draft_order_created",
+        "name": "Draft order created?"
+      },
+      {
+        "parameters": {
+          "jsCode": "// n8n-workflow: create-shopify-draft-order-for-order-intake\n// n8n-node: Format draft order success\nconst orig = $('Build draft order payload').first().json;\nconst res = $input.first().json;\nconst draftOrder = res.draft_order;\n\nreturn [{\n  json: {\n    recordId: orig.recordId,\n    draftOrderId: String(draftOrder.id),\n  },\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1440,
+          192
+        ],
+        "id": "format_draft_order_success",
+        "name": "Format draft order success"
+      },
+      {
+        "parameters": {
+          "jsCode": "// n8n-workflow: create-shopify-draft-order-for-order-intake\n// n8n-node: Format draft order failure\nconst orig = $('Build draft order payload').first().json;\nconst errRes = $input.first().json;\nconst existingLog = $('Airtable: get Order Intake record').first().json['Automation Error Log'] || '';\nconst now = new Date();\nconst timestamp = now.toISOString().slice(0, 16).replace('T', ' ');\nconst message = `${timestamp} - Shopify draft order creation failed: ${JSON.stringify(errRes).slice(0, 500)}`;\nconst updatedLog = existingLog ? `${message}\\n${existingLog}` : message;\n\nreturn [{\n  json: {\n    recordId: orig.recordId,\n    errorLog: updatedLog,\n  },\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1440,
+          432
+        ],
+        "id": "format_draft_order_failure",
+        "name": "Format draft order failure"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "mode": "id",
+            "value": "appFLLCfzmMp1wswu"
+          },
+          "table": {
+            "mode": "id",
+            "value": "tblNA2Q0Mo4oGRdlt"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "id": "={{ $json.recordId }}",
+              "Shopify Draft Order ID": "={{ $json.draftOrderId }}",
+              "Status": "Draft order aangemaakt",
+              "Automation Error Log": "={{ '' }}"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true
+              },
+              {
+                "id": "Shopify Draft Order ID",
+                "displayName": "Shopify Draft Order ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Status",
+                "displayName": "Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Nieuw",
+                    "value": "Nieuw"
+                  },
+                  {
+                    "name": "Gegevens verzameld",
+                    "value": "Gegevens verzameld"
+                  },
+                  {
+                    "name": "Wacht op review",
+                    "value": "Wacht op review"
+                  },
+                  {
+                    "name": "Verzonden naar klant",
+                    "value": "Verzonden naar klant"
+                  },
+                  {
+                    "name": "Bevestigd door klant",
+                    "value": "Bevestigd door klant"
+                  },
+                  {
+                    "name": "Draft order aangemaakt",
+                    "value": "Draft order aangemaakt"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Automation Error Log",
+                "displayName": "Automation Error Log",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {
+            "typecast": true
+          }
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1680,
+          192
+        ],
+        "id": "update_order_intake_success",
+        "name": "Update Order Intake record (success)",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "KvBvwuGLPypzc8xc",
+            "name": "Airtable PAT for Offerte Management Tool"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "mode": "id",
+            "value": "appFLLCfzmMp1wswu"
+          },
+          "table": {
+            "mode": "id",
+            "value": "tblNA2Q0Mo4oGRdlt"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "id": "={{ $json.recordId }}",
+              "Automation Error Log": "={{ $json.errorLog }}"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true
+              },
+              {
+                "id": "Automation Error Log",
+                "displayName": "Automation Error Log",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {
+            "typecast": true
+          }
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1680,
+          432
+        ],
+        "id": "update_order_intake_failure",
+        "name": "Update Order Intake record (failure)",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "KvBvwuGLPypzc8xc",
+            "name": "Airtable PAT for Offerte Management Tool"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Parse webhook body",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse webhook body": {
+        "main": [
+          [
+            {
+              "node": "Airtable: get Order Intake record",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable: get Order Intake record": {
+        "main": [
+          [
+            {
+              "node": "Build draft order payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build draft order payload": {
+        "main": [
+          [
+            {
+              "node": "Shopify: create draft order",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Shopify: create draft order": {
+        "main": [
+          [
+            {
+              "node": "Draft order created?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Draft order created?": {
+        "main": [
+          [
+            {
+              "node": "Format draft order success",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Format draft order failure",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format draft order success": {
+        "main": [
+          [
+            {
+              "node": "Update Order Intake record (success)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format draft order failure": {
+        "main": [
+          [
+            {
+              "node": "Update Order Intake record (failure)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Iris Soute",
+    "name": null,
+    "description": null
+  }
+}

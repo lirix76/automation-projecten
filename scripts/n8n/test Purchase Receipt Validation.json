@@ -1,0 +1,445 @@
+{
+  "updatedAt": "2026-05-13T13:36:27.314Z",
+  "createdAt": "2026-05-13T09:37:33.047Z",
+  "id": "C3kY7CzkiCfPUCdA",
+  "name": "test Purchase Receipt Validation",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks"
+            }
+          ]
+        }
+      },
+      "id": "8fc33255-d39a-49ca-b15c-d6d544a77754",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appiy9Q63eyvnPG9q",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "Purchase orders",
+          "mode": "name"
+        },
+        "filterByFormula": "=AND({Status ERPNext} = 'Submitted', IS_AFTER({Last modified time}, DATEADD(NOW(), -7, 'days')))",
+        "options": {}
+      },
+      "id": "4c0317f1-2bac-49ea-b820-f356874a16b2",
+      "name": "Get Processed Deliveries",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        -64
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NhojfXxgc4twjfqI",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://picoo.frappe.cloud/api/resource/Purchase Receipt?filters=[[\"docstatus\",\"=\",1],[\"creation\",\">\",\"{{ $now.minus({days: 7}).toISODate() }}\"]]&fields=[\"name\",\"posting_date\",\"status\",\"total_qty\"]",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "erpNextApi",
+        "options": {}
+      },
+      "id": "0da52bd4-9194-4d0c-8fbd-af3fbf838cf4",
+      "name": "Get ERPNext PRs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        608,
+        -64
+      ],
+      "credentials": {
+        "erpNextApi": {
+          "id": "5YhqHtoMvOtwbP3j",
+          "name": "ERPNext account: iris.soute+shopify@picoo.nl"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Vernieuwde Compare Logic - Match op PO Nummer en PR Naam\nconst airtableItems = $('Get Processed Deliveries').all().map(i => i.json);\nconst erpNextResponse = $('Get ERPNext PRs').first().json;\nconst erpItems = erpNextResponse.data || (Array.isArray(erpNextResponse) ? erpNextResponse : []);\n\n// Indexeer ERPNext PRs op basis van hun naam en gekoppelde Purchase Order\nconst erpMapByPO = {};\nconst erpMapByName = {};\n\nerpItems.forEach(item => {\n  // 1. Indexeer op PR naam (bijv. \"PR-0001\")\n  if (item.name) {\n    erpMapByName[String(item.name).trim().toLowerCase()] = item;\n  }\n  \n  // 2. Indexeer op PO nummer (als het op het hoofdniveau staat)\n  if (item.purchase_order) {\n    erpMapByPO[String(item.purchase_order).trim().toLowerCase()] = item;\n  }\n  \n  // 3. Indexeer op PO nummer (als het in de 'items' tabel van de PR staat - standaard in ERPNext)\n  if (item.items && Array.isArray(item.items)) {\n    item.items.forEach(childItem => {\n      if (childItem.purchase_order) {\n        erpMapByPO[String(childItem.purchase_order).trim().toLowerCase()] = item;\n      }\n    });\n  }\n});\n\nconst mismatches = [];\nconst erpnextBaseUrl = \"https://picoo.frappe.cloud\";\n\nairtableItems.forEach(item => {\n  const fields = item.fields || item;\n  \n  // --- PO Nummer uit Airtable halen ---\n  const poNummerRaw = fields[\"PO nummer (from Purchase Order)\"] || fields[\"Purchase Order\"] || fields[\"PO nummer\"] || \"\";\n  // Zorg ervoor dat we de tekst uit een array halen als dat nodig is\n  const poNummer = Array.isArray(poNummerRaw) ? String(poNummerRaw[0]) : String(poNummerRaw);\n  const poNummerClean = poNummer.trim().toLowerCase();\n  \n  // --- PR Nummer uit Airtable halen (indien aanwezig) ---\n  const prNameRaw = fields.erpnext_id || \"\";\n  const prName = Array.isArray(prNameRaw) ? String(prNameRaw[0]) : String(prNameRaw);\n  const prNameClean = prName.trim().toLowerCase();\n  \n  // --- Datum zoeken ---\n  let datum = fields[\"Datum ontvangst\"] || fields[\"Datum\"] || fields[\"datum\"] || \"\";\n  if (!datum) {\n    const dateField = Object.keys(fields).find(key => /^\\d{4}-\\d{2}-\\d{2}/.test(String(fields[key])));\n    if (dateField) datum = fields[dateField];\n  }\n  \n  // --- CONTROLE: Bestaat er een PR in ERPNext? ---\n  // We zoeken eerst of de specifieke PR-naam bestaat. Zo niet, dan zoeken we op het PO-nummer.\n  let erpPR = null;\n  if (prNameClean && erpMapByName[prNameClean]) {\n    erpPR = erpMapByName[prNameClean];\n  } else if (poNummerClean && erpMapByPO[poNummerClean]) {\n    erpPR = erpMapByPO[poNummerClean];\n  }\n  \n  const idToLog = prName || poNummer || fields.Name || \"Onbekend\";\n\n  // Als we geen match hebben (geen erpPR) én we hadden wel een PO nummer om op te zoeken:\n  if (!erpPR && poNummerClean) {\n    mismatches.push({\n      id: idToLog,\n      poNummer: poNummer,\n      date: datum,\n      error: `Geen Purchase Receipt gevonden in ERPNext voor PO \"${poNummer}\"`,\n      airtableLink: `https://airtable.com/appiy9Q63eyvnPG9q/tbl8pS8X8pS8X8pS8/${item.id || fields.id}`,\n      poLink: poNummer ? `${erpnextBaseUrl}/app/purchase-order/${poNummer}` : \"\",\n      prLink: prName ? `${erpnextBaseUrl}/app/purchase-receipt/${prName}` : \"\"\n    });\n  }\n});\n\n// Stuur de lijst met niet-gevonden items terug in de structuur die n8n vereist\nreturn mismatches.map(m => ({ json: m }));"
+      },
+      "id": "8404f465-75da-4f0e-9fd4-4b4ba7705672",
+      "name": "Compare Logic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appiy9Q63eyvnPG9q",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblJbhiiwqtMUTwmu",
+          "mode": "id"
+        },
+        "filterByFormula": "={ID Shopify/ERPNext/Partnumber} = '{{ $json.id }}'",
+        "options": {}
+      },
+      "id": "4f827410-131a-4aa4-915d-2cb85f4c13cd",
+      "name": "Check Existing Error",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        -64
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NhojfXxgc4twjfqI",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "78a9d8c7-0130-4cf8-bd69-b145dff669ff",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0ba93e23-9e93-4715-9c94-520c5c8dcb88",
+      "name": "If Error Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1216,
+        -64
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appiy9Q63eyvnPG9q",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblJbhiiwqtMUTwmu",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Opgelost?": false
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Opmerkingen (wat heb je gedaan)",
+              "displayName": "Opmerkingen (wat heb je gedaan)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Opgelost?",
+              "displayName": "Opgelost?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID Shopify/ERPNext/Partnumber",
+              "displayName": "ID Shopify/ERPNext/Partnumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Foutmelding",
+              "displayName": "Foutmelding",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Datum",
+              "displayName": "Datum",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Flow link",
+              "displayName": "Flow link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Shopify/Airtable order link",
+              "displayName": "Shopify/Airtable order link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ERPNext SO/PO/Items link",
+              "displayName": "ERPNext SO/PO/Items link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ERPNext DN/PR link",
+              "displayName": "ERPNext DN/PR link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "54aef919-dbd9-4df7-8f61-830647b1381c",
+      "name": "Log to Foutmeldingen",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1408,
+        48
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NhojfXxgc4twjfqI",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Processed Deliveries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Processed Deliveries": {
+      "main": [
+        [
+          {
+            "node": "Get ERPNext PRs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ERPNext PRs": {
+      "main": [
+        [
+          {
+            "node": "Compare Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare Logic": {
+      "main": [
+        [
+          {
+            "node": "Check Existing Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Existing Error": {
+      "main": [
+        [
+          {
+            "node": "If Error Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Error Exists": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Log to Foutmeldingen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "1295e334-2663-4c42-9214-5101af357e1d",
+  "activeVersionId": null,
+  "versionCounter": 2,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-05-13T09:37:33.050Z",
+      "createdAt": "2026-05-13T09:37:33.050Z",
+      "role": "workflow:owner",
+      "workflowId": "C3kY7CzkiCfPUCdA",
+      "projectId": "QYuyi83fqQPToWGq",
+      "project": {
+        "updatedAt": "2026-02-11T09:43:01.934Z",
+        "createdAt": "2025-12-17T15:07:42.336Z",
+        "id": "QYuyi83fqQPToWGq",
+        "name": "Fiyo van ravenstein <fiyo.van.ravenstein@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-12-17T15:07:42.339Z",
+            "createdAt": "2025-12-17T15:07:42.339Z",
+            "userId": "f464bba4-661a-4422-ae0a-366cbcce6b98",
+            "projectId": "QYuyi83fqQPToWGq",
+            "user": {
+              "updatedAt": "2026-09-02T11:58:28.000Z",
+              "createdAt": "2025-12-17T15:07:42.331Z",
+              "id": "f464bba4-661a-4422-ae0a-366cbcce6b98",
+              "email": "fiyo.van.ravenstein@picoo.nl",
+              "firstName": "Fiyo",
+              "lastName": "van ravenstein",
+              "personalizationAnswers": null,
+              "settings": {
+                "firstSuccessfulWorkflowId": "6hqtqOdVGlqO810j",
+                "userActivated": true,
+                "userActivatedAt": 1770935400180,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1775567798325
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

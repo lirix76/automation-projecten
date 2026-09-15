@@ -1,0 +1,2210 @@
+{
+  "updatedAt": "2026-08-25T12:36:17.183Z",
+  "createdAt": "2026-03-30T13:46:04.787Z",
+  "id": "mT1FAmdUY79F0Pg0",
+  "name": "FAQ-sync",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        432,
+        -448
+      ],
+      "id": "d23bda67-2092-4556-b86a-b61c6c8dc7dc",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: {} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        -144
+      ],
+      "id": "63098e56-b557-4996-817a-8be04b7a9e3b",
+      "name": "Collapse inputs"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app0zzPtwBSKpGFRZ",
+          "mode": "list",
+          "cachedResultName": "Assets",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblNrSGkVU0fKVxpd",
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tblNrSGkVU0fKVxpd"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Keywords verwerkt": false,
+            "answer": "={{ $json.content }}",
+            "id": "={{ $('Loop Over Items').item.json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Vraag",
+              "displayName": "Vraag",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "recordId",
+              "displayName": "recordId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "answer",
+              "displayName": "answer",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Medewerkers link Helpscout",
+              "displayName": "Medewerkers link Helpscout",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Categorie Helpscout",
+              "displayName": "Categorie Helpscout",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "options": [
+                {
+                  "name": "Huren",
+                  "value": "Huren"
+                },
+                {
+                  "name": "Picoo passes",
+                  "value": "Picoo passes"
+                },
+                {
+                  "name": "Spellen",
+                  "value": "Spellen"
+                },
+                {
+                  "name": "Kopen",
+                  "value": "Kopen"
+                },
+                {
+                  "name": "Techniek, service en onderhoud",
+                  "value": "Techniek, service en onderhoud"
+                },
+                {
+                  "name": "Algemeen",
+                  "value": "Algemeen"
+                },
+                {
+                  "name": "Spelen met Picoo",
+                  "value": "Spelen met Picoo"
+                },
+                {
+                  "name": "Picoo Play App",
+                  "value": "Picoo Play App"
+                },
+                {
+                  "name": "Smartsleeves",
+                  "value": "Smartsleeves"
+                },
+                {
+                  "name": "Aan de slag",
+                  "value": "Aan de slag"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Nog niet (volledig) uitgewerkt",
+                  "value": "Nog niet (volledig) uitgewerkt"
+                },
+                {
+                  "name": "Draft / unpublished op Helpscout",
+                  "value": "Draft / unpublished op Helpscout"
+                },
+                {
+                  "name": "Published op Helpscout",
+                  "value": "Published op Helpscout"
+                },
+                {
+                  "name": "Kan geüpload worden",
+                  "value": "Kan geüpload worden"
+                },
+                {
+                  "name": "Published maar moet gecontroleerd worden",
+                  "value": "Published maar moet gecontroleerd worden"
+                },
+                {
+                  "name": "Deprecated",
+                  "value": "Deprecated"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Opmerkingen",
+              "displayName": "Opmerkingen",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Eerstvolgende actie",
+              "displayName": "Eerstvolgende actie",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Keywords",
+              "displayName": "Keywords",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "options": [
+                {
+                  "name": "aanschaffen",
+                  "value": "aanschaffen"
+                },
+                {
+                  "name": "aantal",
+                  "value": "aantal"
+                },
+                {
+                  "name": "accessoires",
+                  "value": "accessoires"
+                },
+                {
+                  "name": "account",
+                  "value": "account"
+                },
+                {
+                  "name": "activeren",
+                  "value": "activeren"
+                },
+                {
+                  "name": "adres",
+                  "value": "adres"
+                },
+                {
+                  "name": "adresgegevens",
+                  "value": "adresgegevens"
+                },
+                {
+                  "name": "afleveradres",
+                  "value": "afleveradres"
+                },
+                {
+                  "name": "app",
+                  "value": "app"
+                },
+                {
+                  "name": "B2B",
+                  "value": "B2B"
+                },
+                {
+                  "name": "batterij",
+                  "value": "batterij"
+                },
+                {
+                  "name": "bedrijf",
+                  "value": "bedrijf"
+                },
+                {
+                  "name": "beperking",
+                  "value": "beperking"
+                },
+                {
+                  "name": "bestellen",
+                  "value": "bestellen"
+                },
+                {
+                  "name": "bestelling",
+                  "value": "bestelling"
+                },
+                {
+                  "name": "betaling",
+                  "value": "betaling"
+                },
+                {
+                  "name": "cluster",
+                  "value": "cluster"
+                },
+                {
+                  "name": "collega's",
+                  "value": "collega's"
+                },
+                {
+                  "name": "combineren",
+                  "value": "combineren"
+                },
+                {
+                  "name": "controller",
+                  "value": "controller"
+                },
+                {
+                  "name": "deactiveren",
+                  "value": "deactiveren"
+                },
+                {
+                  "name": "delen",
+                  "value": "delen"
+                },
+                {
+                  "name": "diagnostiek",
+                  "value": "diagnostiek"
+                },
+                {
+                  "name": "duur",
+                  "value": "duur"
+                },
+                {
+                  "name": "EDU",
+                  "value": "EDU"
+                },
+                {
+                  "name": "educatie",
+                  "value": "educatie"
+                },
+                {
+                  "name": "educatief",
+                  "value": "educatief"
+                },
+                {
+                  "name": "evenement",
+                  "value": "evenement"
+                },
+                {
+                  "name": "factuur",
+                  "value": "factuur"
+                },
+                {
+                  "name": "foutmelding",
+                  "value": "foutmelding"
+                },
+                {
+                  "name": "garantie",
+                  "value": "garantie"
+                },
+                {
+                  "name": "handleiding",
+                  "value": "handleiding"
+                },
+                {
+                  "name": "huren",
+                  "value": "huren"
+                },
+                {
+                  "name": "huurset",
+                  "value": "huurset"
+                },
+                {
+                  "name": "infinite play pass",
+                  "value": "infinite play pass"
+                },
+                {
+                  "name": "informatie",
+                  "value": "informatie"
+                },
+                {
+                  "name": "informatiepakket",
+                  "value": "informatiepakket"
+                },
+                {
+                  "name": "instellingen",
+                  "value": "instellingen"
+                },
+                {
+                  "name": "kabel",
+                  "value": "kabel"
+                },
+                {
+                  "name": "kapot",
+                  "value": "kapot"
+                },
+                {
+                  "name": "kinderen",
+                  "value": "kinderen"
+                },
+                {
+                  "name": "klantenservice",
+                  "value": "klantenservice"
+                },
+                {
+                  "name": "koopset",
+                  "value": "koopset"
+                },
+                {
+                  "name": "kopen",
+                  "value": "kopen"
+                },
+                {
+                  "name": "kosten",
+                  "value": "kosten"
+                },
+                {
+                  "name": "kwijt",
+                  "value": "kwijt"
+                },
+                {
+                  "name": "lancering",
+                  "value": "lancering"
+                },
+                {
+                  "name": "leeftijd",
+                  "value": "leeftijd"
+                },
+                {
+                  "name": "levering",
+                  "value": "levering"
+                },
+                {
+                  "name": "levertijd",
+                  "value": "levertijd"
+                },
+                {
+                  "name": "los",
+                  "value": "los"
+                },
+                {
+                  "name": "Mix & Match",
+                  "value": "Mix & Match"
+                },
+                {
+                  "name": "nieuw",
+                  "value": "nieuw"
+                },
+                {
+                  "name": "nieuw spel",
+                  "value": "nieuw spel"
+                },
+                {
+                  "name": "offerte",
+                  "value": "offerte"
+                },
+                {
+                  "name": "onderdeel",
+                  "value": "onderdeel"
+                },
+                {
+                  "name": "onderdelen",
+                  "value": "onderdelen"
+                },
+                {
+                  "name": "ontvangst",
+                  "value": "ontvangst"
+                },
+                {
+                  "name": "Opladen",
+                  "value": "Opladen"
+                },
+                {
+                  "name": "oplader",
+                  "value": "oplader"
+                },
+                {
+                  "name": "oud",
+                  "value": "oud"
+                },
+                {
+                  "name": "polsbandjes",
+                  "value": "polsbandjes"
+                },
+                {
+                  "name": "prijs",
+                  "value": "prijs"
+                },
+                {
+                  "name": "primair onderwijs",
+                  "value": "primair onderwijs"
+                },
+                {
+                  "name": "PRO",
+                  "value": "PRO"
+                },
+                {
+                  "name": "proberen",
+                  "value": "proberen"
+                },
+                {
+                  "name": "quiz",
+                  "value": "quiz"
+                },
+                {
+                  "name": "reserveren",
+                  "value": "reserveren"
+                },
+                {
+                  "name": "retour",
+                  "value": "retour"
+                },
+                {
+                  "name": "retourlabel",
+                  "value": "retourlabel"
+                },
+                {
+                  "name": "retourneren",
+                  "value": "retourneren"
+                },
+                {
+                  "name": "rolstoel",
+                  "value": "rolstoel"
+                },
+                {
+                  "name": "school",
+                  "value": "school"
+                },
+                {
+                  "name": "Smartsleeves",
+                  "value": "Smartsleeves"
+                },
+                {
+                  "name": "software",
+                  "value": "software"
+                },
+                {
+                  "name": "speciaal onderwijs",
+                  "value": "speciaal onderwijs"
+                },
+                {
+                  "name": "spel",
+                  "value": "spel"
+                },
+                {
+                  "name": "spelen",
+                  "value": "spelen"
+                },
+                {
+                  "name": "spellen",
+                  "value": "spellen"
+                },
+                {
+                  "name": "starten",
+                  "value": "starten"
+                },
+                {
+                  "name": "stuk",
+                  "value": "stuk"
+                },
+                {
+                  "name": "testen",
+                  "value": "testen"
+                },
+                {
+                  "name": "updaten",
+                  "value": "updaten"
+                },
+                {
+                  "name": "verloren",
+                  "value": "verloren"
+                },
+                {
+                  "name": "verwijderen",
+                  "value": "verwijderen"
+                },
+                {
+                  "name": "verzending",
+                  "value": "verzending"
+                },
+                {
+                  "name": "volwassenen",
+                  "value": "volwassenen"
+                },
+                {
+                  "name": "waterdicht",
+                  "value": "waterdicht"
+                },
+                {
+                  "name": "Zelf maken",
+                  "value": "Zelf maken"
+                },
+                {
+                  "name": "zelfstandig",
+                  "value": "zelfstandig"
+                },
+                {
+                  "name": "levensduur",
+                  "value": "levensduur"
+                },
+                {
+                  "name": "batterijduur",
+                  "value": "batterijduur"
+                },
+                {
+                  "name": "accu",
+                  "value": "accu"
+                },
+                {
+                  "name": "reset",
+                  "value": "reset"
+                },
+                {
+                  "name": "probleem",
+                  "value": "probleem"
+                },
+                {
+                  "name": "Picoo One",
+                  "value": "Picoo One"
+                },
+                {
+                  "name": "data",
+                  "value": "data"
+                },
+                {
+                  "name": "opslaan",
+                  "value": "opslaan"
+                },
+                {
+                  "name": "privacy",
+                  "value": "privacy"
+                },
+                {
+                  "name": "zonlicht",
+                  "value": "zonlicht"
+                },
+                {
+                  "name": "buiten",
+                  "value": "buiten"
+                },
+                {
+                  "name": "licht",
+                  "value": "licht"
+                },
+                {
+                  "name": "lamp",
+                  "value": "lamp"
+                },
+                {
+                  "name": "binnen",
+                  "value": "binnen"
+                },
+                {
+                  "name": "netwerk",
+                  "value": "netwerk"
+                },
+                {
+                  "name": "wifi",
+                  "value": "wifi"
+                },
+                {
+                  "name": "bluetooth",
+                  "value": "bluetooth"
+                },
+                {
+                  "name": "gymzaal",
+                  "value": "gymzaal"
+                },
+                {
+                  "name": "meter",
+                  "value": "meter"
+                },
+                {
+                  "name": "afstand",
+                  "value": "afstand"
+                },
+                {
+                  "name": "groep",
+                  "value": "groep"
+                },
+                {
+                  "name": "spelers",
+                  "value": "spelers"
+                },
+                {
+                  "name": "Picoo Zero",
+                  "value": "Picoo Zero"
+                },
+                {
+                  "name": "template",
+                  "value": "template"
+                },
+                {
+                  "name": "thuis",
+                  "value": "thuis"
+                },
+                {
+                  "name": "epilepsie",
+                  "value": "epilepsie"
+                },
+                {
+                  "name": "lichtgevoeligheid",
+                  "value": "lichtgevoeligheid"
+                },
+                {
+                  "name": "safetysheet",
+                  "value": "safetysheet"
+                },
+                {
+                  "name": "aanmaken",
+                  "value": "aanmaken"
+                },
+                {
+                  "name": "registreren",
+                  "value": "registreren"
+                },
+                {
+                  "name": "profiel",
+                  "value": "profiel"
+                },
+                {
+                  "name": "inloggen",
+                  "value": "inloggen"
+                },
+                {
+                  "name": "schrijven",
+                  "value": "schrijven"
+                },
+                {
+                  "name": "whiteboard",
+                  "value": "whiteboard"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Gerelateerde artikelen",
+              "displayName": "Gerelateerde artikelen",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Laatste keer aangepast",
+              "displayName": "Laatste keer aangepast",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Vraag (from Gerelateerde artikelen)",
+              "displayName": "Vraag (from Gerelateerde artikelen)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Laatste keer aangepast door",
+              "displayName": "Laatste keer aangepast door",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Keywords verwerkt",
+              "displayName": "Keywords verwerkt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Project: informatievoorziening",
+              "displayName": "Project: informatievoorziening",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        736,
+        160
+      ],
+      "id": "474b8615-1360-4b58-812b-a17e26e043dd",
+      "name": "Update record1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PF5lafGOMUTYjUMy",
+          "name": "Airtable PAT assets base"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "={{ $json['URL content (latest, from Versies) (from Assets)'][0] }}"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        544,
+        160
+      ],
+      "id": "7f81a70f-a987-4577-9d82-9fe875e6684b",
+      "name": "Get a document1",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "8waTS8jUHGS1yHj9",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "base": {
+          "__rl": true,
+          "value": "app0zzPtwBSKpGFRZ",
+          "mode": "list",
+          "cachedResultName": "Assets",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblNrSGkVU0fKVxpd",
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tblNrSGkVU0fKVxpd"
+        },
+        "id": "={{ $json.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        368,
+        160
+      ],
+      "id": "1dc4957c-e99a-4fc1-bece-be805e0c4b15",
+      "name": "Get a record1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PF5lafGOMUTYjUMy",
+          "name": "Airtable PAT assets base"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        112,
+        144
+      ],
+      "id": "be122da6-8036-4cb4-b441-5e89d622c9ee",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app0zzPtwBSKpGFRZ",
+          "mode": "list",
+          "cachedResultName": "Assets",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblNrSGkVU0fKVxpd",
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tblNrSGkVU0fKVxpd"
+        },
+        "filterByFormula": "ARRAYJOIN({URL content (latest, from Versies) (from Assets)}) != \"\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -96,
+        144
+      ],
+      "id": "e4f0376a-11a3-4fe8-80e7-ff6278281b22",
+      "name": "Search records1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PF5lafGOMUTYjUMy",
+          "name": "Airtable PAT assets base"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 2
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        144
+      ],
+      "id": "28463513-2b9d-4e76-aff8-25117f81c72b",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "https://www.googleapis.com/upload/drive/v3/files/1JuX9fcm52qf60_IVkHdnaOuxggK8wXgH?uploadType=media&supportsAllDrives=true",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "text/plain",
+        "body": "={{ $json.faqContent }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1696,
+        -144
+      ],
+      "id": "7cce5c38-1638-4124-b56c-8876c859f0e7",
+      "name": "HTTP Request",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7jmlqmj1JpGcdPBx",
+          "name": "Google auth (Iris)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const records = $input.all();\n\nrecords.sort((a, b) => {\n  const catA = (a.json['Categorie Helpscout'] || []).map(c => c.name || c).join('');\n  const catB = (b.json['Categorie Helpscout'] || []).map(c => c.name || c).join('');\n  if (catA !== catB) return catA.localeCompare(catB);\n  return (a.json.Vraag || '').localeCompare(b.json.Vraag || '');\n});\n\nconst now = new Date().toISOString();\nconst count = records.length;\n\nlet text = `# Picoo Knowledge Base\\n# Generated: ${now}\\n# Articles: ${count}\\n\\n`;\ntext += '='.repeat(54) + '\\n\\n';\n\nfor (const record of records) {\n  const vraag = record.json.Vraag || '';\n  const keywords = (record.json.Keywords || []).map(k => k.name || k).join(', ');\n  const answer = (record.json.answer || '').trim();\n\n  text += `## ${vraag}\\n`;\n  text += `Keywords: ${keywords}\\n\\n`;\n  text += `${answer}\\n\\n`;\n  text += '--------------------------------------\\n\\n';\n}\n\nreturn [{ json: { faqContent: text } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        -144
+      ],
+      "id": "1d5c77f2-08b8-48ba-b0b9-b28be9a261da",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app0zzPtwBSKpGFRZ",
+          "mode": "list",
+          "cachedResultName": "Assets",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblNrSGkVU0fKVxpd",
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tblNrSGkVU0fKVxpd"
+        },
+        "filterByFormula": "{includeInTxt}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1264,
+        -144
+      ],
+      "id": "fa02fefa-8509-42c4-9cf3-a619f0c11198",
+      "name": "Search records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PF5lafGOMUTYjUMy",
+          "name": "Airtable PAT assets base"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "95f94078-747c-403e-8c39-8e3ed1040510",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -288,
+        -256
+      ],
+      "id": "e94b4491-dc35-48ea-839e-a256b9e3d9b1",
+      "name": "Webhook",
+      "webhookId": "95f94078-747c-403e-8c39-8e3ed1040510"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app0zzPtwBSKpGFRZ",
+          "mode": "list",
+          "cachedResultName": "Assets",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblNrSGkVU0fKVxpd",
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tblNrSGkVU0fKVxpd"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Keywords verwerkt": false,
+            "answer": "={{ $json.content }}",
+            "id": "={{ $('Webhook').item.json.body.recordId }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Vraag",
+              "displayName": "Vraag",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "recordId",
+              "displayName": "recordId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "answer",
+              "displayName": "answer",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Medewerkers link Helpscout",
+              "displayName": "Medewerkers link Helpscout",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Categorie Helpscout",
+              "displayName": "Categorie Helpscout",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "options": [
+                {
+                  "name": "Huren",
+                  "value": "Huren"
+                },
+                {
+                  "name": "Picoo passes",
+                  "value": "Picoo passes"
+                },
+                {
+                  "name": "Spellen",
+                  "value": "Spellen"
+                },
+                {
+                  "name": "Kopen",
+                  "value": "Kopen"
+                },
+                {
+                  "name": "Techniek, service en onderhoud",
+                  "value": "Techniek, service en onderhoud"
+                },
+                {
+                  "name": "Algemeen",
+                  "value": "Algemeen"
+                },
+                {
+                  "name": "Spelen met Picoo",
+                  "value": "Spelen met Picoo"
+                },
+                {
+                  "name": "Picoo Play App",
+                  "value": "Picoo Play App"
+                },
+                {
+                  "name": "Smartsleeves",
+                  "value": "Smartsleeves"
+                },
+                {
+                  "name": "Aan de slag",
+                  "value": "Aan de slag"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Nog niet (volledig) uitgewerkt",
+                  "value": "Nog niet (volledig) uitgewerkt"
+                },
+                {
+                  "name": "Draft / unpublished op Helpscout",
+                  "value": "Draft / unpublished op Helpscout"
+                },
+                {
+                  "name": "Published op Helpscout",
+                  "value": "Published op Helpscout"
+                },
+                {
+                  "name": "Kan geüpload worden",
+                  "value": "Kan geüpload worden"
+                },
+                {
+                  "name": "Published maar moet gecontroleerd worden",
+                  "value": "Published maar moet gecontroleerd worden"
+                },
+                {
+                  "name": "Deprecated",
+                  "value": "Deprecated"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Opmerkingen",
+              "displayName": "Opmerkingen",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Eerstvolgende actie",
+              "displayName": "Eerstvolgende actie",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Keywords",
+              "displayName": "Keywords",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "options": [
+                {
+                  "name": "aanschaffen",
+                  "value": "aanschaffen"
+                },
+                {
+                  "name": "aantal",
+                  "value": "aantal"
+                },
+                {
+                  "name": "accessoires",
+                  "value": "accessoires"
+                },
+                {
+                  "name": "account",
+                  "value": "account"
+                },
+                {
+                  "name": "activeren",
+                  "value": "activeren"
+                },
+                {
+                  "name": "adres",
+                  "value": "adres"
+                },
+                {
+                  "name": "adresgegevens",
+                  "value": "adresgegevens"
+                },
+                {
+                  "name": "afleveradres",
+                  "value": "afleveradres"
+                },
+                {
+                  "name": "app",
+                  "value": "app"
+                },
+                {
+                  "name": "B2B",
+                  "value": "B2B"
+                },
+                {
+                  "name": "batterij",
+                  "value": "batterij"
+                },
+                {
+                  "name": "bedrijf",
+                  "value": "bedrijf"
+                },
+                {
+                  "name": "beperking",
+                  "value": "beperking"
+                },
+                {
+                  "name": "bestellen",
+                  "value": "bestellen"
+                },
+                {
+                  "name": "bestelling",
+                  "value": "bestelling"
+                },
+                {
+                  "name": "betaling",
+                  "value": "betaling"
+                },
+                {
+                  "name": "cluster",
+                  "value": "cluster"
+                },
+                {
+                  "name": "collega's",
+                  "value": "collega's"
+                },
+                {
+                  "name": "combineren",
+                  "value": "combineren"
+                },
+                {
+                  "name": "controller",
+                  "value": "controller"
+                },
+                {
+                  "name": "deactiveren",
+                  "value": "deactiveren"
+                },
+                {
+                  "name": "delen",
+                  "value": "delen"
+                },
+                {
+                  "name": "diagnostiek",
+                  "value": "diagnostiek"
+                },
+                {
+                  "name": "duur",
+                  "value": "duur"
+                },
+                {
+                  "name": "EDU",
+                  "value": "EDU"
+                },
+                {
+                  "name": "educatie",
+                  "value": "educatie"
+                },
+                {
+                  "name": "educatief",
+                  "value": "educatief"
+                },
+                {
+                  "name": "evenement",
+                  "value": "evenement"
+                },
+                {
+                  "name": "factuur",
+                  "value": "factuur"
+                },
+                {
+                  "name": "foutmelding",
+                  "value": "foutmelding"
+                },
+                {
+                  "name": "garantie",
+                  "value": "garantie"
+                },
+                {
+                  "name": "handleiding",
+                  "value": "handleiding"
+                },
+                {
+                  "name": "huren",
+                  "value": "huren"
+                },
+                {
+                  "name": "huurset",
+                  "value": "huurset"
+                },
+                {
+                  "name": "infinite play pass",
+                  "value": "infinite play pass"
+                },
+                {
+                  "name": "informatie",
+                  "value": "informatie"
+                },
+                {
+                  "name": "informatiepakket",
+                  "value": "informatiepakket"
+                },
+                {
+                  "name": "instellingen",
+                  "value": "instellingen"
+                },
+                {
+                  "name": "kabel",
+                  "value": "kabel"
+                },
+                {
+                  "name": "kapot",
+                  "value": "kapot"
+                },
+                {
+                  "name": "kinderen",
+                  "value": "kinderen"
+                },
+                {
+                  "name": "klantenservice",
+                  "value": "klantenservice"
+                },
+                {
+                  "name": "koopset",
+                  "value": "koopset"
+                },
+                {
+                  "name": "kopen",
+                  "value": "kopen"
+                },
+                {
+                  "name": "kosten",
+                  "value": "kosten"
+                },
+                {
+                  "name": "kwijt",
+                  "value": "kwijt"
+                },
+                {
+                  "name": "lancering",
+                  "value": "lancering"
+                },
+                {
+                  "name": "leeftijd",
+                  "value": "leeftijd"
+                },
+                {
+                  "name": "levering",
+                  "value": "levering"
+                },
+                {
+                  "name": "levertijd",
+                  "value": "levertijd"
+                },
+                {
+                  "name": "los",
+                  "value": "los"
+                },
+                {
+                  "name": "Mix & Match",
+                  "value": "Mix & Match"
+                },
+                {
+                  "name": "nieuw",
+                  "value": "nieuw"
+                },
+                {
+                  "name": "nieuw spel",
+                  "value": "nieuw spel"
+                },
+                {
+                  "name": "offerte",
+                  "value": "offerte"
+                },
+                {
+                  "name": "onderdeel",
+                  "value": "onderdeel"
+                },
+                {
+                  "name": "onderdelen",
+                  "value": "onderdelen"
+                },
+                {
+                  "name": "ontvangst",
+                  "value": "ontvangst"
+                },
+                {
+                  "name": "Opladen",
+                  "value": "Opladen"
+                },
+                {
+                  "name": "oplader",
+                  "value": "oplader"
+                },
+                {
+                  "name": "oud",
+                  "value": "oud"
+                },
+                {
+                  "name": "polsbandjes",
+                  "value": "polsbandjes"
+                },
+                {
+                  "name": "prijs",
+                  "value": "prijs"
+                },
+                {
+                  "name": "primair onderwijs",
+                  "value": "primair onderwijs"
+                },
+                {
+                  "name": "PRO",
+                  "value": "PRO"
+                },
+                {
+                  "name": "proberen",
+                  "value": "proberen"
+                },
+                {
+                  "name": "quiz",
+                  "value": "quiz"
+                },
+                {
+                  "name": "reserveren",
+                  "value": "reserveren"
+                },
+                {
+                  "name": "retour",
+                  "value": "retour"
+                },
+                {
+                  "name": "retourlabel",
+                  "value": "retourlabel"
+                },
+                {
+                  "name": "retourneren",
+                  "value": "retourneren"
+                },
+                {
+                  "name": "rolstoel",
+                  "value": "rolstoel"
+                },
+                {
+                  "name": "school",
+                  "value": "school"
+                },
+                {
+                  "name": "Smartsleeves",
+                  "value": "Smartsleeves"
+                },
+                {
+                  "name": "software",
+                  "value": "software"
+                },
+                {
+                  "name": "speciaal onderwijs",
+                  "value": "speciaal onderwijs"
+                },
+                {
+                  "name": "spel",
+                  "value": "spel"
+                },
+                {
+                  "name": "spelen",
+                  "value": "spelen"
+                },
+                {
+                  "name": "spellen",
+                  "value": "spellen"
+                },
+                {
+                  "name": "starten",
+                  "value": "starten"
+                },
+                {
+                  "name": "stuk",
+                  "value": "stuk"
+                },
+                {
+                  "name": "testen",
+                  "value": "testen"
+                },
+                {
+                  "name": "updaten",
+                  "value": "updaten"
+                },
+                {
+                  "name": "verloren",
+                  "value": "verloren"
+                },
+                {
+                  "name": "verwijderen",
+                  "value": "verwijderen"
+                },
+                {
+                  "name": "verzending",
+                  "value": "verzending"
+                },
+                {
+                  "name": "volwassenen",
+                  "value": "volwassenen"
+                },
+                {
+                  "name": "waterdicht",
+                  "value": "waterdicht"
+                },
+                {
+                  "name": "Zelf maken",
+                  "value": "Zelf maken"
+                },
+                {
+                  "name": "zelfstandig",
+                  "value": "zelfstandig"
+                },
+                {
+                  "name": "levensduur",
+                  "value": "levensduur"
+                },
+                {
+                  "name": "batterijduur",
+                  "value": "batterijduur"
+                },
+                {
+                  "name": "accu",
+                  "value": "accu"
+                },
+                {
+                  "name": "reset",
+                  "value": "reset"
+                },
+                {
+                  "name": "probleem",
+                  "value": "probleem"
+                },
+                {
+                  "name": "Picoo One",
+                  "value": "Picoo One"
+                },
+                {
+                  "name": "data",
+                  "value": "data"
+                },
+                {
+                  "name": "opslaan",
+                  "value": "opslaan"
+                },
+                {
+                  "name": "privacy",
+                  "value": "privacy"
+                },
+                {
+                  "name": "zonlicht",
+                  "value": "zonlicht"
+                },
+                {
+                  "name": "buiten",
+                  "value": "buiten"
+                },
+                {
+                  "name": "licht",
+                  "value": "licht"
+                },
+                {
+                  "name": "lamp",
+                  "value": "lamp"
+                },
+                {
+                  "name": "binnen",
+                  "value": "binnen"
+                },
+                {
+                  "name": "netwerk",
+                  "value": "netwerk"
+                },
+                {
+                  "name": "wifi",
+                  "value": "wifi"
+                },
+                {
+                  "name": "bluetooth",
+                  "value": "bluetooth"
+                },
+                {
+                  "name": "gymzaal",
+                  "value": "gymzaal"
+                },
+                {
+                  "name": "meter",
+                  "value": "meter"
+                },
+                {
+                  "name": "afstand",
+                  "value": "afstand"
+                },
+                {
+                  "name": "groep",
+                  "value": "groep"
+                },
+                {
+                  "name": "spelers",
+                  "value": "spelers"
+                },
+                {
+                  "name": "Picoo Zero",
+                  "value": "Picoo Zero"
+                },
+                {
+                  "name": "template",
+                  "value": "template"
+                },
+                {
+                  "name": "thuis",
+                  "value": "thuis"
+                },
+                {
+                  "name": "epilepsie",
+                  "value": "epilepsie"
+                },
+                {
+                  "name": "lichtgevoeligheid",
+                  "value": "lichtgevoeligheid"
+                },
+                {
+                  "name": "safetysheet",
+                  "value": "safetysheet"
+                },
+                {
+                  "name": "aanmaken",
+                  "value": "aanmaken"
+                },
+                {
+                  "name": "registreren",
+                  "value": "registreren"
+                },
+                {
+                  "name": "profiel",
+                  "value": "profiel"
+                },
+                {
+                  "name": "inloggen",
+                  "value": "inloggen"
+                },
+                {
+                  "name": "schrijven",
+                  "value": "schrijven"
+                },
+                {
+                  "name": "whiteboard",
+                  "value": "whiteboard"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Gerelateerde artikelen",
+              "displayName": "Gerelateerde artikelen",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Laatste keer aangepast",
+              "displayName": "Laatste keer aangepast",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Vraag (from Gerelateerde artikelen)",
+              "displayName": "Vraag (from Gerelateerde artikelen)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Laatste keer aangepast door",
+              "displayName": "Laatste keer aangepast door",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Keywords verwerkt",
+              "displayName": "Keywords verwerkt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Project: informatievoorziening",
+              "displayName": "Project: informatievoorziening",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        512,
+        -144
+      ],
+      "id": "dcdfc842-caac-452b-bd03-cf58bae95393",
+      "name": "Update record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PF5lafGOMUTYjUMy",
+          "name": "Airtable PAT assets base"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "={{ $json['URL content (latest, from Versies) (from Assets)'][0] }}"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        304,
+        -144
+      ],
+      "id": "b8d84cd5-f949-4a5a-bef1-a1d23251c4a4",
+      "name": "Get a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "8waTS8jUHGS1yHj9",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "app0zzPtwBSKpGFRZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblNrSGkVU0fKVxpd",
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tblNrSGkVU0fKVxpd"
+        },
+        "id": "={{ $json.body.recordId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -80,
+        -256
+      ],
+      "id": "f1683330-797b-41a5-8462-d857351b40b0",
+      "name": "Get a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PF5lafGOMUTYjUMy",
+          "name": "Airtable PAT assets base"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0091cf45-7b0a-4626-a47a-00b13cafa809",
+              "leftValue": "={{ $json['URL content (latest, from Versies) (from Assets)'][0] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "53875966-bde9-46f4-84ec-fc288a824972",
+              "leftValue": "={{ $json.answer}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        128,
+        -256
+      ],
+      "id": "b317d175-1bb7-4c6b-8861-a64634bf8f3d",
+      "name": "If"
+    }
+  ],
+  "connections": {
+    "Update record1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a document1": {
+      "main": [
+        [
+          {
+            "node": "Update record1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a record1": {
+      "main": [
+        [
+          {
+            "node": "Get a document1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Collapse inputs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a record1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search records1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collapse inputs": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update record": {
+      "main": [
+        [
+          {
+            "node": "Collapse inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a document": {
+      "main": [
+        [
+          {
+            "node": "Update record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a record": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Collapse inputs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "picoo.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (compatible; AirtableScripting; +https://airtable.com/developers/scripting;)",
+            "content-length": "32",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "35.170.56.70",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "9e4fe8306d1d778a-IAD",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-airtable-source": "appo0phtimrZn2lHA/wflwYSq6Hpy0llhs1",
+            "x-forwarded-for": "35.170.56.70, 104.23.209.160",
+            "x-forwarded-host": "picoo.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-23-866896574f-vcck2",
+            "x-is-trusted": "yes",
+            "x-real-ip": "35.170.56.70"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "recordId": "recKnel9QVjxO185e"
+          },
+          "webhookUrl": "https://picoo.app.n8n.cloud/webhook/95f94078-747c-403e-8c39-8e3ed1040510",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "versionId": "e761a6c0-f576-4fe6-a687-931f81bb4c4f",
+  "activeVersionId": null,
+  "versionCounter": 52,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T13:46:04.790Z",
+      "createdAt": "2026-03-30T13:46:04.790Z",
+      "role": "workflow:owner",
+      "workflowId": "mT1FAmdUY79F0Pg0",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

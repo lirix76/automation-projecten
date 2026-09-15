@@ -1,0 +1,541 @@
+{
+  "updatedAt": "2026-08-25T12:45:38.029Z",
+  "createdAt": "2025-12-06T11:10:02.030Z",
+  "id": "w6hB4n0nNMwOPYYa",
+  "name": "update Airtable JSON files on drive",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        80
+      ],
+      "id": "47d186ab-bd96-4061-9027-901a6e2c15f2",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      name: \"Projecten\",\n      tableId: \"appopJMiQr8csSHhh\",\n      googleFileId: \"1aGTlGNSScFn6QcM8kKMLPkZ9vipkTnpK\"\n    }\n  },\n  {\n    json: {\n      name: \"RMA\",\n      tableId: \"app2KUNIee5zPJmGK\",\n      googleFileId: \"1pYmhN0E2_jjlWfrpIA3mf4tHK_G8Kwv7\"\n    }\n  },\n  {\n    json: {\n      name: \"Partnumbers\",\n      tableId: \"app2jwje5HfhALWpV\",\n      googleFileId: \"1Dkcmi0wUx6-z_2JjqZa3l-wVgBr0oJuw\"\n    }\n  },\n  {\n    json: {\n      name: \"Spellen\",\n      tableId: \"appLJvoxq8WKQDku0\",\n      googleFileId: \"1scRyXdcIbgqtfB4QoOob0yV9GChNS0p4\"\n    }\n  },\n  {\n    json: {\n      name: \"Offerte management\",\n      tableId: \"appFLLCfzmMp1wswu\",\n      googleFileId: \"1_BT8lfQTEuyEf5os0p__YTlH__27FYyU\"\n    }\n  },\n  {\n    json: {\n      name: \"Voorraad mutaties\",\n      tableId: \"appiy9Q63eyvnPG9q\",\n      googleFileId: \"10Nd3ptlhhAEs6P6EcNxFgTw6BHH5MQi7\"\n    }\n  },\n  {\n    json: {\n      name: \"Oproepkrachten\",\n      tableId: \"appGsfxDjX2FbIK65\",\n      googleFileId: \"1e5uuN1k0fT2GvFr5IUjwgcFyLhLG-LBQ\"\n    }\n  },\n  {\n    json: {\n      name: \"Assets\",\n      tableId: \"app0zzPtwBSKpGFRZ\",\n      googleFileId: \"1omgSD9Wk6DNjAwr5h3X2gqnlmEz3sxiw\"\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        80
+      ],
+      "id": "bd3cfa47-5b10-463e-b204-f651e91aa6b2",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "resource": "base",
+        "operation": "getSchema",
+        "base": {
+          "__rl": true,
+          "value": "={{ $json.tableId }}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "480779f1-f4af-404a-9bff-af0ca0bc5979",
+      "name": "Get base schema",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lgsWyTzPpCBNsBlN",
+          "name": "Airtable schema read token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        448,
+        80
+      ],
+      "id": "f61a71b2-7bc8-48b9-87b2-085e69ecdc34",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Loop Over Items').item.json.googleFileId }}",
+          "mode": "id"
+        },
+        "changeFileContent": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1120,
+        80
+      ],
+      "id": "af9a2d89-0ece-49e2-9623-505df1b5999f",
+      "name": "Update file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7jmlqmj1JpGcdPBx",
+          "name": "Google auth (Iris)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        896,
+        0
+      ],
+      "id": "50bbd34e-4b79-47c4-9913-b3ead482644a",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        -80
+      ],
+      "id": "fda8fc10-12d7-4bcd-8403-be6e406687fc",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "path": "ef779b8a-ce66-413d-82c2-adfdf51c181f",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        272
+      ],
+      "id": "cbaead4c-c428-4c48-8933-8dd59b9cdafd",
+      "name": "Webhook",
+      "webhookId": "ef779b8a-ce66-413d-82c2-adfdf51c181f"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get base schema": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Get base schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Update file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update file": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "1122c374-c874-4096-a721-79fced93b597",
+  "activeVersionId": "1122c374-c874-4096-a721-79fced93b597",
+  "versionCounter": 47,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2025-12-06T11:10:02.035Z",
+      "createdAt": "2025-12-06T11:10:02.035Z",
+      "role": "workflow:owner",
+      "workflowId": "w6hB4n0nNMwOPYYa",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-08-25T12:45:38.030Z",
+    "createdAt": "2026-08-25T12:45:38.030Z",
+    "versionId": "1122c374-c874-4096-a721-79fced93b597",
+    "workflowId": "w6hB4n0nNMwOPYYa",
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          80
+        ],
+        "id": "47d186ab-bd96-4061-9027-901a6e2c15f2",
+        "name": "When clicking ‘Execute workflow’"
+      },
+      {
+        "parameters": {
+          "jsCode": "return [\n  {\n    json: {\n      name: \"Projecten\",\n      tableId: \"appopJMiQr8csSHhh\",\n      googleFileId: \"1aGTlGNSScFn6QcM8kKMLPkZ9vipkTnpK\"\n    }\n  },\n  {\n    json: {\n      name: \"RMA\",\n      tableId: \"app2KUNIee5zPJmGK\",\n      googleFileId: \"1pYmhN0E2_jjlWfrpIA3mf4tHK_G8Kwv7\"\n    }\n  },\n  {\n    json: {\n      name: \"Partnumbers\",\n      tableId: \"app2jwje5HfhALWpV\",\n      googleFileId: \"1Dkcmi0wUx6-z_2JjqZa3l-wVgBr0oJuw\"\n    }\n  },\n  {\n    json: {\n      name: \"Spellen\",\n      tableId: \"appLJvoxq8WKQDku0\",\n      googleFileId: \"1scRyXdcIbgqtfB4QoOob0yV9GChNS0p4\"\n    }\n  },\n  {\n    json: {\n      name: \"Offerte management\",\n      tableId: \"appFLLCfzmMp1wswu\",\n      googleFileId: \"1_BT8lfQTEuyEf5os0p__YTlH__27FYyU\"\n    }\n  },\n  {\n    json: {\n      name: \"Voorraad mutaties\",\n      tableId: \"appiy9Q63eyvnPG9q\",\n      googleFileId: \"10Nd3ptlhhAEs6P6EcNxFgTw6BHH5MQi7\"\n    }\n  },\n  {\n    json: {\n      name: \"Oproepkrachten\",\n      tableId: \"appGsfxDjX2FbIK65\",\n      googleFileId: \"1e5uuN1k0fT2GvFr5IUjwgcFyLhLG-LBQ\"\n    }\n  },\n  {\n    json: {\n      name: \"Assets\",\n      tableId: \"app0zzPtwBSKpGFRZ\",\n      googleFileId: \"1omgSD9Wk6DNjAwr5h3X2gqnlmEz3sxiw\"\n    }\n  }\n];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          224,
+          80
+        ],
+        "id": "bd3cfa47-5b10-463e-b204-f651e91aa6b2",
+        "name": "Code in JavaScript"
+      },
+      {
+        "parameters": {
+          "resource": "base",
+          "operation": "getSchema",
+          "base": {
+            "__rl": true,
+            "value": "={{ $json.tableId }}",
+            "mode": "id"
+          }
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          672,
+          0
+        ],
+        "id": "480779f1-f4af-404a-9bff-af0ca0bc5979",
+        "name": "Get base schema",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "lgsWyTzPpCBNsBlN",
+            "name": "Airtable schema read token"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          448,
+          80
+        ],
+        "id": "f61a71b2-7bc8-48b9-87b2-085e69ecdc34",
+        "name": "Loop Over Items"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "fileId": {
+            "__rl": true,
+            "value": "={{ $('Loop Over Items').item.json.googleFileId }}",
+            "mode": "id"
+          },
+          "changeFileContent": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          1120,
+          80
+        ],
+        "id": "af9a2d89-0ece-49e2-9623-505df1b5999f",
+        "name": "Update file",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "7jmlqmj1JpGcdPBx",
+            "name": "Google auth (Iris)"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "toJson",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.convertToFile",
+        "typeVersion": 1.1,
+        "position": [
+          896,
+          0
+        ],
+        "id": "50bbd34e-4b79-47c4-9913-b3ead482644a",
+        "name": "Convert to File"
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {}
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          0,
+          -80
+        ],
+        "id": "fda8fc10-12d7-4bcd-8403-be6e406687fc",
+        "name": "Schedule Trigger"
+      },
+      {
+        "parameters": {
+          "path": "ef779b8a-ce66-413d-82c2-adfdf51c181f",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          272
+        ],
+        "id": "cbaead4c-c428-4c48-8933-8dd59b9cdafd",
+        "name": "Webhook",
+        "webhookId": "ef779b8a-ce66-413d-82c2-adfdf51c181f"
+      }
+    ],
+    "connections": {
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get base schema": {
+        "main": [
+          [
+            {
+              "node": "Convert to File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loop Over Items": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Get base schema",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Convert to File": {
+        "main": [
+          [
+            {
+              "node": "Update file",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update file": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Iris Soute",
+    "name": null,
+    "description": null
+  }
+}

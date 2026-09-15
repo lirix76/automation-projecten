@@ -1,0 +1,166 @@
+{
+  "updatedAt": "2025-11-15T19:29:24.000Z",
+  "createdAt": "2025-11-15T17:02:51.072Z",
+  "id": "Lmf8KYVSuY0ZYrsM",
+  "name": "Delete all staging entries",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c0df60ef-193b-4186-8668-2b8d0f848039",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "authentication": "token",
+        "operation": "getAll",
+        "contentType": "Games",
+        "returnAll": true,
+        "options": {
+          "sort": []
+        }
+      },
+      "type": "n8n-nodes-base.strapi",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "97c80fc2-f1f0-4d18-a53e-aed9c3ae2b70",
+      "name": "Get many entries",
+      "credentials": {
+        "strapiTokenApi": {
+          "id": "BaYojewTGOwdRzPE",
+          "name": "Strapi account - staging"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://realistic-virtue-211395cb03.strapiapp.com/api/games/{{ $json.documentId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "strapiTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "locale",
+              "value": "*"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b6561cd5-9eda-4cbd-b5ef-3bfc5fbb3e7b",
+      "name": "HTTP Request",
+      "credentials": {
+        "strapiTokenApi": {
+          "id": "BaYojewTGOwdRzPE",
+          "name": "Strapi account - staging"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many entries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many entries": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "5cb0f7c5-907a-4a8e-b612-9847c22f1f4b",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2025-11-15T17:02:51.074Z",
+      "createdAt": "2025-11-15T17:02:51.074Z",
+      "role": "workflow:owner",
+      "workflowId": "Lmf8KYVSuY0ZYrsM",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

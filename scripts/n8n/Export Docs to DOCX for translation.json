@@ -1,0 +1,2556 @@
+{
+  "updatedAt": "2026-08-31T09:41:09.066Z",
+  "createdAt": "2026-04-20T12:38:30.887Z",
+  "id": "BTrnHPFhE0l0aAUW",
+  "name": "Export Docs to DOCX for translation",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        624
+      ],
+      "id": "fafbdc07-54ca-4120-af1a-45e98c44621c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app0zzPtwBSKpGFRZ",
+          "mode": "list",
+          "cachedResultName": "Assets",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl6vEuEuwCGTMPNR",
+          "mode": "list",
+          "cachedResultName": "Translation Requests",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tbl6vEuEuwCGTMPNR"
+        },
+        "filterByFormula": "Status = \"Ready for translation\"",
+        "options": {
+          "fields": [
+            "file_id_content (from Target)",
+            "file_name_content (from Target)",
+            "record_id"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -304,
+        216
+      ],
+      "id": "2d1977f9-5820-4bf8-ae09-9789e08572a7",
+      "name": "Search records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PF5lafGOMUTYjUMy",
+          "name": "Airtable PAT assets base"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -80,
+        216
+      ],
+      "id": "1d738a65-e9ac-46f8-9775-66e2d4d90160",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json['file_id_content (from Target)'][0] }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        144,
+        24
+      ],
+      "id": "8ed9d03b-bde9-4c6a-b837-bec3aad5a9d2",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7jmlqmj1JpGcdPBx",
+          "name": "Google auth (Iris)"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "name": "={{ $json['file_name_content (from Target)'][0] }}.docx",
+        "driveId": {
+          "__rl": true,
+          "value": "0ANPEo52GCfONUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Picoo - Algemeen",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0ANPEo52GCfONUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1LbkvcxgTl5-LcQoq1RigAv1Tztw1M4Fw",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        368,
+        0
+      ],
+      "id": "fe18b7c6-4a5e-4f87-827d-a255c198a57e",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7jmlqmj1JpGcdPBx",
+          "name": "Google auth (Iris)"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app0zzPtwBSKpGFRZ",
+          "mode": "list",
+          "cachedResultName": "Assets",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl6vEuEuwCGTMPNR",
+          "mode": "list",
+          "cachedResultName": "Translation Requests",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tbl6vEuEuwCGTMPNR"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Loop Over Items').item.json.id }}",
+            "Status": "Sent to translation agency"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Target",
+              "displayName": "Target",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "file_id_content (from Target)",
+              "displayName": "file_id_content (from Target)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "file_name_content (from Target)",
+              "displayName": "file_name_content (from Target)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Todo",
+                  "value": "Todo"
+                },
+                {
+                  "name": "In progress",
+                  "value": "In progress"
+                },
+                {
+                  "name": "Ready for translation",
+                  "value": "Ready for translation"
+                },
+                {
+                  "name": "Sent to translation agency",
+                  "value": "Sent to translation agency"
+                },
+                {
+                  "name": "Done",
+                  "value": "Done"
+                },
+                {
+                  "name": "Error",
+                  "value": "Error"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Target language",
+              "displayName": "Target language",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "EN",
+                  "value": "EN"
+                },
+                {
+                  "name": "DE",
+                  "value": "DE"
+                },
+                {
+                  "name": "FR",
+                  "value": "FR"
+                },
+                {
+                  "name": "SE",
+                  "value": "SE"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Error log",
+              "displayName": "Error log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "file_id_content (from Source)",
+              "displayName": "file_id_content (from Source)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Titel (from Assets) (from Source)",
+              "displayName": "Titel (from Assets) (from Source)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Titel (from Assets) (from Target)",
+              "displayName": "Titel (from Assets) (from Target)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Taal (from Assets) (from Source)",
+              "displayName": "Taal (from Assets) (from Source)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Omschrijving",
+              "displayName": "Omschrijving",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "URL content (from Target)",
+              "displayName": "URL content (from Target)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "record_id",
+              "displayName": "record_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        592,
+        24
+      ],
+      "id": "d6133887-44c6-4103-b71e-6b77f36b3165",
+      "name": "Update record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PF5lafGOMUTYjUMy",
+          "name": "Airtable PAT assets base"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app0zzPtwBSKpGFRZ",
+          "mode": "list",
+          "cachedResultName": "Assets",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl6vEuEuwCGTMPNR",
+          "mode": "list",
+          "cachedResultName": "Translation Requests",
+          "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tbl6vEuEuwCGTMPNR"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Loop Over Items').item.json.id }}",
+            "Status": "Error",
+            "Error log": "={{ $json.error.message || $json.error }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Target",
+              "displayName": "Target",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "file_id_content (from Target)",
+              "displayName": "file_id_content (from Target)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "file_name_content (from Target)",
+              "displayName": "file_name_content (from Target)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Todo",
+                  "value": "Todo"
+                },
+                {
+                  "name": "In progress",
+                  "value": "In progress"
+                },
+                {
+                  "name": "Ready for translation",
+                  "value": "Ready for translation"
+                },
+                {
+                  "name": "Sent to translation agency",
+                  "value": "Sent to translation agency"
+                },
+                {
+                  "name": "Done",
+                  "value": "Done"
+                },
+                {
+                  "name": "Error",
+                  "value": "Error"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Target language",
+              "displayName": "Target language",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "EN",
+                  "value": "EN"
+                },
+                {
+                  "name": "DE",
+                  "value": "DE"
+                },
+                {
+                  "name": "FR",
+                  "value": "FR"
+                },
+                {
+                  "name": "SE",
+                  "value": "SE"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Error log",
+              "displayName": "Error log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "file_id_content (from Source)",
+              "displayName": "file_id_content (from Source)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Titel (from Assets) (from Source)",
+              "displayName": "Titel (from Assets) (from Source)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Titel (from Assets) (from Target)",
+              "displayName": "Titel (from Assets) (from Target)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Taal (from Assets) (from Source)",
+              "displayName": "Taal (from Assets) (from Source)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Omschrijving",
+              "displayName": "Omschrijving",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "URL content (from Target)",
+              "displayName": "URL content (from Target)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "record_id",
+              "displayName": "record_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        592,
+        216
+      ],
+      "id": "2e7750c9-1c54-4e20-b25b-f625580c23a6",
+      "name": "Update record - Error",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PF5lafGOMUTYjUMy",
+          "name": "Airtable PAT assets base"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appLJvoxq8WKQDku0",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblUHofaIJXivs9Bi",
+          "mode": "id"
+        },
+        "options": {
+          "fields": [
+            "Term (NL)",
+            "Language",
+            "Translation",
+            "Status",
+            "Definition and context",
+            "Category (from Terminologie)",
+            "ID"
+          ],
+          "view": {
+            "__rl": true,
+            "value": "viwegn1WNmK4BQsFk",
+            "mode": "id"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        368,
+        648
+      ],
+      "id": "47197dce-07aa-43a4-b519-007315427c00",
+      "name": "Search glossary records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "kniGQreVgueJ6Q08",
+          "name": "Airtable Spellen PAT"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {
+          "fileName": "glossary.csv"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        816,
+        432
+      ],
+      "id": "fd0eb41f-99d0-4e9b-be5b-c7e881490d6e",
+      "name": "Convert glossary to CSV",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "name": "glossary.csv",
+        "driveId": {
+          "__rl": true,
+          "value": "0ANPEo52GCfONUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Picoo - Algemeen",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0ANPEo52GCfONUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1LbkvcxgTl5-LcQoq1RigAv1Tztw1M4Fw",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1040,
+        384
+      ],
+      "id": "4faeb186-e428-4554-87a9-ad12c98ed5ff",
+      "name": "Upload glossary CSV",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7jmlqmj1JpGcdPBx",
+          "name": "Google auth (Iris)"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "U03JDLH7U",
+          "mode": "id"
+        },
+        "text": "⚠️ Glossary search failed in ‘Export Docs to DOCX for translation’.\nError: ={{ $json.error.message || $json.error }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        592,
+        696
+      ],
+      "id": "f832624b-90fa-49f1-982a-d5c285ece294",
+      "name": "Notify Iris - glossary search failed",
+      "webhookId": "4f7a15d3-8693-44c0-892e-81bc07de5523",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "coxuaS95Vi5SiZFU",
+          "name": "Slack account Iris"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "U03JDLH7U",
+          "mode": "id"
+        },
+        "text": "⚠️ Glossary CSV conversion failed in ‘Export Docs to DOCX for translation’.\nError: ={{ $json.error.message || $json.error }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1040,
+        600
+      ],
+      "id": "48940130-a1d5-40db-9e00-f1355fdfa715",
+      "name": "Notify Iris - glossary CSV failed",
+      "webhookId": "3ade77c9-3680-4076-b521-b30a4086fb3e",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "coxuaS95Vi5SiZFU",
+          "name": "Slack account Iris"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "U03JDLH7U",
+          "mode": "id"
+        },
+        "text": "⚠️ Glossary upload failed in ‘Export Docs to DOCX for translation’.\nError: ={{ $json.error.message || $json.error }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1264,
+        384
+      ],
+      "id": "478f6bd3-0869-4d3a-9821-6ed6e9043eec",
+      "name": "Notify Iris - glossary upload failed",
+      "webhookId": "710dd3f0-0c07-4a1a-9139-970b05867935",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "coxuaS95Vi5SiZFU",
+          "name": "Slack account Iris"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3ba9a79a-d9ef-407d-a7c2-2e3093459025",
+              "name": "ID",
+              "value": "={{ $json['ID'] }}",
+              "type": "string"
+            },
+            {
+              "id": "e40a4090-f273-4ba3-9a90-b45fc0de92a0",
+              "name": "Term (NL)",
+              "value": "={{ $json['Term (NL)'][0] }}",
+              "type": "string"
+            },
+            {
+              "id": "27a25a5a-aed8-44a9-aaf9-beb497898857",
+              "name": "Language",
+              "value": "={{ $json['Language'] }}",
+              "type": "string"
+            },
+            {
+              "id": "1daaaf75-b9a0-4e7b-9304-c8b047bf139d",
+              "name": "Translation",
+              "value": "={{ $json['Translation'] }}",
+              "type": "string"
+            },
+            {
+              "id": "0cd2f2c3-96da-4584-a758-63f88c39cdc4",
+              "name": "Status",
+              "value": "={{ $json['Status'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2a598f57-434a-4a67-8da4-824960683156",
+              "name": "Definition and context",
+              "value": "={{ $json['Definition and context'][0] }}",
+              "type": "string"
+            },
+            {
+              "id": "c3b05522-40ae-407e-a639-d4553960605d",
+              "name": "Category (from Terminologie)",
+              "value": "={{ $json['Category (from Terminologie)'][0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        592,
+        504
+      ],
+      "id": "7f765af8-6929-40b2-9e07-a44987723734",
+      "name": "Format glossary fields",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "glossary.csv",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "1LbkvcxgTl5-LcQoq1RigAv1Tztw1M4Fw",
+            "mode": "id"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -304,
+        744
+      ],
+      "id": "ee75aa22-dee3-425b-8979-21b08b3b7e9d",
+      "name": "Find existing glossary CSV",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7jmlqmj1JpGcdPBx",
+          "name": "Google auth (Iris)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -80,
+        744
+      ],
+      "id": "b660b6d4-e237-481a-9b8c-6336eb513821",
+      "name": "Delete existing glossary CSV",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7jmlqmj1JpGcdPBx",
+          "name": "Google auth (Iris)"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        144,
+        648
+      ],
+      "id": "1d907cba-6ccf-4549-b558-b880ec77626b",
+      "name": "Limit to one run"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "U03JDLH7U",
+          "mode": "id"
+        },
+        "text": "⚠️ Glossary cleanup (deleting old glossary.csv) failed in ‘Export Docs to DOCX for translation’.\nError: ={{ $json.error.message || $json.error }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        144,
+        840
+      ],
+      "id": "047fccdc-2c1e-4178-8a06-4a670e076de7",
+      "name": "Notify Iris - glossary cleanup failed",
+      "webhookId": "07d7ac82-4dd4-4a14-8470-ad5f508cc73f",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "coxuaS95Vi5SiZFU",
+          "name": "Slack account Iris"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "3f3c5cac-66ed-4cb0-b448-048f63a22fd5",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -528,
+        776
+      ],
+      "id": "a1e2f3b4-5c6d-4e7f-8091-a2b3c4d5e6f7",
+      "name": "Webhook",
+      "webhookId": "3f3c5cac-66ed-4cb0-b448-048f63a22fd5"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Find existing glossary CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update record - Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Update record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update record - Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update record": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update record - Error": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search glossary records": {
+      "main": [
+        [
+          {
+            "node": "Format glossary fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Iris - glossary search failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert glossary to CSV": {
+      "main": [
+        [
+          {
+            "node": "Upload glossary CSV",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Iris - glossary CSV failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload glossary CSV": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Notify Iris - glossary upload failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format glossary fields": {
+      "main": [
+        [
+          {
+            "node": "Convert glossary to CSV",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Iris - glossary CSV failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find existing glossary CSV": {
+      "main": [
+        [
+          {
+            "node": "Delete existing glossary CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete existing glossary CSV": {
+      "main": [
+        [
+          {
+            "node": "Limit to one run",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Iris - glossary cleanup failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit to one run": {
+      "main": [
+        [
+          {
+            "node": "Search glossary records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Find existing glossary CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "7e165660-1795-478a-8220-36e2aa9cabe1",
+  "activeVersionId": "7e165660-1795-478a-8220-36e2aa9cabe1",
+  "versionCounter": 16,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-20T12:38:30.888Z",
+      "createdAt": "2026-04-20T12:38:30.888Z",
+      "role": "workflow:owner",
+      "workflowId": "BTrnHPFhE0l0aAUW",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-08-31T09:41:09.067Z",
+    "createdAt": "2026-08-31T09:41:09.067Z",
+    "versionId": "7e165660-1795-478a-8220-36e2aa9cabe1",
+    "workflowId": "BTrnHPFhE0l0aAUW",
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          -528,
+          624
+        ],
+        "id": "fafbdc07-54ca-4120-af1a-45e98c44621c",
+        "name": "When clicking ‘Execute workflow’"
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "app0zzPtwBSKpGFRZ",
+            "mode": "list",
+            "cachedResultName": "Assets",
+            "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbl6vEuEuwCGTMPNR",
+            "mode": "list",
+            "cachedResultName": "Translation Requests",
+            "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tbl6vEuEuwCGTMPNR"
+          },
+          "filterByFormula": "Status = \"Ready for translation\"",
+          "options": {
+            "fields": [
+              "file_id_content (from Target)",
+              "file_name_content (from Target)",
+              "record_id"
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          -304,
+          216
+        ],
+        "id": "2d1977f9-5820-4bf8-ae09-9789e08572a7",
+        "name": "Search records",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "PF5lafGOMUTYjUMy",
+            "name": "Airtable PAT assets base"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          -80,
+          216
+        ],
+        "id": "1d738a65-e9ac-46f8-9775-66e2d4d90160",
+        "name": "Loop Over Items"
+      },
+      {
+        "parameters": {
+          "operation": "download",
+          "fileId": {
+            "__rl": true,
+            "value": "={{ $json['file_id_content (from Target)'][0] }}",
+            "mode": "id"
+          },
+          "options": {
+            "googleFileConversion": {
+              "conversion": {
+                "docsToFormat": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          144,
+          24
+        ],
+        "id": "8ed9d03b-bde9-4c6a-b837-bec3aad5a9d2",
+        "name": "Download file",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "7jmlqmj1JpGcdPBx",
+            "name": "Google auth (Iris)"
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "name": "={{ $json['file_name_content (from Target)'][0] }}.docx",
+          "driveId": {
+            "__rl": true,
+            "value": "0ANPEo52GCfONUk9PVA",
+            "mode": "list",
+            "cachedResultName": "Picoo - Algemeen",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/0ANPEo52GCfONUk9PVA"
+          },
+          "folderId": {
+            "__rl": true,
+            "value": "1LbkvcxgTl5-LcQoq1RigAv1Tztw1M4Fw",
+            "mode": "id"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          368,
+          0
+        ],
+        "id": "fe18b7c6-4a5e-4f87-827d-a255c198a57e",
+        "name": "Upload file",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "7jmlqmj1JpGcdPBx",
+            "name": "Google auth (Iris)"
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "app0zzPtwBSKpGFRZ",
+            "mode": "list",
+            "cachedResultName": "Assets",
+            "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbl6vEuEuwCGTMPNR",
+            "mode": "list",
+            "cachedResultName": "Translation Requests",
+            "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tbl6vEuEuwCGTMPNR"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "id": "={{ $('Loop Over Items').item.json.id }}",
+              "Status": "Sent to translation agency"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "ID",
+                "displayName": "ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Source",
+                "displayName": "Source",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Target",
+                "displayName": "Target",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "file_id_content (from Target)",
+                "displayName": "file_id_content (from Target)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "file_name_content (from Target)",
+                "displayName": "file_name_content (from Target)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Status",
+                "displayName": "Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Todo",
+                    "value": "Todo"
+                  },
+                  {
+                    "name": "In progress",
+                    "value": "In progress"
+                  },
+                  {
+                    "name": "Ready for translation",
+                    "value": "Ready for translation"
+                  },
+                  {
+                    "name": "Sent to translation agency",
+                    "value": "Sent to translation agency"
+                  },
+                  {
+                    "name": "Done",
+                    "value": "Done"
+                  },
+                  {
+                    "name": "Error",
+                    "value": "Error"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Target language",
+                "displayName": "Target language",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "EN",
+                    "value": "EN"
+                  },
+                  {
+                    "name": "DE",
+                    "value": "DE"
+                  },
+                  {
+                    "name": "FR",
+                    "value": "FR"
+                  },
+                  {
+                    "name": "SE",
+                    "value": "SE"
+                  }
+                ],
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Error log",
+                "displayName": "Error log",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "file_id_content (from Source)",
+                "displayName": "file_id_content (from Source)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Titel (from Assets) (from Source)",
+                "displayName": "Titel (from Assets) (from Source)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Titel (from Assets) (from Target)",
+                "displayName": "Titel (from Assets) (from Target)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Taal (from Assets) (from Source)",
+                "displayName": "Taal (from Assets) (from Source)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Omschrijving",
+                "displayName": "Omschrijving",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "URL content (from Target)",
+                "displayName": "URL content (from Target)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "record_id",
+                "displayName": "record_id",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          592,
+          24
+        ],
+        "id": "d6133887-44c6-4103-b71e-6b77f36b3165",
+        "name": "Update record",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "PF5lafGOMUTYjUMy",
+            "name": "Airtable PAT assets base"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "app0zzPtwBSKpGFRZ",
+            "mode": "list",
+            "cachedResultName": "Assets",
+            "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbl6vEuEuwCGTMPNR",
+            "mode": "list",
+            "cachedResultName": "Translation Requests",
+            "cachedResultUrl": "https://airtable.com/app0zzPtwBSKpGFRZ/tbl6vEuEuwCGTMPNR"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "id": "={{ $('Loop Over Items').item.json.id }}",
+              "Status": "Error",
+              "Error log": "={{ $json.error.message || $json.error }}"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "ID",
+                "displayName": "ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Source",
+                "displayName": "Source",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Target",
+                "displayName": "Target",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "file_id_content (from Target)",
+                "displayName": "file_id_content (from Target)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "file_name_content (from Target)",
+                "displayName": "file_name_content (from Target)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Status",
+                "displayName": "Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Todo",
+                    "value": "Todo"
+                  },
+                  {
+                    "name": "In progress",
+                    "value": "In progress"
+                  },
+                  {
+                    "name": "Ready for translation",
+                    "value": "Ready for translation"
+                  },
+                  {
+                    "name": "Sent to translation agency",
+                    "value": "Sent to translation agency"
+                  },
+                  {
+                    "name": "Done",
+                    "value": "Done"
+                  },
+                  {
+                    "name": "Error",
+                    "value": "Error"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Target language",
+                "displayName": "Target language",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "EN",
+                    "value": "EN"
+                  },
+                  {
+                    "name": "DE",
+                    "value": "DE"
+                  },
+                  {
+                    "name": "FR",
+                    "value": "FR"
+                  },
+                  {
+                    "name": "SE",
+                    "value": "SE"
+                  }
+                ],
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Error log",
+                "displayName": "Error log",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "file_id_content (from Source)",
+                "displayName": "file_id_content (from Source)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Titel (from Assets) (from Source)",
+                "displayName": "Titel (from Assets) (from Source)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Titel (from Assets) (from Target)",
+                "displayName": "Titel (from Assets) (from Target)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Taal (from Assets) (from Source)",
+                "displayName": "Taal (from Assets) (from Source)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Omschrijving",
+                "displayName": "Omschrijving",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "URL content (from Target)",
+                "displayName": "URL content (from Target)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "record_id",
+                "displayName": "record_id",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          592,
+          216
+        ],
+        "id": "2e7750c9-1c54-4e20-b25b-f625580c23a6",
+        "name": "Update record - Error",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "PF5lafGOMUTYjUMy",
+            "name": "Airtable PAT assets base"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "appLJvoxq8WKQDku0",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblUHofaIJXivs9Bi",
+            "mode": "id"
+          },
+          "options": {
+            "fields": [
+              "Term (NL)",
+              "Language",
+              "Translation",
+              "Status",
+              "Definition and context",
+              "Category (from Terminologie)",
+              "ID"
+            ],
+            "view": {
+              "__rl": true,
+              "value": "viwegn1WNmK4BQsFk",
+              "mode": "id"
+            }
+          }
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          368,
+          648
+        ],
+        "id": "47197dce-07aa-43a4-b519-007315427c00",
+        "name": "Search glossary records",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "kniGQreVgueJ6Q08",
+            "name": "Airtable Spellen PAT"
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "options": {
+            "fileName": "glossary.csv"
+          }
+        },
+        "type": "n8n-nodes-base.convertToFile",
+        "typeVersion": 1.1,
+        "position": [
+          816,
+          432
+        ],
+        "id": "fd0eb41f-99d0-4e9b-be5b-c7e881490d6e",
+        "name": "Convert glossary to CSV",
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "name": "glossary.csv",
+          "driveId": {
+            "__rl": true,
+            "value": "0ANPEo52GCfONUk9PVA",
+            "mode": "list",
+            "cachedResultName": "Picoo - Algemeen",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/0ANPEo52GCfONUk9PVA"
+          },
+          "folderId": {
+            "__rl": true,
+            "value": "1LbkvcxgTl5-LcQoq1RigAv1Tztw1M4Fw",
+            "mode": "id"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          1040,
+          384
+        ],
+        "id": "4faeb186-e428-4554-87a9-ad12c98ed5ff",
+        "name": "Upload glossary CSV",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "7jmlqmj1JpGcdPBx",
+            "name": "Google auth (Iris)"
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "authentication": "oAuth2",
+          "select": "user",
+          "user": {
+            "__rl": true,
+            "value": "U03JDLH7U",
+            "mode": "id"
+          },
+          "text": "⚠️ Glossary search failed in ‘Export Docs to DOCX for translation’.\nError: ={{ $json.error.message || $json.error }}",
+          "otherOptions": {}
+        },
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.3,
+        "position": [
+          592,
+          696
+        ],
+        "id": "f832624b-90fa-49f1-982a-d5c285ece294",
+        "name": "Notify Iris - glossary search failed",
+        "webhookId": "4f7a15d3-8693-44c0-892e-81bc07de5523",
+        "credentials": {
+          "slackOAuth2Api": {
+            "id": "coxuaS95Vi5SiZFU",
+            "name": "Slack account Iris"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "authentication": "oAuth2",
+          "select": "user",
+          "user": {
+            "__rl": true,
+            "value": "U03JDLH7U",
+            "mode": "id"
+          },
+          "text": "⚠️ Glossary CSV conversion failed in ‘Export Docs to DOCX for translation’.\nError: ={{ $json.error.message || $json.error }}",
+          "otherOptions": {}
+        },
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.3,
+        "position": [
+          1040,
+          600
+        ],
+        "id": "48940130-a1d5-40db-9e00-f1355fdfa715",
+        "name": "Notify Iris - glossary CSV failed",
+        "webhookId": "3ade77c9-3680-4076-b521-b30a4086fb3e",
+        "credentials": {
+          "slackOAuth2Api": {
+            "id": "coxuaS95Vi5SiZFU",
+            "name": "Slack account Iris"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "authentication": "oAuth2",
+          "select": "user",
+          "user": {
+            "__rl": true,
+            "value": "U03JDLH7U",
+            "mode": "id"
+          },
+          "text": "⚠️ Glossary upload failed in ‘Export Docs to DOCX for translation’.\nError: ={{ $json.error.message || $json.error }}",
+          "otherOptions": {}
+        },
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.3,
+        "position": [
+          1264,
+          384
+        ],
+        "id": "478f6bd3-0869-4d3a-9821-6ed6e9043eec",
+        "name": "Notify Iris - glossary upload failed",
+        "webhookId": "710dd3f0-0c07-4a1a-9139-970b05867935",
+        "credentials": {
+          "slackOAuth2Api": {
+            "id": "coxuaS95Vi5SiZFU",
+            "name": "Slack account Iris"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "3ba9a79a-d9ef-407d-a7c2-2e3093459025",
+                "name": "ID",
+                "value": "={{ $json['ID'] }}",
+                "type": "string"
+              },
+              {
+                "id": "e40a4090-f273-4ba3-9a90-b45fc0de92a0",
+                "name": "Term (NL)",
+                "value": "={{ $json['Term (NL)'][0] }}",
+                "type": "string"
+              },
+              {
+                "id": "27a25a5a-aed8-44a9-aaf9-beb497898857",
+                "name": "Language",
+                "value": "={{ $json['Language'] }}",
+                "type": "string"
+              },
+              {
+                "id": "1daaaf75-b9a0-4e7b-9304-c8b047bf139d",
+                "name": "Translation",
+                "value": "={{ $json['Translation'] }}",
+                "type": "string"
+              },
+              {
+                "id": "0cd2f2c3-96da-4584-a758-63f88c39cdc4",
+                "name": "Status",
+                "value": "={{ $json['Status'] }}",
+                "type": "string"
+              },
+              {
+                "id": "2a598f57-434a-4a67-8da4-824960683156",
+                "name": "Definition and context",
+                "value": "={{ $json['Definition and context'][0] }}",
+                "type": "string"
+              },
+              {
+                "id": "c3b05522-40ae-407e-a639-d4553960605d",
+                "name": "Category (from Terminologie)",
+                "value": "={{ $json['Category (from Terminologie)'][0] }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          592,
+          504
+        ],
+        "id": "7f765af8-6929-40b2-9e07-a44987723734",
+        "name": "Format glossary fields",
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "resource": "fileFolder",
+          "queryString": "glossary.csv",
+          "returnAll": true,
+          "filter": {
+            "folderId": {
+              "__rl": true,
+              "value": "1LbkvcxgTl5-LcQoq1RigAv1Tztw1M4Fw",
+              "mode": "id"
+            }
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          -304,
+          744
+        ],
+        "id": "ee75aa22-dee3-425b-8979-21b08b3b7e9d",
+        "name": "Find existing glossary CSV",
+        "alwaysOutputData": true,
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "7jmlqmj1JpGcdPBx",
+            "name": "Google auth (Iris)"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "deleteFile",
+          "fileId": {
+            "__rl": true,
+            "value": "={{ $json.id }}",
+            "mode": "id"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          -80,
+          744
+        ],
+        "id": "b660b6d4-e237-481a-9b8c-6336eb513821",
+        "name": "Delete existing glossary CSV",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "7jmlqmj1JpGcdPBx",
+            "name": "Google auth (Iris)"
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.limit",
+        "typeVersion": 1,
+        "position": [
+          144,
+          648
+        ],
+        "id": "1d907cba-6ccf-4549-b558-b880ec77626b",
+        "name": "Limit to one run"
+      },
+      {
+        "parameters": {
+          "authentication": "oAuth2",
+          "select": "user",
+          "user": {
+            "__rl": true,
+            "value": "U03JDLH7U",
+            "mode": "id"
+          },
+          "text": "⚠️ Glossary cleanup (deleting old glossary.csv) failed in ‘Export Docs to DOCX for translation’.\nError: ={{ $json.error.message || $json.error }}",
+          "otherOptions": {}
+        },
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.3,
+        "position": [
+          144,
+          840
+        ],
+        "id": "047fccdc-2c1e-4178-8a06-4a670e076de7",
+        "name": "Notify Iris - glossary cleanup failed",
+        "webhookId": "07d7ac82-4dd4-4a14-8470-ad5f508cc73f",
+        "credentials": {
+          "slackOAuth2Api": {
+            "id": "coxuaS95Vi5SiZFU",
+            "name": "Slack account Iris"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "path": "3f3c5cac-66ed-4cb0-b448-048f63a22fd5",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -528,
+          776
+        ],
+        "id": "a1e2f3b4-5c6d-4e7f-8091-a2b3c4d5e6f7",
+        "name": "Webhook",
+        "webhookId": "3f3c5cac-66ed-4cb0-b448-048f63a22fd5"
+      }
+    ],
+    "connections": {
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Search records",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Find existing glossary CSV",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search records": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loop Over Items": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Download file",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download file": {
+        "main": [
+          [
+            {
+              "node": "Upload file",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Update record - Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upload file": {
+        "main": [
+          [
+            {
+              "node": "Update record",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Update record - Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update record": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update record - Error": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search glossary records": {
+        "main": [
+          [
+            {
+              "node": "Format glossary fields",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Notify Iris - glossary search failed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Convert glossary to CSV": {
+        "main": [
+          [
+            {
+              "node": "Upload glossary CSV",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Notify Iris - glossary CSV failed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upload glossary CSV": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Notify Iris - glossary upload failed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format glossary fields": {
+        "main": [
+          [
+            {
+              "node": "Convert glossary to CSV",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Notify Iris - glossary CSV failed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Find existing glossary CSV": {
+        "main": [
+          [
+            {
+              "node": "Delete existing glossary CSV",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Delete existing glossary CSV": {
+        "main": [
+          [
+            {
+              "node": "Limit to one run",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Notify Iris - glossary cleanup failed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Limit to one run": {
+        "main": [
+          [
+            {
+              "node": "Search glossary records",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Search records",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Find existing glossary CSV",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Iris Soute",
+    "name": null,
+    "description": null
+  }
+}

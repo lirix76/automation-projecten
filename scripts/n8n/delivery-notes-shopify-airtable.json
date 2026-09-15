@@ -1,0 +1,1212 @@
+{
+  "updatedAt": "2026-08-27T14:44:32.243Z",
+  "createdAt": "2026-05-14T15:23:25.504Z",
+  "id": "PCtGaQLzpMqRKXqD",
+  "name": "delivery-notes-shopify-airtable",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "899e0547-963b-4772-b880-b0a3b795f6bc",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bf7c49e4-f12f-4abe-9c80-178757c99d75",
+      "name": "Webhook",
+      "webhookId": "899e0547-963b-4772-b880-b0a3b795f6bc"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appOzDhFRxFTjBqMN",
+          "mode": "list",
+          "cachedResultName": "ERP Integrations",
+          "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblp0azNmSRguhj6p",
+          "mode": "list",
+          "cachedResultName": "Delivery Note Queue",
+          "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN/tblp0azNmSRguhj6p"
+        },
+        "filterByFormula": "={{ '{fulfillment_id} = ' + $('Webhook').item.json.body.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        256,
+        0
+      ],
+      "id": "7a0db555-5f0c-42e3-b3ff-fc2b389800d3",
+      "name": "Deduplication",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "VVi4cw1Gru6JhVPf",
+          "name": "Airtable PAT for ERP integrations"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c5590629-bc1f-43d4-9f13-27a3513ec640",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        464,
+        0
+      ],
+      "id": "6907397c-a445-4aed-a587-64d286870d93",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "200",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        752,
+        -96
+      ],
+      "id": "ae360d0c-1a19-4aeb-967e-13fad022fdb2",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "get",
+        "orderId": "={{ $('Webhook').item.json.body.order_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        768,
+        80
+      ],
+      "id": "9986d766-3e87-46ed-9469-bc14f910e9c4",
+      "name": "Get an order",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "wuJPm2qVIiwx4ado",
+          "name": "Shopify read orders"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appOzDhFRxFTjBqMN",
+          "mode": "list",
+          "cachedResultName": "ERP Integrations",
+          "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblp0azNmSRguhj6p",
+          "mode": "list",
+          "cachedResultName": "Delivery Note Queue",
+          "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN/tblp0azNmSRguhj6p"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fulfillment_id": "={{ $('Webhook').item.json.body.id }}",
+            "order_id": "={{ $('Webhook').item.json.body.order_id.toString() }}",
+            "order_name": "={{ $json.order_number }}",
+            "fulfillment_name": "={{ $('Webhook').item.json.body.name }}",
+            "line_items": "={{ JSON.stringify($('Webhook').item.json.body.line_items) }}",
+            "fulfilled_at": "={{ $('Webhook').item.json.body.created_at }}",
+            "status": "PENDING",
+            "retry_count": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "fulfillment_id",
+              "displayName": "fulfillment_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "PENDING",
+                  "value": "PENDING"
+                },
+                {
+                  "name": "PROCESSING",
+                  "value": "PROCESSING"
+                },
+                {
+                  "name": "DONE",
+                  "value": "DONE"
+                },
+                {
+                  "name": "ERROR",
+                  "value": "ERROR"
+                },
+                {
+                  "name": "SKIPPED",
+                  "value": "SKIPPED"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "order_id",
+              "displayName": "order_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "singleLineText",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "order_name",
+              "displayName": "order_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fulfillment_name",
+              "displayName": "fulfillment_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "line_items",
+              "displayName": "line_items",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fulfilled_at",
+              "displayName": "fulfilled_at",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_attempted_at",
+              "displayName": "last_attempted_at",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "retry_count",
+              "displayName": "retry_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "erpnext_doc_id",
+              "displayName": "erpnext_doc_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        976,
+        80
+      ],
+      "id": "b8b45f1e-f28d-477c-a2bb-4abfdc882f96",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "VVi4cw1Gru6JhVPf",
+          "name": "Airtable PAT for ERP integrations"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "200",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1184,
+        -48
+      ],
+      "id": "16d2320f-3cac-4be6-a4c4-cf9436a91880",
+      "name": "Respond to success to webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "500",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1200,
+        144
+      ],
+      "id": "6403db4e-32dd-4a69-91b4-c24fe8be1209",
+      "name": "Respond to error to webhook"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Deduplication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplication": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get an order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get an order": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "Respond to success to webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to error to webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "HfMibyxcEoNMMdxm"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "picoo.app.n8n.cloud",
+            "user-agent": "Shopify-Captain-Hook",
+            "content-length": "3263",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "35.190.195.117",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "BE",
+            "cf-ray": "9fbb57ac4f279987-CDG",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-forwarded-for": "35.190.195.117, 141.101.68.86",
+            "x-forwarded-host": "picoo.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-23-7c57f74b7b-2h99l",
+            "x-is-trusted": "yes",
+            "x-real-ip": "35.190.195.117",
+            "x-shopify-api-version": "2026-04",
+            "x-shopify-event-id": "3979d333-de25-4abe-a79c-78ccd0f43fa6",
+            "x-shopify-fulfillment-id": "6822959350101",
+            "x-shopify-hmac-sha256": "dmJn1zcbL44yPq8D6NJ6Igvp9oXyOEyHd98T6Pdf2oM=",
+            "x-shopify-shop-domain": "play-picoo.myshopify.com",
+            "x-shopify-topic": "fulfillments/create",
+            "x-shopify-triggered-at": "2026-05-14T16:40:01.407196319Z",
+            "x-shopify-webhook-id": "ec22118d-d5ee-5afc-8589-ac29debed17c"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "id": 6822959350101,
+            "order_id": 7473131290965,
+            "status": "success",
+            "created_at": "2026-05-14T18:40:01+02:00",
+            "service": "manual",
+            "updated_at": "2026-05-14T18:40:01+02:00",
+            "tracking_company": null,
+            "shipment_status": null,
+            "location_id": 60927049936,
+            "origin_address": null,
+            "email": "iris.soute@gmail.com",
+            "destination": {
+              "first_name": null,
+              "address1": "Koningin Wilhelminalaan 34",
+              "phone": "06 54300736",
+              "city": "Waalre",
+              "zip": "5583 AN",
+              "province": null,
+              "country": "Netherlands",
+              "last_name": "Soute",
+              "address2": null,
+              "company": null,
+              "latitude": 51.3919398,
+              "longitude": 5.4788272,
+              "name": "Soute",
+              "country_code": "NL",
+              "province_code": null
+            },
+            "line_items": [
+              {
+                "id": 18358023225685,
+                "variant_id": 51487970099541,
+                "title": "TEST-PRODUCT",
+                "quantity": 1,
+                "sku": "TEST-PRODUCT",
+                "variant_title": null,
+                "vendor": "Infinite Play",
+                "fulfillment_service": "manual",
+                "product_id": 10160620568917,
+                "requires_shipping": true,
+                "taxable": true,
+                "gift_card": false,
+                "name": "TEST-PRODUCT",
+                "variant_inventory_management": null,
+                "properties": [],
+                "product_exists": true,
+                "fulfillable_quantity": 0,
+                "grams": 0,
+                "price": "5.00",
+                "total_discount": "0.00",
+                "fulfillment_status": "fulfilled",
+                "price_set": {
+                  "shop_money": {
+                    "amount": "5.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "5.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "total_discount_set": {
+                  "shop_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "discount_allocations": [
+                  {
+                    "amount": "5.00",
+                    "discount_application_index": 0,
+                    "amount_set": {
+                      "shop_money": {
+                        "amount": "5.00",
+                        "currency_code": "EUR"
+                      },
+                      "presentment_money": {
+                        "amount": "5.00",
+                        "currency_code": "EUR"
+                      }
+                    }
+                  }
+                ],
+                "duties": [],
+                "admin_graphql_api_id": "gid://shopify/LineItem/18358023225685",
+                "tax_lines": [
+                  {
+                    "title": "NL btw",
+                    "price": "0.00",
+                    "rate": 0.21,
+                    "channel_liable": false,
+                    "price_set": {
+                      "shop_money": {
+                        "amount": "0.00",
+                        "currency_code": "EUR"
+                      },
+                      "presentment_money": {
+                        "amount": "0.00",
+                        "currency_code": "EUR"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": 18358023258453,
+                "variant_id": 51488058999125,
+                "title": "TEST-IRIS-02",
+                "quantity": 1,
+                "sku": "TEST-02",
+                "variant_title": null,
+                "vendor": "Infinite Play",
+                "fulfillment_service": "manual",
+                "product_id": 10160640164181,
+                "requires_shipping": true,
+                "taxable": true,
+                "gift_card": false,
+                "name": "TEST-IRIS-02",
+                "variant_inventory_management": null,
+                "properties": [],
+                "product_exists": true,
+                "fulfillable_quantity": 0,
+                "grams": 0,
+                "price": "10.00",
+                "total_discount": "0.00",
+                "fulfillment_status": "fulfilled",
+                "price_set": {
+                  "shop_money": {
+                    "amount": "10.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "10.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "total_discount_set": {
+                  "shop_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  },
+                  "presentment_money": {
+                    "amount": "0.00",
+                    "currency_code": "EUR"
+                  }
+                },
+                "discount_allocations": [
+                  {
+                    "amount": "10.00",
+                    "discount_application_index": 0,
+                    "amount_set": {
+                      "shop_money": {
+                        "amount": "10.00",
+                        "currency_code": "EUR"
+                      },
+                      "presentment_money": {
+                        "amount": "10.00",
+                        "currency_code": "EUR"
+                      }
+                    }
+                  }
+                ],
+                "duties": [],
+                "admin_graphql_api_id": "gid://shopify/LineItem/18358023258453",
+                "tax_lines": [
+                  {
+                    "title": "NL btw",
+                    "price": "0.00",
+                    "rate": 0.21,
+                    "channel_liable": false,
+                    "price_set": {
+                      "shop_money": {
+                        "amount": "0.00",
+                        "currency_code": "EUR"
+                      },
+                      "presentment_money": {
+                        "amount": "0.00",
+                        "currency_code": "EUR"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "tracking_number": null,
+            "tracking_numbers": [],
+            "tracking_url": null,
+            "tracking_urls": [],
+            "receipt": {},
+            "name": "#4261.1",
+            "admin_graphql_api_id": "gid://shopify/Fulfillment/6822959350101"
+          },
+          "webhookUrl": "https://picoo.app.n8n.cloud/webhook/899e0547-963b-4772-b880-b0a3b795f6bc",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "03daeda2-d283-4d30-80eb-6077dd6f5935",
+  "activeVersionId": "03daeda2-d283-4d30-80eb-6077dd6f5935",
+  "versionCounter": 58,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-14T15:23:25.509Z",
+      "createdAt": "2026-05-14T15:23:25.509Z",
+      "role": "workflow:owner",
+      "workflowId": "PCtGaQLzpMqRKXqD",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-08-27T14:44:32.244Z",
+    "createdAt": "2026-08-27T14:44:32.244Z",
+    "versionId": "03daeda2-d283-4d30-80eb-6077dd6f5935",
+    "workflowId": "PCtGaQLzpMqRKXqD",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "899e0547-963b-4772-b880-b0a3b795f6bc",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "bf7c49e4-f12f-4abe-9c80-178757c99d75",
+        "name": "Webhook",
+        "webhookId": "899e0547-963b-4772-b880-b0a3b795f6bc"
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "appOzDhFRxFTjBqMN",
+            "mode": "list",
+            "cachedResultName": "ERP Integrations",
+            "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblp0azNmSRguhj6p",
+            "mode": "list",
+            "cachedResultName": "Delivery Note Queue",
+            "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN/tblp0azNmSRguhj6p"
+          },
+          "filterByFormula": "={{ '{fulfillment_id} = ' + $('Webhook').item.json.body.id }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          256,
+          0
+        ],
+        "id": "7a0db555-5f0c-42e3-b3ff-fc2b389800d3",
+        "name": "Deduplication",
+        "alwaysOutputData": true,
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "VVi4cw1Gru6JhVPf",
+            "name": "Airtable PAT for ERP integrations"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "c5590629-bc1f-43d4-9f13-27a3513ec640",
+                "leftValue": "={{ $json.id }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          464,
+          0
+        ],
+        "id": "6907397c-a445-4aed-a587-64d286870d93",
+        "name": "If"
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "200",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          752,
+          -96
+        ],
+        "id": "ae360d0c-1a19-4aeb-967e-13fad022fdb2",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "authentication": "oAuth2",
+          "operation": "get",
+          "orderId": "={{ $('Webhook').item.json.body.order_id }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.shopify",
+        "typeVersion": 1,
+        "position": [
+          768,
+          80
+        ],
+        "id": "9986d766-3e87-46ed-9469-bc14f910e9c4",
+        "name": "Get an order",
+        "credentials": {
+          "shopifyOAuth2Api": {
+            "id": "wuJPm2qVIiwx4ado",
+            "name": "Shopify read orders"
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "operation": "create",
+          "base": {
+            "__rl": true,
+            "value": "appOzDhFRxFTjBqMN",
+            "mode": "list",
+            "cachedResultName": "ERP Integrations",
+            "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblp0azNmSRguhj6p",
+            "mode": "list",
+            "cachedResultName": "Delivery Note Queue",
+            "cachedResultUrl": "https://airtable.com/appOzDhFRxFTjBqMN/tblp0azNmSRguhj6p"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "fulfillment_id": "={{ $('Webhook').item.json.body.id }}",
+              "order_id": "={{ $('Webhook').item.json.body.order_id.toString() }}",
+              "order_name": "={{ $json.order_number }}",
+              "fulfillment_name": "={{ $('Webhook').item.json.body.name }}",
+              "line_items": "={{ JSON.stringify($('Webhook').item.json.body.line_items) }}",
+              "fulfilled_at": "={{ $('Webhook').item.json.body.created_at }}",
+              "status": "PENDING",
+              "retry_count": 0
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "fulfillment_id",
+                "displayName": "fulfillment_id",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "PENDING",
+                    "value": "PENDING"
+                  },
+                  {
+                    "name": "PROCESSING",
+                    "value": "PROCESSING"
+                  },
+                  {
+                    "name": "DONE",
+                    "value": "DONE"
+                  },
+                  {
+                    "name": "ERROR",
+                    "value": "ERROR"
+                  },
+                  {
+                    "name": "SKIPPED",
+                    "value": "SKIPPED"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "order_id",
+                "displayName": "order_id",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "singleLineText",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "order_name",
+                "displayName": "order_name",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "fulfillment_name",
+                "displayName": "fulfillment_name",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "line_items",
+                "displayName": "line_items",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "fulfilled_at",
+                "displayName": "fulfilled_at",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "last_attempted_at",
+                "displayName": "last_attempted_at",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "retry_count",
+                "displayName": "retry_count",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "erpnext_doc_id",
+                "displayName": "erpnext_doc_id",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "error_message",
+                "displayName": "error_message",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "created_at",
+                "displayName": "created_at",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          976,
+          80
+        ],
+        "id": "b8b45f1e-f28d-477c-a2bb-4abfdc882f96",
+        "name": "Create a record",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "VVi4cw1Gru6JhVPf",
+            "name": "Airtable PAT for ERP integrations"
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "200",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          1184,
+          -48
+        ],
+        "id": "16d2320f-3cac-4be6-a4c4-cf9436a91880",
+        "name": "Respond to success to webhook"
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "500",
+          "options": {
+            "responseCode": 500
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          1200,
+          144
+        ],
+        "id": "6403db4e-32dd-4a69-91b4-c24fe8be1209",
+        "name": "Respond to error to webhook"
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Deduplication",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Deduplication": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Get an order",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get an order": {
+        "main": [
+          [
+            {
+              "node": "Create a record",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create a record": {
+        "main": [
+          [
+            {
+              "node": "Respond to success to webhook",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond to error to webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Iris Soute",
+    "name": null,
+    "description": null
+  }
+}

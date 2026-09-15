@@ -1,0 +1,980 @@
+{
+  "updatedAt": "2026-07-03T14:46:25.813Z",
+  "createdAt": "2026-01-05T14:58:50.537Z",
+  "id": "wAO9J0IKMdd3i8yd",
+  "name": "Batch rename & lock files on Google Drive",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.files",
+        "include": "=",
+        "options": {}
+      },
+      "id": "4ab3be82-a06f-4ed9-a2a0-a23a5f0a6456",
+      "name": "Split Out Files",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -1264,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all items that arrived at this node\nconst items = $input.all();\n\nconst aggregatedData = items.reduce((acc, item) => {\n  const data = item.json;\n  const recordId = data.recordId;\n\n  if (recordId) {\n    const existingRecord = acc[recordId];\n\n    // ERROR PRIORITY LOGIC:\n    // If the current item is an ERROR (success: false), it overwrites everything.\n    // If the current item is SUCCESS, we only write it if there is NO existing error.\n    \n    if (data.success === false) {\n       acc[recordId] = { \n         recordId: recordId, \n         fileType: data.fileType, \n         success: false, \n         message: data.message || \"Unknown n8n Error\" \n       };\n    } else {\n       // Only update with success if we haven't already marked this record as failed.\n       // This prevents a 'success' item from hiding a previous 'error' item for the same record.\n       if (!existingRecord || existingRecord.success === true) {\n         acc[recordId] = {\n           recordId: recordId,\n           fileType: data.fileType,\n           success: true,\n           lockAfter: data.lockAfter\n         };\n       }\n    }\n  }\n  return acc;\n}, {});\n\nreturn [{ json: aggregatedData }];"
+      },
+      "id": "b350d29d-b0d1-4190-8a6a-3b2570a2a9da",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        752,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rename-lock-google-drive-batch",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ff0c51b4-558c-44da-9eda-df815e6b09a6",
+      "name": "Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1488,
+        480
+      ],
+      "webhookId": "a92e6edc-f9ef-4b0a-ab50-ddb28480541a"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "9deeb664-293e-4e04-9f8a-bfb35f5b8a19",
+      "name": "Respond to Webhook1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        976,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $('Split Out Files').item.json['body.files'].fileId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "supportsAllDrives",
+              "value": "TRUE"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ name: $('Split Out Files').item.json['body.files'].newName + ($('Get extension').item.json.fileExtension ? '.' + $('Get extension').item.json.fileExtension : ''), contentRestrictions: [{ readOnly: $('Split Out Files').item.json['body.files'].lockAfter }] }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        -816,
+        400
+      ],
+      "id": "72edbb71-d694-4f9d-8efa-c3db6f2c7073",
+      "name": "Update file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7jmlqmj1JpGcdPBx",
+          "name": "Google auth (Iris)"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $('Split Out Files').item.json['body.files'].fileId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "supportsAllDrives",
+              "value": "TRUE"
+            },
+            {
+              "name": "fields",
+              "value": "fileExtension"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fd6ff400-e2f0-48b3-9e70-8f28a5237a02",
+      "name": "Get extension",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        -1040,
+        400
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7jmlqmj1JpGcdPBx",
+          "name": "Google auth (Iris)"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// body.files is merged into $json after Merge1 (rename/Lock File error paths).\n// For pre-Merge1 errors (Unlock File, Get extension, Update file), fall back to Split Out Files\n// so the recordId is still recoverable and Airtable gets flagged with sync_error.\nlet originalData;\ntry {\n  originalData = $json[\"body.files\"] || $('Merge1').item.json['body.files'];\n} catch(e) {\n  try {\n    originalData = $('Split Out Files').item.json['body.files'];\n  } catch(e2) {\n    originalData = null;\n  }\n}\n\nreturn {\n  json: {\n    ...(originalData || {}),\n    success: false,\n    message: $json.error || $json.message || \"Operation failed\"\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        592
+      ],
+      "id": "c33f9e8a-dfb2-424e-8522-0c0e0bae1a3c",
+      "name": "Format error"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        528,
+        480
+      ],
+      "id": "b564c5b7-cc2e-4288-8118-b07d6e69026f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// $json is the rename PATCH response, so body.files is no longer in $json here.\n// Use $('Merge1').item to recover the original file data (recordId, lockAfter, fileType).\nconst originalData = $('Merge1').item.json['body.files'];\n\nreturn {\n  json: {\n    ...originalData,\n    success: true\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        384
+      ],
+      "id": "04fb47a7-2a9d-4e90-986a-5c2efd58adbd",
+      "name": "Format success"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -592,
+        480
+      ],
+      "id": "5d570d09-76f5-4d06-8137-062f5371b87f",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7000cf11-3e33-4fa6-b854-cbb39029013d",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -368,
+        480
+      ],
+      "id": "248fb56c-4f42-41a4-a767-384096d712de",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $('Split Out Files').item.json['body.files'].fileId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "supportsAllDrives",
+              "value": "TRUE"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"contentRestrictions\": [\n    {\n      \"readOnly\": false\n    }\n  ]\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ab6a3dc4-f5ba-424d-9152-349c733e8580",
+      "name": "Unlock File",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        -1152,
+        480
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7jmlqmj1JpGcdPBx",
+          "name": "Google auth (Iris)"
+        }
+      },
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "connections": {
+    "Split Out Files": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Unlock File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Split Out Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update file": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get extension": {
+      "main": [
+        [
+          {
+            "node": "Update file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format error": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format success": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Format success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unlock File": {
+      "main": [
+        [
+          {
+            "node": "Get extension",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Webhook1": [
+      {
+        "json": {
+          "headers": {
+            "host": "picoo.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (compatible; AirtableScripting; +https://airtable.com/developers/scripting;)",
+            "content-length": "185",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "54.211.73.6",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "a10e010e4a538b8b-IAD",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-airtable-source": "app0zzPtwBSKpGFRZ/wflwJaezzkiVLokbp",
+            "x-forwarded-for": "54.211.73.6, 104.23.213.175",
+            "x-forwarded-host": "picoo.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-23-7c57f74b7b-dq87x",
+            "x-is-trusted": "yes",
+            "x-real-ip": "54.211.73.6"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "files": [
+              {
+                "recordId": "recahY3XAwdCzvGHR",
+                "fileId": "1RPMsAMg5nZGzlxMC1BHRAYjfEaKTQcBRdk3G1yqncM4",
+                "newName": "01129.01 - Test asset - DEPRECATED",
+                "lockAfter": true,
+                "fileType": "content"
+              }
+            ]
+          },
+          "webhookUrl": "https://picoo.app.n8n.cloud/webhook/rename-lock-google-drive-batch",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "1bb8e5f5-7331-4e21-9049-d7cb054b7795",
+  "activeVersionId": "1bb8e5f5-7331-4e21-9049-d7cb054b7795",
+  "versionCounter": 102,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-01-05T14:58:50.547Z",
+      "createdAt": "2026-01-05T14:58:50.547Z",
+      "role": "workflow:owner",
+      "workflowId": "wAO9J0IKMdd3i8yd",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-06-24T19:13:55.229Z",
+    "createdAt": "2026-06-24T19:13:55.229Z",
+    "versionId": "1bb8e5f5-7331-4e21-9049-d7cb054b7795",
+    "workflowId": "wAO9J0IKMdd3i8yd",
+    "nodes": [
+      {
+        "parameters": {
+          "fieldToSplitOut": "body.files",
+          "include": "=",
+          "options": {}
+        },
+        "id": "4ab3be82-a06f-4ed9-a2a0-a23a5f0a6456",
+        "name": "Split Out Files",
+        "type": "n8n-nodes-base.splitOut",
+        "typeVersion": 1,
+        "position": [
+          -1264,
+          480
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Get all items that arrived at this node\nconst items = $input.all();\n\nconst aggregatedData = items.reduce((acc, item) => {\n  const data = item.json;\n  const recordId = data.recordId;\n\n  if (recordId) {\n    const existingRecord = acc[recordId];\n\n    // ERROR PRIORITY LOGIC:\n    // If the current item is an ERROR (success: false), it overwrites everything.\n    // If the current item is SUCCESS, we only write it if there is NO existing error.\n    \n    if (data.success === false) {\n       acc[recordId] = { \n         recordId: recordId, \n         fileType: data.fileType, \n         success: false, \n         message: data.message || \"Unknown n8n Error\" \n       };\n    } else {\n       // Only update with success if we haven't already marked this record as failed.\n       // This prevents a 'success' item from hiding a previous 'error' item for the same record.\n       if (!existingRecord || existingRecord.success === true) {\n         acc[recordId] = {\n           recordId: recordId,\n           fileType: data.fileType,\n           success: true,\n           lockAfter: data.lockAfter\n         };\n       }\n    }\n  }\n  return acc;\n}, {});\n\nreturn [{ json: aggregatedData }];"
+        },
+        "id": "b350d29d-b0d1-4190-8a6a-3b2570a2a9da",
+        "name": "Aggregate Results",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [
+          752,
+          480
+        ]
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "rename-lock-google-drive-batch",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "ff0c51b4-558c-44da-9eda-df815e6b09a6",
+        "name": "Webhook1",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          -1488,
+          480
+        ],
+        "webhookId": "a92e6edc-f9ef-4b0a-ab50-ddb28480541a"
+      },
+      {
+        "parameters": {
+          "respondWith": "allIncomingItems",
+          "options": {}
+        },
+        "id": "9deeb664-293e-4e04-9f8a-bfb35f5b8a19",
+        "name": "Respond to Webhook1",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          976,
+          480
+        ]
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "=https://www.googleapis.com/drive/v3/files/{{ $('Split Out Files').item.json['body.files'].fileId }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googleDriveOAuth2Api",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "supportsAllDrives",
+                "value": "TRUE"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ name: $('Split Out Files').item.json['body.files'].newName + ($('Get extension').item.json.fileExtension ? '.' + $('Get extension').item.json.fileExtension : ''), contentRestrictions: [{ readOnly: $('Split Out Files').item.json['body.files'].lockAfter }] }) }}",
+          "options": {
+            "response": {
+              "response": {
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          -816,
+          400
+        ],
+        "id": "72edbb71-d694-4f9d-8efa-c3db6f2c7073",
+        "name": "Update file",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "7jmlqmj1JpGcdPBx",
+            "name": "Google auth (Iris)"
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "url": "=https://www.googleapis.com/drive/v3/files/{{ $('Split Out Files').item.json['body.files'].fileId }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googleDriveOAuth2Api",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "supportsAllDrives",
+                "value": "TRUE"
+              },
+              {
+                "name": "fields",
+                "value": "fileExtension"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "fd6ff400-e2f0-48b3-9e70-8f28a5237a02",
+        "name": "Get extension",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          -1040,
+          400
+        ],
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "7jmlqmj1JpGcdPBx",
+            "name": "Google auth (Iris)"
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// body.files is merged into $json after Merge1 (rename/Lock File error paths).\n// For pre-Merge1 errors (Unlock File, Get extension, Update file), fall back to Split Out Files\n// so the recordId is still recoverable and Airtable gets flagged with sync_error.\nlet originalData;\ntry {\n  originalData = $json[\"body.files\"] || $('Merge1').item.json['body.files'];\n} catch(e) {\n  try {\n    originalData = $('Split Out Files').item.json['body.files'];\n  } catch(e2) {\n    originalData = null;\n  }\n}\n\nreturn {\n  json: {\n    ...(originalData || {}),\n    success: false,\n    message: $json.error || $json.message || \"Operation failed\"\n  }\n};\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          304,
+          592
+        ],
+        "id": "c33f9e8a-dfb2-424e-8522-0c0e0bae1a3c",
+        "name": "Format error"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          528,
+          480
+        ],
+        "id": "b564c5b7-cc2e-4288-8118-b07d6e69026f",
+        "name": "Merge"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// $json is the rename PATCH response, so body.files is no longer in $json here.\n// Use $('Merge1').item to recover the original file data (recordId, lockAfter, fileType).\nconst originalData = $('Merge1').item.json['body.files'];\n\nreturn {\n  json: {\n    ...originalData,\n    success: true\n  }\n};\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          304,
+          384
+        ],
+        "id": "04fb47a7-2a9d-4e90-986a-5c2efd58adbd",
+        "name": "Format success"
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "combineBy": "combineByPosition",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          -592,
+          480
+        ],
+        "id": "5d570d09-76f5-4d06-8137-062f5371b87f",
+        "name": "Merge1"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "7000cf11-3e33-4fa6-b854-cbb39029013d",
+                "leftValue": "={{ $json.error }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "empty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -368,
+          480
+        ],
+        "id": "248fb56c-4f42-41a4-a767-384096d712de",
+        "name": "If"
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "=https://www.googleapis.com/drive/v3/files/{{ $('Split Out Files').item.json['body.files'].fileId }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googleDriveOAuth2Api",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "supportsAllDrives",
+                "value": "TRUE"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\n  \"contentRestrictions\": [\n    {\n      \"readOnly\": false\n    }\n  ]\n}",
+          "options": {
+            "response": {
+              "response": {
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "id": "ab6a3dc4-f5ba-424d-9152-349c733e8580",
+        "name": "Unlock File",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          -1152,
+          480
+        ],
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "7jmlqmj1JpGcdPBx",
+            "name": "Google auth (Iris)"
+          }
+        },
+        "onError": "continueErrorOutput"
+      }
+    ],
+    "connections": {
+      "Split Out Files": {
+        "main": [
+          [
+            {
+              "node": "Merge1",
+              "type": "main",
+              "index": 1
+            },
+            {
+              "node": "Unlock File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate Results": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook1": {
+        "main": [
+          [
+            {
+              "node": "Split Out Files",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update file": {
+        "main": [
+          [
+            {
+              "node": "Merge1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Format error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get extension": {
+        "main": [
+          [
+            {
+              "node": "Update file",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Format error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format error": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge": {
+        "main": [
+          [
+            {
+              "node": "Aggregate Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format success": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge1": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Format success",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Format error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Unlock File": {
+        "main": [
+          [
+            {
+              "node": "Get extension",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Format error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Iris Soute",
+    "name": null,
+    "description": null
+  }
+}

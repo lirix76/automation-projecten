@@ -1,0 +1,217 @@
+{
+  "updatedAt": "2026-06-24T16:34:46.799Z",
+  "createdAt": "2026-06-24T16:34:46.799Z",
+  "id": "qdRKVbDTKBLAai3M",
+  "name": "ZZ throwaway auth helper test",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "wh",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "auth-helper-throwaway-test",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "cd",
+      "name": "Auth test",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "\n// Throwaway: verify httpRequestWithAuthentication resolves the Google Drive OAuth2 credential.\ntry {\n  const res = await this.helpers.httpRequestWithAuthentication.call(this, 'googleDriveOAuth2Api', {\n    method: 'GET',\n    url: 'https://www.googleapis.com/drive/v3/about',\n    qs: { fields: 'user' },\n    json: true,\n  });\n  return [{ json: { ok: true, authedAs: res.user } }];\n} catch (e) {\n  return [{ json: { ok: false, error: e.message, status: e.httpCode || e.statusCode || null } }];\n}\n"
+      }
+    },
+    {
+      "id": "rw",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Auth test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth test": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "3537227f-3fcd-4d22-847a-b548652ca571",
+  "activeVersionId": "3537227f-3fcd-4d22-847a-b548652ca571",
+  "versionCounter": 12,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-06-24T16:34:46.801Z",
+      "createdAt": "2026-06-24T16:34:46.801Z",
+      "role": "workflow:owner",
+      "workflowId": "qdRKVbDTKBLAai3M",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-06-24T16:34:46.837Z",
+    "createdAt": "2026-06-24T16:34:46.837Z",
+    "versionId": "3537227f-3fcd-4d22-847a-b548652ca571",
+    "workflowId": "qdRKVbDTKBLAai3M",
+    "nodes": [
+      {
+        "id": "wh",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "httpMethod": "GET",
+          "path": "auth-helper-throwaway-test",
+          "responseMode": "responseNode",
+          "options": {}
+        }
+      },
+      {
+        "id": "cd",
+        "name": "Auth test",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          220,
+          0
+        ],
+        "parameters": {
+          "jsCode": "\n// Throwaway: verify httpRequestWithAuthentication resolves the Google Drive OAuth2 credential.\ntry {\n  const res = await this.helpers.httpRequestWithAuthentication.call(this, 'googleDriveOAuth2Api', {\n    method: 'GET',\n    url: 'https://www.googleapis.com/drive/v3/about',\n    qs: { fields: 'user' },\n    json: true,\n  });\n  return [{ json: { ok: true, authedAs: res.user } }];\n} catch (e) {\n  return [{ json: { ok: false, error: e.message, status: e.httpCode || e.statusCode || null } }];\n}\n"
+        }
+      },
+      {
+        "id": "rw",
+        "name": "Respond",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          440,
+          0
+        ],
+        "parameters": {
+          "respondWith": "allIncomingItems",
+          "options": {}
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Auth test",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Auth test": {
+        "main": [
+          [
+            {
+              "node": "Respond",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Iris Soute",
+    "name": null,
+    "description": null
+  }
+}

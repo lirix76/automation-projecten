@@ -1,0 +1,866 @@
+{
+  "updatedAt": "2026-07-03T14:45:38.846Z",
+  "createdAt": "2026-04-20T09:36:37.456Z",
+  "id": "uIaLgZv5NWQlBACv",
+  "name": "Create Obsidian Task for Iris",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "4c99be7c-b31b-4de0-9872-ed70631bb56b",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        608,
+        -144
+      ],
+      "id": "24882ef7-4710-4eb4-a194-2aec4d35ba00",
+      "name": "Webhook",
+      "webhookId": "4c99be7c-b31b-4de0-9872-ed70631bb56b"
+    },
+    {
+      "parameters": {
+        "name": "={{ $('Build JSON (Slack)').isExecuted ? $('Build JSON (Slack)').item.json.filename : $('Build JSON').item.json.filename }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1jGo_5ywMY_fpc_mq4pqdiO9PFXWX1e9L",
+          "mode": "list",
+          "cachedResultName": "ObsidianInbox",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1jGo_5ywMY_fpc_mq4pqdiO9PFXWX1e9L"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1280,
+        -192
+      ],
+      "id": "fada3810-1892-450e-9242-51c75d9df427",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7jmlqmj1JpGcdPBx",
+          "name": "Google auth (Iris)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "content",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1056,
+        -192
+      ],
+      "id": "993a21e2-4f0a-4aa6-87ac-08adac818d81",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "jsCode": "// test\nconst { title, priority, due_date, description, url, projects } = $input.first().json.body;\n\nconst priorityMap = { P1: 'highest', P2: 'high', P3: 'medium', P4: 'low' };\nconst priorityValue = priorityMap[priority] ?? null;\n\nconst now = new Date();\nconst ts = now.toISOString().slice(0, 19).replace(/:/g, '-');\nconst sanitized = (title\n  .replace(/[/\\\\:*?\"<>|]/g, '')\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .slice(0, 60)) || 'untitled-task';\nconst filename = `${sanitized}.md`;\n\nconst frontmatter = [\n  '---',\n  'completed: false',\n  ...(priorityValue ? [`priority: ${priorityValue}`] : []),\n  ...(due_date ? [`due_date: ${due_date}`] : []),\n  ...(projects ? [`projects: \"[[${projects}]]\"`] : []),\n  `dateCreated: ${now.toISOString()}`,\n  'tags:',\n  '  - task',\n  '  - airtable',\n  '---',\n];\n\nconst bodyLines = [\n  `[Open in Airtable](${url})`,\n  ...(projects ? [`Project: ${projects}`] : []),\n  '',\n  ...(description ? ['## Omschrijving', '', description] : []),\n];\n\nconst content = [...frontmatter, '', ...bodyLines, ''].join('\\n');\n\nreturn [{ json: { filename, content } }];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        -144
+      ],
+      "id": "b26366a3-889e-4f52-982f-bead97149e36",
+      "name": "Build JSON"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d79b4de2-233c-424e-967c-3cb27ee935a8",
+              "leftValue": "={{ $json.body.event.reaction }}",
+              "rightValue": "clipboard",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "bb3847c3-0b60-47e7-bc91-79ca7a98cf19",
+              "leftValue": "={{ $json.body.event.user }}",
+              "rightValue": "U03JDLH7U",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        384,
+        -384
+      ],
+      "id": "a5b18ded-3f8f-4f30-87e8-23b22814f644",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst messageData = $('Get a thread of messages posted to a channel').first().json;\nconst eventData = $('Webhook1').first().json.body.event;\n\nconst messageText = (messageData.text || '').trim();\nconst channelId = eventData.item?.channel ?? '';\nconst authorId = messageData.user ?? 'unknown';\nconst ts = eventData.item?.ts ?? '';\n\n// Construct permalink using app.slack.com universal format\nconst tsForUrl = ts.replace('.', '');\nconst permalink = `https://app.slack.com/archives/${channelId}/p${tsForUrl}`;\n\n// Strip Slack mrkdwn URL markup: <url|text> → text, <url> → (empty), plain URLs → (empty)\nconst strippedText = messageText\n  .replace(/<https?:\\/\\/[^|>]+\\|([^>]+)>/g, '$1')\n  .replace(/<https?:\\/\\/[^>]+>/g, '')\n  .replace(/https?:\\/\\/\\S+/g, '')\n  .replace(/\\n/g, ' ')\n  .trim();\n\nconst rawTitle = strippedText.length > 0\n  ? strippedText.slice(0, 53).trim()\n  : `Slack message in ${channelId}`;\nconst sanitized = (rawTitle\n  .replace(/[/\\\\:*?\"<>|]/g, '')\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .slice(0, 60)) || 'untitled-task';\nconst filename = `${sanitized}.md`;\n\nconst now = new Date();\n\nconst frontmatter = [\n  '---',\n  'completed: false',\n  'priority: low',\n  `created: ${now.toISOString()}`,\n  'tags:',\n  '  - task',\n  '  - slack',\n  '  - inbox',\n  '---',\n];\n\nconst bodyLines = [\n  `[Open in Slack](${permalink})`,\n  `Channel: ${channelId} · From: <@${authorId}>`,\n  '',\n  messageText.slice(0, 2000),\n];\n\nconst content = [...frontmatter, '', ...bodyLines, ''].join('\\n');\n\nreturn [{ json: { filename, content } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        -384
+      ],
+      "id": "d755cf4d-ae83-4a4f-878b-f204669ccb73",
+      "name": "Build JSON (Slack)"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "762282d2-6ca8-466d-9a52-40eb2e5bbe48",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        160,
+        -480
+      ],
+      "id": "22e31c6d-8417-4b7e-a11a-6cf3f69055cb",
+      "name": "Webhook1",
+      "webhookId": "762282d2-6ca8-466d-9a52-40eb2e5bbe48"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=={{ JSON.stringify({challenge: $json.body.challenge}) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        384,
+        -576
+      ],
+      "id": "e7ae3664-05d8-4869-a991-6ab31734db4c",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "channel",
+        "operation": "replies",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $json.body.event.item.channel }}",
+          "mode": "id"
+        },
+        "ts": "={{ $json.body.event.item.ts }}",
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        608,
+        -384
+      ],
+      "id": "a92c99ff-9180-462d-8057-699aa4ae7f95",
+      "name": "Get a thread of messages posted to a channel",
+      "webhookId": "431537b4-933e-4c85-8b0f-e0924ab0c34b",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "coxuaS95Vi5SiZFU",
+          "name": "Slack account Iris"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "reaction",
+        "operation": "remove",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Webhook1').first().json.body.event.item.channel }}",
+          "mode": "id"
+        },
+        "timestamp": "={{ $('Webhook1').first().json.body.event.item.ts }}",
+        "name": "clipboard"
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        1056,
+        -432
+      ],
+      "id": "bd2954ef-e84e-402a-87a3-9b5ec6a2383f",
+      "name": "Remove a reaction",
+      "webhookId": "9737f836-5bfe-49e4-abbb-6d43dbbcba27",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "coxuaS95Vi5SiZFU",
+          "name": "Slack account Iris"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build JSON": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get a thread of messages posted to a channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build JSON (Slack)": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Remove a reaction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Get a thread of messages posted to a channel": {
+      "main": [
+        [
+          {
+            "node": "Build JSON (Slack)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "picoo.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (compatible; AirtableScripting; +https://airtable.com/developers/scripting;)",
+            "content-length": "704",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "3.238.223.113",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "9ef353326b861fe2-IAD",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-airtable-source": "appopJMiQr8csSHhh/wflecUGSZaSAV5QLg",
+            "x-forwarded-for": "3.238.223.113, 172.71.222.187",
+            "x-forwarded-host": "picoo.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-23-7c57f74b7b-z6865",
+            "x-is-trusted": "yes",
+            "x-real-ip": "3.238.223.113"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "title": "Review klantensurvey aanvraag Gezonde School",
+            "url": "https://airtable.com/appopJMiQr8csSHhh/pagR3ECLCSqWB9I5C/recjCitHZHLcLtJMO?beCJL=b:WzAsWyJvZHNBMCIsMSwic2VsSkZUUEFQUmpkWjZpVTAiXV0&home=pagZZ0pIqIxMly274",
+            "priority": "P4",
+            "due_date": "2026-04-24",
+            "description": "- de vragen in het document zijn vragen die we moeten stellen voor de procesevaluatie voor de gezonde school\n- de vragenlijst is al best lang, maar, als we dat willen kunnen we nog wel 2-3 vragen toevoegen.\n- Kunnen jullie de vragen reviewen (feedback op geven vanuit klantperspectief: zijn de vragen duidelijk voor hen zodat ze ze kunnen antwoorden) en evt. nog extra vragen voorstellen?)",
+            "projects": "Erkenning Gezonde School"
+          },
+          "webhookUrl": "https://picoo.app.n8n.cloud/webhook/4c99be7c-b31b-4de0-9872-ed70631bb56b",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Webhook1": [
+      {
+        "json": {
+          "headers": {
+            "host": "picoo.app.n8n.cloud",
+            "user-agent": "Slackbot 1.0 (+https://api.slack.com/robots)",
+            "content-length": "734",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "100.55.94.127",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "9f07167dbb902090-IAD",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-forwarded-for": "100.55.94.127, 172.71.222.187",
+            "x-forwarded-host": "picoo.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-23-7c57f74b7b-8lb5t",
+            "x-is-trusted": "yes",
+            "x-real-ip": "100.55.94.127",
+            "x-slack-request-timestamp": "1776886696",
+            "x-slack-signature": "v0=f736a8e4d46e69d92f0f59aa2ad1e2ada385ed8aefcae444c8514e3304e03888"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "token": "9SZ8RhTxyUlFS5aC8QdO40SD",
+            "team_id": "T03JDLH7S",
+            "context_team_id": "T03JDLH7S",
+            "context_enterprise_id": null,
+            "api_app_id": "ALJN3SD5Y",
+            "event": {
+              "type": "reaction_added",
+              "user": "U03JDLH7U",
+              "reaction": "clipboard",
+              "item": {
+                "type": "message",
+                "channel": "D19L6MJB0",
+                "ts": "1773607152.863519"
+              },
+              "item_user": "U03JDLH7U",
+              "event_ts": "1776886695.001500"
+            },
+            "type": "event_callback",
+            "event_id": "Ev0B02N8NH5W",
+            "event_time": 1776886695,
+            "authed_users": [
+              "U03JDLH7U"
+            ],
+            "authorizations": [
+              {
+                "enterprise_id": null,
+                "team_id": "T03JDLH7S",
+                "user_id": "U03JDLH7U",
+                "is_bot": false,
+                "is_enterprise_install": false
+              }
+            ],
+            "is_ext_shared_channel": false,
+            "event_context": "4-eyJldCI6InJlYWN0aW9uX2FkZGVkIiwidGlkIjoiVDAzSkRMSDdTIiwiYWlkIjoiQUxKTjNTRDVZIiwiY2lkIjoiRDE5TDZNSkIwIn0"
+          },
+          "webhookUrl": "https://picoo.app.n8n.cloud/webhook/762282d2-6ca8-466d-9a52-40eb2e5bbe48",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "abf6e48c-af62-4b93-8803-7b2d70801556",
+  "activeVersionId": "abf6e48c-af62-4b93-8803-7b2d70801556",
+  "versionCounter": 105,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2026-04-20T09:36:37.458Z",
+      "createdAt": "2026-04-20T09:36:37.458Z",
+      "role": "workflow:owner",
+      "workflowId": "uIaLgZv5NWQlBACv",
+      "projectId": "wDmcr4iJImF7pgY6",
+      "project": {
+        "updatedAt": "2025-09-23T14:33:17.364Z",
+        "createdAt": "2025-09-23T14:33:13.959Z",
+        "id": "wDmcr4iJImF7pgY6",
+        "name": "Iris Soute <iris.soute@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-09-23T14:33:13.960Z",
+            "createdAt": "2025-09-23T14:33:13.960Z",
+            "userId": "97bb107f-0398-465e-8527-1714c59b06b9",
+            "projectId": "wDmcr4iJImF7pgY6",
+            "user": {
+              "updatedAt": "2026-09-15T14:30:29.000Z",
+              "createdAt": "2025-09-23T14:33:12.463Z",
+              "id": "97bb107f-0398-465e-8527-1714c59b06b9",
+              "email": "iris.soute@picoo.nl",
+              "firstName": "Iris",
+              "lastName": "Soute",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "w6hB4n0nNMwOPYYa",
+                "userActivatedAt": 1765062003111,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774283642062
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-14",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-06-16T08:42:31.285Z",
+    "createdAt": "2026-06-16T08:42:31.285Z",
+    "versionId": "abf6e48c-af62-4b93-8803-7b2d70801556",
+    "workflowId": "uIaLgZv5NWQlBACv",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "4c99be7c-b31b-4de0-9872-ed70631bb56b",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          608,
+          -144
+        ],
+        "id": "24882ef7-4710-4eb4-a194-2aec4d35ba00",
+        "name": "Webhook",
+        "webhookId": "4c99be7c-b31b-4de0-9872-ed70631bb56b"
+      },
+      {
+        "parameters": {
+          "name": "={{ $('Build JSON (Slack)').isExecuted ? $('Build JSON (Slack)').item.json.filename : $('Build JSON').item.json.filename }}",
+          "driveId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "My Drive"
+          },
+          "folderId": {
+            "__rl": true,
+            "value": "1jGo_5ywMY_fpc_mq4pqdiO9PFXWX1e9L",
+            "mode": "list",
+            "cachedResultName": "ObsidianInbox",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1jGo_5ywMY_fpc_mq4pqdiO9PFXWX1e9L"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          1280,
+          -192
+        ],
+        "id": "fada3810-1892-450e-9242-51c75d9df427",
+        "name": "Upload file",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "7jmlqmj1JpGcdPBx",
+            "name": "Google auth (Iris)"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "toText",
+          "sourceProperty": "content",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.convertToFile",
+        "typeVersion": 1.1,
+        "position": [
+          1056,
+          -192
+        ],
+        "id": "993a21e2-4f0a-4aa6-87ac-08adac818d81",
+        "name": "Convert to File"
+      },
+      {
+        "parameters": {
+          "jsCode": "// test\nconst { title, priority, due_date, description, url, projects } = $input.first().json.body;\n\nconst priorityMap = { P1: 'highest', P2: 'high', P3: 'medium', P4: 'low' };\nconst priorityValue = priorityMap[priority] ?? null;\n\nconst now = new Date();\nconst ts = now.toISOString().slice(0, 19).replace(/:/g, '-');\nconst sanitized = (title\n  .replace(/[/\\\\:*?\"<>|]/g, '')\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .slice(0, 60)) || 'untitled-task';\nconst filename = `${sanitized}.md`;\n\nconst frontmatter = [\n  '---',\n  'completed: false',\n  ...(priorityValue ? [`priority: ${priorityValue}`] : []),\n  ...(due_date ? [`due_date: ${due_date}`] : []),\n  ...(projects ? [`projects: \"[[${projects}]]\"`] : []),\n  `dateCreated: ${now.toISOString()}`,\n  'tags:',\n  '  - task',\n  '  - airtable',\n  '---',\n];\n\nconst bodyLines = [\n  `[Open in Airtable](${url})`,\n  ...(projects ? [`Project: ${projects}`] : []),\n  '',\n  ...(description ? ['## Omschrijving', '', description] : []),\n];\n\nconst content = [...frontmatter, '', ...bodyLines, ''].join('\\n');\n\nreturn [{ json: { filename, content } }];\n\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          832,
+          -144
+        ],
+        "id": "b26366a3-889e-4f52-982f-bead97149e36",
+        "name": "Build JSON"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "d79b4de2-233c-424e-967c-3cb27ee935a8",
+                "leftValue": "={{ $json.body.event.reaction }}",
+                "rightValue": "clipboard",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              },
+              {
+                "id": "bb3847c3-0b60-47e7-bc91-79ca7a98cf19",
+                "leftValue": "={{ $json.body.event.user }}",
+                "rightValue": "U03JDLH7U",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          384,
+          -384
+        ],
+        "id": "a5b18ded-3f8f-4f30-87e8-23b22814f644",
+        "name": "If"
+      },
+      {
+        "parameters": {
+          "jsCode": "\nconst messageData = $('Get a thread of messages posted to a channel').first().json;\nconst eventData = $('Webhook1').first().json.body.event;\n\nconst messageText = (messageData.text || '').trim();\nconst channelId = eventData.item?.channel ?? '';\nconst authorId = messageData.user ?? 'unknown';\nconst ts = eventData.item?.ts ?? '';\n\n// Construct permalink using app.slack.com universal format\nconst tsForUrl = ts.replace('.', '');\nconst permalink = `https://app.slack.com/archives/${channelId}/p${tsForUrl}`;\n\n// Strip Slack mrkdwn URL markup: <url|text> → text, <url> → (empty), plain URLs → (empty)\nconst strippedText = messageText\n  .replace(/<https?:\\/\\/[^|>]+\\|([^>]+)>/g, '$1')\n  .replace(/<https?:\\/\\/[^>]+>/g, '')\n  .replace(/https?:\\/\\/\\S+/g, '')\n  .replace(/\\n/g, ' ')\n  .trim();\n\nconst rawTitle = strippedText.length > 0\n  ? strippedText.slice(0, 53).trim()\n  : `Slack message in ${channelId}`;\nconst sanitized = (rawTitle\n  .replace(/[/\\\\:*?\"<>|]/g, '')\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .slice(0, 60)) || 'untitled-task';\nconst filename = `${sanitized}.md`;\n\nconst now = new Date();\n\nconst frontmatter = [\n  '---',\n  'completed: false',\n  'priority: low',\n  `created: ${now.toISOString()}`,\n  'tags:',\n  '  - task',\n  '  - slack',\n  '  - inbox',\n  '---',\n];\n\nconst bodyLines = [\n  `[Open in Slack](${permalink})`,\n  `Channel: ${channelId} · From: <@${authorId}>`,\n  '',\n  messageText.slice(0, 2000),\n];\n\nconst content = [...frontmatter, '', ...bodyLines, ''].join('\\n');\n\nreturn [{ json: { filename, content } }];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          832,
+          -384
+        ],
+        "id": "d755cf4d-ae83-4a4f-878b-f204669ccb73",
+        "name": "Build JSON (Slack)"
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "762282d2-6ca8-466d-9a52-40eb2e5bbe48",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          160,
+          -480
+        ],
+        "id": "22e31c6d-8417-4b7e-a11a-6cf3f69055cb",
+        "name": "Webhook1",
+        "webhookId": "762282d2-6ca8-466d-9a52-40eb2e5bbe48"
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "=={{ JSON.stringify({challenge: $json.body.challenge}) }}",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          384,
+          -576
+        ],
+        "id": "e7ae3664-05d8-4869-a991-6ab31734db4c",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "authentication": "oAuth2",
+          "resource": "channel",
+          "operation": "replies",
+          "channelId": {
+            "__rl": true,
+            "value": "={{ $json.body.event.item.channel }}",
+            "mode": "id"
+          },
+          "ts": "={{ $json.body.event.item.ts }}",
+          "filters": {}
+        },
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.4,
+        "position": [
+          608,
+          -384
+        ],
+        "id": "a92c99ff-9180-462d-8057-699aa4ae7f95",
+        "name": "Get a thread of messages posted to a channel",
+        "webhookId": "431537b4-933e-4c85-8b0f-e0924ab0c34b",
+        "credentials": {
+          "slackOAuth2Api": {
+            "id": "coxuaS95Vi5SiZFU",
+            "name": "Slack account Iris"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "authentication": "oAuth2",
+          "resource": "reaction",
+          "operation": "remove",
+          "channelId": {
+            "__rl": true,
+            "value": "={{ $('Webhook1').first().json.body.event.item.channel }}",
+            "mode": "id"
+          },
+          "timestamp": "={{ $('Webhook1').first().json.body.event.item.ts }}",
+          "name": "clipboard"
+        },
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.4,
+        "position": [
+          1056,
+          -432
+        ],
+        "id": "bd2954ef-e84e-402a-87a3-9b5ec6a2383f",
+        "name": "Remove a reaction",
+        "webhookId": "9737f836-5bfe-49e4-abbb-6d43dbbcba27",
+        "credentials": {
+          "slackOAuth2Api": {
+            "id": "coxuaS95Vi5SiZFU",
+            "name": "Slack account Iris"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Build JSON",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Convert to File": {
+        "main": [
+          [
+            {
+              "node": "Upload file",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build JSON": {
+        "main": [
+          [
+            {
+              "node": "Convert to File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Get a thread of messages posted to a channel",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build JSON (Slack)": {
+        "main": [
+          [
+            {
+              "node": "Convert to File",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Remove a reaction",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook1": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Respond to Webhook": {
+        "main": [
+          []
+        ]
+      },
+      "Get a thread of messages posted to a channel": {
+        "main": [
+          [
+            {
+              "node": "Build JSON (Slack)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upload file": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "authors": "Iris Soute",
+    "name": null,
+    "description": null
+  }
+}

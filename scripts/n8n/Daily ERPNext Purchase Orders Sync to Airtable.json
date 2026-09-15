@@ -1,0 +1,2051 @@
+{
+  "updatedAt": "2026-09-03T12:46:11.587Z",
+  "createdAt": "2026-04-29T07:30:37.382Z",
+  "id": "JsMnOhVPbl0exvpF",
+  "name": "Daily ERPNext Purchase Orders Sync to Airtable",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 23 * * *"
+            }
+          ]
+        }
+      },
+      "id": "b6fb4fd8-5f11-4826-a3fc-32aa096e2d9d",
+      "name": "Daily Trigger at 23:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -9760,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "erpnextBaseUrl",
+              "value": "https://picoo.frappe.cloud",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "airtableBaseId",
+              "value": "appiy9Q63eyvnPG9q",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "airtablePoTableId",
+              "value": "tblU2spEpnp5raAdT",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "airtableLineItemsTableId",
+              "value": "tblYSALUP2CVUJTfc",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "slackChannel",
+              "value": "C08PFFV3NUT",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "e45163ed-5637-49ad-b104-d2a3abeb0d5f",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -9536,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Workflow Configuration').first().json.erpnextBaseUrl }}/api/resource/Purchase Order?filters=[[\"status\",\"=\",\"To Receive and Bill\"],[\"transaction_date\",\">=\",\"{{ $now.minus({ days: 30 }).toISODate() }}\"]]",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "erpNextApi",
+        "options": {}
+      },
+      "id": "3e889b9e-7233-41fb-ad6f-63403af46f9e",
+      "name": "Get PO List from ERPNext",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -9312,
+        880
+      ],
+      "credentials": {
+        "erpNextApi": {
+          "id": "5YhqHtoMvOtwbP3j",
+          "name": "ERPNext account: iris.soute+shopify@picoo.nl"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $('Get PO List from ERPNext').item.json.data.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "13a062a0-096b-4715-822a-f023828dbd63",
+      "name": "Check if POs Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -9088,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Workflow Configuration').first().json.erpnextBaseUrl }}/api/resource/Purchase Order/{{ $json.name }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "erpNextApi",
+        "options": {}
+      },
+      "id": "ffb2460d-c504-436c-ba5c-b93bbbdc07b8",
+      "name": "Get PO Details from ERPNext",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -7968,
+        704
+      ],
+      "credentials": {
+        "erpNextApi": {
+          "id": "5YhqHtoMvOtwbP3j",
+          "name": "ERPNext account: iris.soute+shopify@picoo.nl"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Workflow Configuration').first().json.airtableBaseId }}"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Workflow Configuration').first().json.airtablePoTableId }}"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Besteld",
+            "PO nummer": "={{ $json.data.name }}",
+            "Leverancier": "={{ $json.data.supplier }}",
+            "Deellevering": false,
+            "ERP PO link": "=https://picoo.frappe.cloud/app/purchase-order/{{ $json.data.name }}",
+            "Prijs akkoord": false
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "PO nummer",
+              "displayName": "PO nummer",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "List Items Purchase Orders",
+              "displayName": "List Items Purchase Orders",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Item Name (from Partnumber) (from List Items Purchase Orders)",
+              "displayName": "Item Name (from Partnumber) (from List Items Purchase Orders)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Item Qty (from List Items Purchase Orders)",
+              "displayName": "Item Qty (from List Items Purchase Orders)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Leverancier",
+              "displayName": "Leverancier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Ontvangst datum",
+              "displayName": "Ontvangst datum",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Notities voor deelleveringen",
+              "displayName": "Notities voor deelleveringen",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Deellevering",
+              "displayName": "Deellevering",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Binnen",
+                  "value": "Binnen"
+                },
+                {
+                  "name": "Besteld",
+                  "value": "Besteld"
+                },
+                {
+                  "name": "Canceled",
+                  "value": "Canceled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Opmerkingen",
+              "displayName": "Opmerkingen",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last modified time",
+              "displayName": "Last modified time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "interface Link",
+              "displayName": "interface Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Status ERPNext",
+              "displayName": "Status ERPNext",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Draft",
+                  "value": "Draft"
+                },
+                {
+                  "name": "Todo",
+                  "value": "Todo"
+                },
+                {
+                  "name": "Not created yet",
+                  "value": "Not created yet"
+                },
+                {
+                  "name": "Submitted",
+                  "value": "Submitted"
+                },
+                {
+                  "name": "Nog niet binnen",
+                  "value": "Nog niet binnen"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Json okay?",
+              "displayName": "Json okay?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Json voor Purchase Orders",
+              "displayName": "Json voor Purchase Orders",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ERP link",
+              "displayName": "ERP link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Slack bericht okay?",
+              "displayName": "Slack bericht okay?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "pakbon naam",
+              "displayName": "pakbon naam",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Pakbon (from pakbon naam)",
+              "displayName": "Pakbon (from pakbon naam)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "ERP PO link",
+              "displayName": "ERP PO link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Prijs akkoord",
+              "displayName": "Prijs akkoord",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b24fa377-9919-4b6e-9dd5-285e5e24f190",
+      "name": "Create PO Record in Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -7744,
+        704
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NhojfXxgc4twjfqI",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "items",
+              "value": "={{ JSON.stringify($('Get PO Details from ERPNext').item.json.data.items) }}",
+              "type": "array"
+            },
+            {
+              "id": "id-2",
+              "name": "poRecordId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c9679075-5b57-42c3-82e5-fe039a7cb5e7",
+      "name": "Prepare Line Items",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -7520,
+        704
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Workflow Configuration').first().json.airtableBaseId }}"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Workflow Configuration').first().json.airtableLineItemsTableId }}"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Purchase Orders copy": "={{ $('Loop Through New POs').item.json.name }}",
+            "create batch label": false,
+            "Partnumber": "={{ [$json.items.item_code] }}",
+            "Item Qty": "={{ $json.items.qty }}",
+            "PO nummer": "={{ $('Loop Through New POs').item.json.name }}",
+            "Prijs": "={{ $json.items.rate }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Partnumber",
+              "displayName": "Partnumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Templates labels (from Partnumber)",
+              "displayName": "Templates labels (from Partnumber)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Soort (from Templates labels) (from Partnumber)",
+              "displayName": "Soort (from Templates labels) (from Partnumber)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Item Code",
+              "displayName": "Item Code",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Item Name (from Partnumber)",
+              "displayName": "Item Name (from Partnumber)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Item Qty",
+              "displayName": "Item Qty",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "PO nummer",
+              "displayName": "PO nummer",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status (from PO nummer)",
+              "displayName": "Status (from PO nummer)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Ontvangst datum (from PO nummer)",
+              "displayName": "Ontvangst datum (from PO nummer)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Purchase Orders copy",
+              "displayName": "Purchase Orders copy",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Batches & labels",
+              "displayName": "Batches & labels",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "create batch label",
+              "displayName": "create batch label",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status label creation",
+              "displayName": "Status label creation",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "⚙️ In Progress",
+                  "value": "⚙️ In Progress"
+                },
+                {
+                  "name": "✅ Completed",
+                  "value": "✅ Completed"
+                },
+                {
+                  "name": "❌ Failed",
+                  "value": "❌ Failed"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Prijs",
+              "displayName": "Prijs",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "14797097-6325-4042-bb9a-051619deef5e",
+      "name": "Create Line Items in Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -7072,
+        784
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NhojfXxgc4twjfqI",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Workflow Configuration').first().json.slackChannel }}"
+        },
+        "text": "=No Purchase Orders found with status \"To Receive and Bill\" during the daily sync at {{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}",
+        "otherOptions": {}
+      },
+      "id": "421ed948-c95d-4cc5-8d7e-296f3344241b",
+      "name": "Send Slack Notification - No POs",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -8864,
+        976
+      ],
+      "webhookId": "2f37b793-7f22-47ba-9cb2-c220780a3e4d",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "UYS6i7B0sFqiyVQW",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Workflow Configuration').first().json.airtableBaseId }}"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Workflow Configuration').first().json.airtablePoTableId }}"
+        },
+        "options": {}
+      },
+      "id": "643b8ea3-6e68-4055-baab-890919e2f8b4",
+      "name": "Get All Existing POs from Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -8864,
+        784
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NhojfXxgc4twjfqI",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const erpPOs = $('Get PO List from ERPNext').first().json.data;\nconst airtablePOs = $input.all().map(item => item.json['PO nummer']);\n\nconst newPOs = erpPOs.filter(po => !airtablePOs.includes(po.name));\n\nreturn [{ json: { newPOs } }];"
+      },
+      "id": "4dc4f636-822b-4494-a5f2-2875c9ddebb4",
+      "name": "Filter Out Existing POs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -8640,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "newPOs",
+        "options": {}
+      },
+      "id": "cdace283-561e-431a-a797-7cab41e3d9a2",
+      "name": "Split New POs",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -8416,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "fa3a28a6-39b1-4eed-87ed-cf32d4f30b9c",
+      "name": "Loop Through New POs",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -8192,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "items",
+        "include": "selectedOtherFields",
+        "fieldsToInclude": "poRecordId",
+        "options": {}
+      },
+      "id": "206d5f51-7d7e-4eff-91a3-37b059c06522",
+      "name": "Split Line Items",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -7296,
+        704
+      ]
+    }
+  ],
+  "connections": {
+    "Daily Trigger at 23:30": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Get PO List from ERPNext",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get PO List from ERPNext": {
+      "main": [
+        [
+          {
+            "node": "Check if POs Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if POs Found": {
+      "main": [
+        [
+          {
+            "node": "Get All Existing POs from Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Slack Notification - No POs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get PO Details from ERPNext": {
+      "main": [
+        [
+          {
+            "node": "Create PO Record in Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create PO Record in Airtable": {
+      "main": [
+        [
+          {
+            "node": "Prepare Line Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Line Items": {
+      "main": [
+        [
+          {
+            "node": "Split Line Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Existing POs from Airtable": {
+      "main": [
+        [
+          {
+            "node": "Filter Out Existing POs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Out Existing POs": {
+      "main": [
+        [
+          {
+            "node": "Split New POs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split New POs": {
+      "main": [
+        [
+          {
+            "node": "Loop Through New POs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Through New POs": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Get PO Details from ERPNext",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Line Items": {
+      "main": [
+        [
+          {
+            "node": "Create Line Items in Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Line Items in Airtable": {
+      "main": [
+        [
+          {
+            "node": "Loop Through New POs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {
+    "node:Daily Trigger at 23:30": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "cb8244f3-2802-4566-b494-b17bf7ec307e",
+  "activeVersionId": "cb8244f3-2802-4566-b494-b17bf7ec307e",
+  "versionCounter": 56,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-29T07:30:37.385Z",
+      "createdAt": "2026-04-29T07:30:37.385Z",
+      "role": "workflow:owner",
+      "workflowId": "JsMnOhVPbl0exvpF",
+      "projectId": "QYuyi83fqQPToWGq",
+      "project": {
+        "updatedAt": "2026-02-11T09:43:01.934Z",
+        "createdAt": "2025-12-17T15:07:42.336Z",
+        "id": "QYuyi83fqQPToWGq",
+        "name": "Fiyo van ravenstein <fiyo.van.ravenstein@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-12-17T15:07:42.339Z",
+            "createdAt": "2025-12-17T15:07:42.339Z",
+            "userId": "f464bba4-661a-4422-ae0a-366cbcce6b98",
+            "projectId": "QYuyi83fqQPToWGq",
+            "user": {
+              "updatedAt": "2026-09-02T11:58:28.000Z",
+              "createdAt": "2025-12-17T15:07:42.331Z",
+              "id": "f464bba4-661a-4422-ae0a-366cbcce6b98",
+              "email": "fiyo.van.ravenstein@picoo.nl",
+              "firstName": "Fiyo",
+              "lastName": "van ravenstein",
+              "personalizationAnswers": null,
+              "settings": {
+                "firstSuccessfulWorkflowId": "6hqtqOdVGlqO810j",
+                "userActivated": true,
+                "userActivatedAt": 1770935400180,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1775567798325
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-09-03T12:46:11.589Z",
+    "createdAt": "2026-09-03T12:46:11.589Z",
+    "versionId": "cb8244f3-2802-4566-b494-b17bf7ec307e",
+    "workflowId": "JsMnOhVPbl0exvpF",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "30 23 * * *"
+              }
+            ]
+          }
+        },
+        "id": "b6fb4fd8-5f11-4826-a3fc-32aa096e2d9d",
+        "name": "Daily Trigger at 23:30",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          -9760,
+          880
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "id-1",
+                "name": "erpnextBaseUrl",
+                "value": "https://picoo.frappe.cloud",
+                "type": "string"
+              },
+              {
+                "id": "id-3",
+                "name": "airtableBaseId",
+                "value": "appiy9Q63eyvnPG9q",
+                "type": "string"
+              },
+              {
+                "id": "id-4",
+                "name": "airtablePoTableId",
+                "value": "tblU2spEpnp5raAdT",
+                "type": "string"
+              },
+              {
+                "id": "id-5",
+                "name": "airtableLineItemsTableId",
+                "value": "tblYSALUP2CVUJTfc",
+                "type": "string"
+              },
+              {
+                "id": "id-6",
+                "name": "slackChannel",
+                "value": "C08PFFV3NUT",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "id": "e45163ed-5637-49ad-b104-d2a3abeb0d5f",
+        "name": "Workflow Configuration",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -9536,
+          880
+        ]
+      },
+      {
+        "parameters": {
+          "url": "={{ $('Workflow Configuration').first().json.erpnextBaseUrl }}/api/resource/Purchase Order?filters=[[\"status\",\"=\",\"To Receive and Bill\"],[\"transaction_date\",\">=\",\"{{ $now.minus({ days: 30 }).toISODate() }}\"]]",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "erpNextApi",
+          "options": {}
+        },
+        "id": "3e889b9e-7233-41fb-ad6f-63403af46f9e",
+        "name": "Get PO List from ERPNext",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -9312,
+          880
+        ],
+        "credentials": {
+          "erpNextApi": {
+            "id": "5YhqHtoMvOtwbP3j",
+            "name": "ERPNext account: iris.soute+shopify@picoo.nl"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "id-1",
+                "leftValue": "={{ $('Get PO List from ERPNext').item.json.data.length }}",
+                "rightValue": 0,
+                "operator": {
+                  "type": "number",
+                  "operation": "gt"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "13a062a0-096b-4715-822a-f023828dbd63",
+        "name": "Check if POs Found",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -9088,
+          880
+        ]
+      },
+      {
+        "parameters": {
+          "url": "={{ $('Workflow Configuration').first().json.erpnextBaseUrl }}/api/resource/Purchase Order/{{ $json.name }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "erpNextApi",
+          "options": {}
+        },
+        "id": "ffb2460d-c504-436c-ba5c-b93bbbdc07b8",
+        "name": "Get PO Details from ERPNext",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -7968,
+          704
+        ],
+        "credentials": {
+          "erpNextApi": {
+            "id": "5YhqHtoMvOtwbP3j",
+            "name": "ERPNext account: iris.soute+shopify@picoo.nl"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "create",
+          "base": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $('Workflow Configuration').first().json.airtableBaseId }}"
+          },
+          "table": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $('Workflow Configuration').first().json.airtablePoTableId }}"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Status": "Besteld",
+              "PO nummer": "={{ $json.data.name }}",
+              "Leverancier": "={{ $json.data.supplier }}",
+              "Deellevering": false,
+              "ERP PO link": "=https://picoo.frappe.cloud/app/purchase-order/{{ $json.data.name }}",
+              "Prijs akkoord": false
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "PO nummer",
+                "displayName": "PO nummer",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "List Items Purchase Orders",
+                "displayName": "List Items Purchase Orders",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Item Name (from Partnumber) (from List Items Purchase Orders)",
+                "displayName": "Item Name (from Partnumber) (from List Items Purchase Orders)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Item Qty (from List Items Purchase Orders)",
+                "displayName": "Item Qty (from List Items Purchase Orders)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Leverancier",
+                "displayName": "Leverancier",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Ontvangst datum",
+                "displayName": "Ontvangst datum",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Notities voor deelleveringen",
+                "displayName": "Notities voor deelleveringen",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Deellevering",
+                "displayName": "Deellevering",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Status",
+                "displayName": "Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Binnen",
+                    "value": "Binnen"
+                  },
+                  {
+                    "name": "Besteld",
+                    "value": "Besteld"
+                  },
+                  {
+                    "name": "Canceled",
+                    "value": "Canceled"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Opmerkingen",
+                "displayName": "Opmerkingen",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Last modified time",
+                "displayName": "Last modified time",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "interface Link",
+                "displayName": "interface Link",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Status ERPNext",
+                "displayName": "Status ERPNext",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Draft",
+                    "value": "Draft"
+                  },
+                  {
+                    "name": "Todo",
+                    "value": "Todo"
+                  },
+                  {
+                    "name": "Not created yet",
+                    "value": "Not created yet"
+                  },
+                  {
+                    "name": "Submitted",
+                    "value": "Submitted"
+                  },
+                  {
+                    "name": "Nog niet binnen",
+                    "value": "Nog niet binnen"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Json okay?",
+                "displayName": "Json okay?",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Json voor Purchase Orders",
+                "displayName": "Json voor Purchase Orders",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "ERP link",
+                "displayName": "ERP link",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Slack bericht okay?",
+                "displayName": "Slack bericht okay?",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "pakbon naam",
+                "displayName": "pakbon naam",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Pakbon (from pakbon naam)",
+                "displayName": "Pakbon (from pakbon naam)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "ERP PO link",
+                "displayName": "ERP PO link",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Prijs akkoord",
+                "displayName": "Prijs akkoord",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "b24fa377-9919-4b6e-9dd5-285e5e24f190",
+        "name": "Create PO Record in Airtable",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          -7744,
+          704
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "NhojfXxgc4twjfqI",
+            "name": "Airtable Personal Access Token account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "id-1",
+                "name": "items",
+                "value": "={{ JSON.stringify($('Get PO Details from ERPNext').item.json.data.items) }}",
+                "type": "array"
+              },
+              {
+                "id": "id-2",
+                "name": "poRecordId",
+                "value": "={{ $json.id }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "c9679075-5b57-42c3-82e5-fe039a7cb5e7",
+        "name": "Prepare Line Items",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -7520,
+          704
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "create",
+          "base": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $('Workflow Configuration').first().json.airtableBaseId }}"
+          },
+          "table": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $('Workflow Configuration').first().json.airtableLineItemsTableId }}"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Purchase Orders copy": "={{ $('Loop Through New POs').item.json.name }}",
+              "create batch label": false,
+              "Partnumber": "={{ [$json.items.item_code] }}",
+              "Item Qty": "={{ $json.items.qty }}",
+              "PO nummer": "={{ $('Loop Through New POs').item.json.name }}",
+              "Prijs": "={{ $json.items.rate }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "Name",
+                "displayName": "Name",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Partnumber",
+                "displayName": "Partnumber",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Templates labels (from Partnumber)",
+                "displayName": "Templates labels (from Partnumber)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Soort (from Templates labels) (from Partnumber)",
+                "displayName": "Soort (from Templates labels) (from Partnumber)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Item Code",
+                "displayName": "Item Code",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Item Name (from Partnumber)",
+                "displayName": "Item Name (from Partnumber)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Item Qty",
+                "displayName": "Item Qty",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "PO nummer",
+                "displayName": "PO nummer",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Status (from PO nummer)",
+                "displayName": "Status (from PO nummer)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Ontvangst datum (from PO nummer)",
+                "displayName": "Ontvangst datum (from PO nummer)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Purchase Orders copy",
+                "displayName": "Purchase Orders copy",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Batches & labels",
+                "displayName": "Batches & labels",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "create batch label",
+                "displayName": "create batch label",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Status label creation",
+                "displayName": "Status label creation",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "⚙️ In Progress",
+                    "value": "⚙️ In Progress"
+                  },
+                  {
+                    "name": "✅ Completed",
+                    "value": "✅ Completed"
+                  },
+                  {
+                    "name": "❌ Failed",
+                    "value": "❌ Failed"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Prijs",
+                "displayName": "Prijs",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {
+            "typecast": true
+          }
+        },
+        "id": "14797097-6325-4042-bb9a-051619deef5e",
+        "name": "Create Line Items in Airtable",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          -7072,
+          784
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "NhojfXxgc4twjfqI",
+            "name": "Airtable Personal Access Token account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "authentication": "oAuth2",
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $('Workflow Configuration').first().json.slackChannel }}"
+          },
+          "text": "=No Purchase Orders found with status \"To Receive and Bill\" during the daily sync at {{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}",
+          "otherOptions": {}
+        },
+        "id": "421ed948-c95d-4cc5-8d7e-296f3344241b",
+        "name": "Send Slack Notification - No POs",
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.3,
+        "position": [
+          -8864,
+          976
+        ],
+        "webhookId": "2f37b793-7f22-47ba-9cb2-c220780a3e4d",
+        "credentials": {
+          "slackOAuth2Api": {
+            "id": "UYS6i7B0sFqiyVQW",
+            "name": "Slack account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $('Workflow Configuration').first().json.airtableBaseId }}"
+          },
+          "table": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $('Workflow Configuration').first().json.airtablePoTableId }}"
+          },
+          "options": {}
+        },
+        "id": "643b8ea3-6e68-4055-baab-890919e2f8b4",
+        "name": "Get All Existing POs from Airtable",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          -8864,
+          784
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "NhojfXxgc4twjfqI",
+            "name": "Airtable Personal Access Token account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const erpPOs = $('Get PO List from ERPNext').first().json.data;\nconst airtablePOs = $input.all().map(item => item.json['PO nummer']);\n\nconst newPOs = erpPOs.filter(po => !airtablePOs.includes(po.name));\n\nreturn [{ json: { newPOs } }];"
+        },
+        "id": "4dc4f636-822b-4494-a5f2-2875c9ddebb4",
+        "name": "Filter Out Existing POs",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -8640,
+          784
+        ]
+      },
+      {
+        "parameters": {
+          "fieldToSplitOut": "newPOs",
+          "options": {}
+        },
+        "id": "cdace283-561e-431a-a797-7cab41e3d9a2",
+        "name": "Split New POs",
+        "type": "n8n-nodes-base.splitOut",
+        "typeVersion": 1,
+        "position": [
+          -8416,
+          784
+        ]
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "id": "fa3a28a6-39b1-4eed-87ed-cf32d4f30b9c",
+        "name": "Loop Through New POs",
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          -8192,
+          784
+        ]
+      },
+      {
+        "parameters": {
+          "fieldToSplitOut": "items",
+          "include": "selectedOtherFields",
+          "fieldsToInclude": "poRecordId",
+          "options": {}
+        },
+        "id": "206d5f51-7d7e-4eff-91a3-37b059c06522",
+        "name": "Split Line Items",
+        "type": "n8n-nodes-base.splitOut",
+        "typeVersion": 1,
+        "position": [
+          -7296,
+          704
+        ]
+      }
+    ],
+    "connections": {
+      "Daily Trigger at 23:30": {
+        "main": [
+          [
+            {
+              "node": "Workflow Configuration",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Workflow Configuration": {
+        "main": [
+          [
+            {
+              "node": "Get PO List from ERPNext",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get PO List from ERPNext": {
+        "main": [
+          [
+            {
+              "node": "Check if POs Found",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check if POs Found": {
+        "main": [
+          [
+            {
+              "node": "Get All Existing POs from Airtable",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Send Slack Notification - No POs",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get PO Details from ERPNext": {
+        "main": [
+          [
+            {
+              "node": "Create PO Record in Airtable",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create PO Record in Airtable": {
+        "main": [
+          [
+            {
+              "node": "Prepare Line Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Line Items": {
+        "main": [
+          [
+            {
+              "node": "Split Line Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get All Existing POs from Airtable": {
+        "main": [
+          [
+            {
+              "node": "Filter Out Existing POs",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter Out Existing POs": {
+        "main": [
+          [
+            {
+              "node": "Split New POs",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split New POs": {
+        "main": [
+          [
+            {
+              "node": "Loop Through New POs",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loop Through New POs": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Get PO Details from ERPNext",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split Line Items": {
+        "main": [
+          [
+            {
+              "node": "Create Line Items in Airtable",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Line Items in Airtable": {
+        "main": [
+          [
+            {
+              "node": "Loop Through New POs",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Iris Soute",
+    "name": null,
+    "description": null
+  }
+}

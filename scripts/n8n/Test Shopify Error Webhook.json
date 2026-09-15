@@ -1,0 +1,393 @@
+{
+  "updatedAt": "2026-07-01T12:44:39.793Z",
+  "createdAt": "2026-05-08T12:32:06.472Z",
+  "id": "u7zBUgvz0ZEniyC9",
+  "name": "Test Shopify Error Webhook",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "shopify-error-webhook",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "777a0c19-4e32-4ea7-9799-05c2671a79dd",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        288
+      ],
+      "webhookId": "shopify-error-webhook-id"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appiy9Q63eyvnPG9q",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblJbhiiwqtMUTwmu",
+          "mode": "id"
+        },
+        "filterByFormula": "=AND({ID Shopify/ERPNext/Partnumber} = '{{ $json.body.orderName }}', {Opgelost?} = 0)",
+        "options": {}
+      },
+      "id": "735b2255-6798-450a-8419-f5b0baf1e2ed",
+      "name": "Search Existing Unresolved Error",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        112,
+        288
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NhojfXxgc4twjfqI",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a90d8a57-0130-4cf8-bd69-b145dff669ff",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5e4d19fb-1a08-43b1-b5d9-36698e683b0d",
+      "name": "If Unresolved Error Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        320,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appiy9Q63eyvnPG9q",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblJbhiiwqtMUTwmu",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Foutmelding": "={{ $('Webhook').item.json.body.errorMessage }}",
+            "Datum": "={{ $('Webhook').item.json.body.timestamp.split('T')[0] }}",
+            "Flow link": "=https://admin.shopify.com/store/play-picoo/apps/flow/activity?query={{ $('Webhook').item.json.body.shopifyOrderId }}",
+            "Opgelost?": false,
+            "ID Shopify/ERPNext/Partnumber": "={{ $('Webhook').item.json.body.orderName }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Opmerkingen (wat heb je gedaan)",
+              "displayName": "Opmerkingen (wat heb je gedaan)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Opgelost?",
+              "displayName": "Opgelost?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID Shopify/ERPNext/Partnumber",
+              "displayName": "ID Shopify/ERPNext/Partnumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Foutmelding",
+              "displayName": "Foutmelding",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Datum",
+              "displayName": "Datum",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Flow link",
+              "displayName": "Flow link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Shopify/Airtable order link",
+              "displayName": "Shopify/Airtable order link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ERPNext SO/PO/Items link",
+              "displayName": "ERPNext SO/PO/Items link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ERPNext DN/PR link",
+              "displayName": "ERPNext DN/PR link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "409ef9e7-53d0-406c-9f79-a61b53a5140a",
+      "name": "Create Error Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        560,
+        384
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NhojfXxgc4twjfqI",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"skipped\",\n  \"reason\": \"Unresolved error already exists\"\n}",
+        "options": {}
+      },
+      "id": "44be3b91-30f2-4865-b273-69d372352fe2",
+      "name": "Respond to Webhook (Skipped)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"created\",\n  \"recordId\": \"{{ $json.id }}\"\n}",
+        "options": {}
+      },
+      "id": "c3bfed17-2b29-4afc-969a-54dfb057d776",
+      "name": "Respond to Webhook (Created)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        768,
+        384
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Search Existing Unresolved Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Existing Unresolved Error": {
+      "main": [
+        [
+          {
+            "node": "If Unresolved Error Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Unresolved Error Exists": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (Skipped)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Error Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Error Record": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (Created)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "1b584fef-b122-43d4-96e0-68b9a9e2fb1b",
+  "activeVersionId": null,
+  "versionCounter": 15,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-08T12:32:06.477Z",
+      "createdAt": "2026-05-08T12:32:06.477Z",
+      "role": "workflow:owner",
+      "workflowId": "u7zBUgvz0ZEniyC9",
+      "projectId": "QYuyi83fqQPToWGq",
+      "project": {
+        "updatedAt": "2026-02-11T09:43:01.934Z",
+        "createdAt": "2025-12-17T15:07:42.336Z",
+        "id": "QYuyi83fqQPToWGq",
+        "name": "Fiyo van ravenstein <fiyo.van.ravenstein@picoo.nl>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-12-17T15:07:42.339Z",
+            "createdAt": "2025-12-17T15:07:42.339Z",
+            "userId": "f464bba4-661a-4422-ae0a-366cbcce6b98",
+            "projectId": "QYuyi83fqQPToWGq",
+            "user": {
+              "updatedAt": "2026-09-02T11:58:28.000Z",
+              "createdAt": "2025-12-17T15:07:42.331Z",
+              "id": "f464bba4-661a-4422-ae0a-366cbcce6b98",
+              "email": "fiyo.van.ravenstein@picoo.nl",
+              "firstName": "Fiyo",
+              "lastName": "van ravenstein",
+              "personalizationAnswers": null,
+              "settings": {
+                "firstSuccessfulWorkflowId": "6hqtqOdVGlqO810j",
+                "userActivated": true,
+                "userActivatedAt": 1770935400180,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1775567798325
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-09-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

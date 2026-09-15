@@ -49,6 +49,13 @@ tables:
     type: link
     linkedTable: Picoo users
     linkedTableId: tblBraAP1jnIZNyoU
+  - name: RecordID
+    id: fldRPxDHOEUSMXq4b
+    type: formula
+    result: singleLineText
+    formula: 'RECORD_ID()
+
+      '
   - name: Open Detail Interface
     id: fldzzrBSU9jemmU76
     type: button
@@ -100,13 +107,6 @@ tables:
     type: link
     linkedTable: Marketing campagne
     linkedTableId: tblDC54JL45jkOU2i
-  - name: RecordID
-    id: fldRPxDHOEUSMXq4b
-    type: formula
-    result: singleLineText
-    formula: 'RECORD_ID()
-
-      '
   - name: Task Status Summary
     id: fldRz4qvpwJBbhyXL
     type: richText
@@ -159,34 +159,9 @@ tables:
     type: multipleLookupValues
     via: Assets
     result: singleLineText
-  - name: Planning
-    id: fld53HMcGbuIfZRW7
-    type: link
-    linkedTable: Planning
-    linkedTableId: tblhpZ8bLZxY1r6zY
   - name: Opmerking voortgang
     id: fldIEyayiKhsqx8pc
     type: singleLineText
-  - name: Gepland voor (from Projecten 2026)
-    id: fldlTnDiV4QAeWzvA
-    type: multipleLookupValues
-    via: Planning
-    result: multipleSelects
-    resultChoices:
-    - 2026 Q1
-    - 2026 Q2
-    - 2026 Q3
-    - 2026 Q4
-  - name: Impact-effort
-    id: fldMfTbGNzHUl9uri
-    type: multipleLookupValues
-    via: Planning
-    result: singleSelect
-    resultChoices:
-    - 🏗️ Major Project
-    - 🚀 Quick Win
-    - ☕ Fill-in
-    - 🐢 Thankless Task
   - name: Allocaties
     id: fld7hCID16eaTxeMr
     type: link
@@ -197,11 +172,6 @@ tables:
     type: multipleLookupValues
     via: Allocaties
     result: multipleRecordLinks
-  - name: Effort - tijd
-    id: fldlLm8DJOHQViuUE
-    type: multipleLookupValues
-    via: Planning
-    result: number
   - name: Doel
     id: fldnUf4FzP94n9RbJ
     type: richText
@@ -210,106 +180,59 @@ tables:
     type: multipleLookupValues
     via: Allocaties
     result: multipleRecordLinks
-  - name: create planning
-    id: fldZHqjw62t2nZ6wc
+  - name: skip in weekly review
+    id: fldc6ijAjVtD1eHsQ
     type: checkbox
-- name: Planning
-  id: tblhpZ8bLZxY1r6zY
-  fields:
-  - name: Projectnaam
-    id: fld71V6NWolMHHDSp
-    type: formula
-    result: singleLineText
-    formula: '{fld3Rx89ewOZ1MvNB}'
   - name: Doorlooptijd (maanden)
-    id: fldja6PA1XpcBMCgn
+    id: fldoKdpBdGSQ6RgmT
     type: number
     integer: true
   - name: Impact - voor de klant
-    id: fldjO6B3k3DnmfMX7
+    id: fldZn9JPsPuLAFuZU
     type: number
     integer: true
   - name: Impact - voor Picoo
-    id: fldnPd129xDY73PQN
-    type: number
-    integer: true
-  - name: Effort - tijd
-    id: fldsBSJnFqhkdjOaG
+    id: fldQfSYnV3oQT9SEh
     type: number
     integer: true
   - name: Effort - geld
-    id: fldmBGP8D0ljsNFoL
+    id: fldL63w5YPwEi3RGF
     type: number
     integer: true
-  - name: Impactscore
-    id: fldI7AJ1wDrv6ldIm
-    type: formula
-    result: number
-    formula: AVERAGE({fldnPd129xDY73PQN},{fldjO6B3k3DnmfMX7})
-  - name: Effortscore
-    id: fldFcpQggZkE9VY6K
-    type: formula
-    result: number
-    formula: AVERAGE({fldsBSJnFqhkdjOaG},{fldmBGP8D0ljsNFoL})
-  - name: Team
-    id: fldToU4HxBfAhuJ8S
-    type: multipleLookupValues
-    via: Projecten
-    result: multipleSelects
-    resultChoices:
-    - App
-    - Backend
-    - MarCom
-    - Productie
-    - Sales
-    - Software
-    - UX
-    - Web
-  - name: Prioriteit
-    id: fldSN7I4DNu03YWHR
-    type: formula
-    result: singleSelect
-    formula: "IF(\n  {fldI7AJ1wDrv6ldIm} >= 3,\n  IF({fldFcpQggZkE9VY6K} < 3, \"\U0001F680\
-      \ Quick Win\", \"\U0001F3D7️ Major Project\"),\n  IF({fldFcpQggZkE9VY6K} <=\
-      \ 3, \"☕ Fill-in\", \"\U0001F422 Thankless Task\")\n)"
+  - name: Effort - tijd
+    id: fldVhFNWnWZUapL4z
+    type: number
+    integer: true
   - name: Gepland voor
-    id: fldmNFQ7S9lFFeqoL
+    id: fldozOz790lzNUZrF
     type: multipleSelects
     choices:
     - 2026 Q1
     - 2026 Q2
     - 2026 Q3
     - 2026 Q4
-  - name: Teamleden
-    id: fld4XVdNbD4Rv9DL3
-    type: multipleLookupValues
-    via: Projecten
-    result: multipleRecordLinks
-  - name: Projecten
-    id: fld3Rx89ewOZ1MvNB
-    type: link
-    linkedTable: Projecten
-    linkedTableId: tblNDZDbjxejZDmnQ
-  - name: Status (from Projecten)
-    id: fldhUTWZCmTibhtxc
-    type: multipleLookupValues
-    via: Projecten
-    result: singleSelect
-    resultChoices:
-    - Idee
-    - Gepland
-    - In progress
-    - On hold
-    - Done
-    - Geannulleerd
-  - name: Einde project (from Projecten)
-    id: fldASmEPna79hzF2P
-    type: multipleLookupValues
-    via: Projecten
-    result: date
+    - 2027 Q3
+    - 2027 Q1
   - name: Review
-    id: fldGcbvDXC5UhV2m5
+    id: fldyeS27MRICizgmL
     type: richText
+  - name: Impactscore
+    id: fldgY3BviIASEoUcL
+    type: formula
+    result: number
+    formula: AVERAGE({fldQfSYnV3oQT9SEh},{fldZn9JPsPuLAFuZU})
+  - name: Effortscore
+    id: fldfKKjnRhjbhwMDt
+    type: formula
+    result: number
+    formula: AVERAGE({fldVhFNWnWZUapL4z},{fldL63w5YPwEi3RGF})
+  - name: Impact-effort
+    id: fldqQCaiDNkDFloqz
+    type: formula
+    result: singleLineText
+    formula: "IF(\n  {fldgY3BviIASEoUcL} >= 3,\n  IF({fldfKKjnRhjbhwMDt} < 3, \"\U0001F680\
+      \ Quick Win\", \"\U0001F3D7️ Major Project\"),\n  IF({fldfKKjnRhjbhwMDt} <=\
+      \ 3, \"☕ Fill-in\", \"\U0001F422 Thankless Task\")\n)"
 - name: Allocaties
   id: tblB50tDezPfFeMoK
   fields:
@@ -332,17 +255,12 @@ tables:
     id: flduz6X1UAL0PilCB
     type: multipleLookupValues
     via: Projecten
-    result: singleSelect
-    resultChoices:
-    - 🏗️ Major Project
-    - 🚀 Quick Win
-    - ☕ Fill-in
-    - 🐢 Thankless Task
+    result: unknown
   - name: Effort - tijd (from Project)
     id: fldHXhgLVVUGd2eeg
     type: multipleLookupValues
     via: Projecten
-    result: number
+    result: unknown
   - name: Medewerker
     id: fld1nEuA5e2PxXmhg
     type: link
@@ -365,7 +283,7 @@ tables:
   - name: _Suggestie aantal uren
     id: fldtGDdxKAACwFWNl
     type: formula
-    result: number
+    result: unknown
     formula: "MAX(\n  ROUND(\n    (\n      SWITCH({fld0vywMLS1npcqDZ},\n        \"\
       Project Lead / Kartrekker\", 0.40,\n        \"Core Contributor\", 0.20,\n  \
       \      \"Support / Ondersteunend\", 0.10,\n        \"Adviseur / Expert\", 0.05,\n\
@@ -376,12 +294,7 @@ tables:
     id: fldhbeYqZqpcDDT2H
     type: multipleLookupValues
     via: Projecten
-    result: multipleSelects
-    resultChoices:
-    - 2026 Q1
-    - 2026 Q2
-    - 2026 Q3
-    - 2026 Q4
+    result: unknown
   - name: Projecten
     id: fldBesz1lEGtORaX3
     type: link
@@ -398,6 +311,18 @@ tables:
   - name: Taak titel
     id: fldEqow62GYNmDB25
     type: singleLineText
+  - name: Status
+    id: fldVOsyRlR76odsA0
+    type: singleSelect
+    choices:
+    - Todo
+    - Blocked
+    - In progress
+    - Done
+    - Canceled
+  - name: Afgerond op
+    id: fldav2ukXQU8xcL9c
+    type: date
   - name: Tags
     id: fldTHzDGLu9Zi0fnK
     type: multipleSelects
@@ -421,15 +346,6 @@ tables:
     type: multipleLookupValues
     via: Toewijzen aan
     result: multilineText
-  - name: Status
-    id: fldVOsyRlR76odsA0
-    type: singleSelect
-    choices:
-    - Todo
-    - Blocked
-    - In progress
-    - Done
-    - Canceled
   - name: Progress
     id: fldGn9YL5NYUv73Ly
     type: formula
@@ -511,9 +427,15 @@ tables:
     formula: "CONCATENATE(\n  \"https://airtable.com/appopJMiQr8csSHhh/pagR3ECLCSqWB9I5C/\"\
       ,\n  RECORD_ID(),\n  \"?beCJL=b:WzAsWyJvZHNBMCIsMSwic2VsSkZUUEFQUmpkWjZpVTAiXV0&home=pagZZ0pIqIxMly274\"\
       \n)\n"
+  - name: Create date
+    id: fldI0UefYAAJmRCgH
+    type: createdTime
   - name: Taak ID
     id: fldaUoorozjC3u7op
     type: autoNumber
+  - name: Last Modified Status
+    id: fldWpVeuIikRtz9Bv
+    type: lastModifiedTime
   - name: Is blocked by
     id: fldR69bivr2vw8KKt
     type: link
@@ -530,12 +452,6 @@ tables:
     result: number
     formula: IF({fldLXo2SJjgMSBn4o},DATETIME_DIFF({fldV1POvR5BiufpEd},{fldLXo2SJjgMSBn4o},"days"),
       1)
-  - name: Create date
-    id: fldI0UefYAAJmRCgH
-    type: createdTime
-  - name: Last Modified Status
-    id: fldWpVeuIikRtz9Bv
-    type: lastModifiedTime
   - name: Project naam (from Project)
     id: fldZJtL9yvprQjEtY
     type: multipleLookupValues
@@ -893,6 +809,7 @@ tables:
     - AI photos
     - Software
     - Product Informatie document
+    - FAQ
   - name: ID
     id: fldvaT2pGG2cAFeWg
     type: multilineText
@@ -1009,6 +926,13 @@ tables:
     - AI photos
     - Software
     - Product Informatie document
+    - FAQ
   - name: URL content (latest, from Versies)
     id: fldylxNFu7YvA4eLI
+    type: singleLineText
+  - name: Project ID (from Projecten)
+    id: fldPjbW8e0Iaqvxxn
+    type: singleLineText
+  - name: Projecten RecordID
+    id: fldWRSx27w3OUZr3X
     type: singleLineText
