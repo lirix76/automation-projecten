@@ -58,6 +58,8 @@ const COPY_FIELD_IDS = [
   "fldgxT07Z3wTELd8b", // Aangevraagd door
   "fldR69bivr2vw8KKt", // Is blocked by
   "fld2lU4OORUzi3X8u", // Blocking
+  "fldzRt7HWNWqdCtfx", // Meetingreeks
+  "fldfbJyuVoAK54Vme", // Meeting datum
 ];
 
 // --- Helpers ---

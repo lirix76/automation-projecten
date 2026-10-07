@@ -1,0 +1,24 @@
+# Tasks
+
+## 1. Airtable schema
+
+- [x] 1.1 Create table Meetingreeksen in base `appopJMiQr8csSHhh` with primary field `Naam` (single line text) and `Document` (URL), per design D2. Verify with `list-tables-for-base` that the table and both fields exist; record the table ID here. — `tbl1zbmsNY5OF9RZv` (`Naam` `fldAmcjwca9sEU9e3`, `Document` `fldLoOmcKPpNJk9d0`).
+- [x] 1.2 Create the five series records (Projecten voortgangsmeeting, Sales strategie overleg, Customer service meeting, Overleg Picoo platform, Webmeeting) with `Document` set to their doc link from iris-os `scripts/meetings/meeting_series.json` (`https://docs.google.com/document/d/<doc_id>/edit`). Verify with `list-records-for-table` that exactly five records exist; record the five record IDs here (iris-os needs them). — Projecten voortgangsmeeting `recErRjQvD3D9U2xf`, Sales strategie overleg `rec06w4eDj6VlMdif`, Customer service meeting `recrS2KDyupTq3PLK`, Overleg Picoo platform `reczPodyA2oCCnJLO`, Webmeeting `recMb7kTIBJjIL6Dr`.
+- [x] 1.3 On Taken, create `Meetingreeks` (link to Meetingreeksen, single record only) and `Meeting datum` (date, no time), per design D3. Verify with `get-table-schema` that both fields exist, the link points at Meetingreeksen, and the link is limited to one record (set it in the UI if the API could not); verify Meetingreeksen got the reverse `Taken` link. Record both field IDs here. — `Meetingreeks` `fldzRt7HWNWqdCtfx` (reverse on Meetingreeksen `fldaLm0NgFsUHuMju`), `Meeting datum` `fldfbJyuVoAK54Vme` (ISO date). The API ignored `prefersSingleRecordLink` on create and update; the single-record option was set in the UI by Iris; `get-table-schema` now reports `prefersSingleRecordLink: true`.
+- [ ] 1.4 Open the Taken record interface (and the "Nieuwe taak" form) and check the new fields do not clutter the layout; hide them where they are not wanted. Verify by asking Iris to confirm the interface looks right. — Vervallen voor deze change (2026-10-07): Iris loopt de interface en het formulier later los na; niet afgevinkt.
+
+## 2. Split script
+
+- [x] 2.1 Add the `Meetingreeks` and `Meeting datum` field IDs (from 1.3) to `COPY_FIELD_IDS` in `scripts/airtable/split-multi-assignee-task.js`, with name comments like the existing entries. Verify with `node --check scripts/airtable/split-multi-assignee-task.js`.
+- [x] 2.2 Give Iris the full updated script text to paste into the "Run a script" action of automation `wflDCbwhn29AOZO34` in the Airtable UI (customScript nodes cannot be updated via MCP), and have her redeploy. Verify with `get_automation` that it reports `deploymentStatus: "deployed"`. — Script copied to the clipboard, pasted and redeployed by Iris; `get-automation` reports `deployed` / `valid` and the live script contains both new field IDs.
+
+## 3. View and verification
+
+- [x] 3.1 Have Iris create the grid view "Taken per meeting" on Taken in the UI (no MCP tool creates views): filter `Meetingreeks` is not empty and Status is any of Todo / Blocked / In progress; group by `Meetingreeks`; sort by `Meeting datum` ascending; visible fields at least Taak titel, Status, Toewijzen aan, Project, Einddatum, Meeting datum. Verify with `list_views_for_table` that the view exists. — `viw1dgwbscjYI3sAq`; Iris named it "Taken per meeting" (spec and design updated to that name).
+- [x] 3.2 Live test: create a Taken record with two assignees, `Meetingreeks` = Webmeeting and a `Meeting datum`. Verify with `list-records-for-table` that both the original and the split duplicate carry the same series and date, and that both appear in the view under "Webmeeting"; then set both to Canceled and verify they leave the view. Delete the two test records afterwards (with Iris's OK). — Test with Joanne + Marthe (not Iris, to avoid the "Taak Iris" automation creating a TaskNotes file): original `rece7bk0W7LtjzoGt` and duplicate `recc2D0i1EE0MlM1N` both had Webmeeting / 2026-10-07; Iris confirmed both under Webmeeting in the view and gone after Canceled; both deleted.
+
+## 4. Documentation
+
+- [x] 4.1 Re-sync the schema with `/sync-airtable-schemas-locally` and verify `scripts/airtable/airtable-schema-projectmanagement.yaml` contains Meetingreeksen and the two new Taken fields. — Synced; YAML has `Meetingreeksen` and `Meetingreeks` / `Meeting datum` on Taken.
+- [x] 4.2 Add Meetingreeksen to the key tables list in `CLAUDE.md`, with a note that each series also has an entry (with its record ID) in iris-os `scripts/meetings/meeting_series.json`. Verify by reading the updated section.
+- [x] 4.3 Pass the table ID, the five record IDs and the two field IDs to the iris-os change `meetingreeks-op-taak` (note them in its proposal or design). Verify the IDs are present there. — Added as section "Airtable-ID's" to iris-os `openspec/changes/meetingreeks-op-taak/proposal.md`.

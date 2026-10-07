@@ -211,8 +211,8 @@ tables:
     - 2026 Q2
     - 2026 Q3
     - 2026 Q4
-    - 2027 Q3
     - 2027 Q1
+    - 2027 Q3
   - name: Review
     id: fldyeS27MRICizgmL
     type: richText
@@ -229,7 +229,7 @@ tables:
   - name: Impact-effort
     id: fldqQCaiDNkDFloqz
     type: formula
-    result: singleLineText
+    result: singleSelect
     formula: "IF(\n  {fldgY3BviIASEoUcL} >= 3,\n  IF({fldfKKjnRhjbhwMDt} < 3, \"\U0001F680\
       \ Quick Win\", \"\U0001F3D7️ Major Project\"),\n  IF({fldfKKjnRhjbhwMDt} <=\
       \ 3, \"☕ Fill-in\", \"\U0001F422 Thankless Task\")\n)"
@@ -255,12 +255,17 @@ tables:
     id: flduz6X1UAL0PilCB
     type: multipleLookupValues
     via: Projecten
-    result: unknown
+    result: singleSelect
+    resultChoices:
+    - 🐢 Thankless Task
+    - ☕ Fill-in
+    - 🚀 Quick Win
+    - 🏗️ Major Project
   - name: Effort - tijd (from Project)
     id: fldHXhgLVVUGd2eeg
     type: multipleLookupValues
     via: Projecten
-    result: unknown
+    result: number
   - name: Medewerker
     id: fld1nEuA5e2PxXmhg
     type: link
@@ -283,7 +288,7 @@ tables:
   - name: _Suggestie aantal uren
     id: fldtGDdxKAACwFWNl
     type: formula
-    result: unknown
+    result: number
     formula: "MAX(\n  ROUND(\n    (\n      SWITCH({fld0vywMLS1npcqDZ},\n        \"\
       Project Lead / Kartrekker\", 0.40,\n        \"Core Contributor\", 0.20,\n  \
       \      \"Support / Ondersteunend\", 0.10,\n        \"Adviseur / Expert\", 0.05,\n\
@@ -294,7 +299,14 @@ tables:
     id: fldhbeYqZqpcDDT2H
     type: multipleLookupValues
     via: Projecten
-    result: unknown
+    result: multipleSelects
+    resultChoices:
+    - 2026 Q1
+    - 2026 Q2
+    - 2026 Q3
+    - 2026 Q4
+    - 2027 Q1
+    - 2027 Q3
   - name: Projecten
     id: fldBesz1lEGtORaX3
     type: link
@@ -323,6 +335,17 @@ tables:
   - name: Afgerond op
     id: fldav2ukXQU8xcL9c
     type: date
+  - name: Meetingreeks
+    id: fldzRt7HWNWqdCtfx
+    type: link
+    description: Meetingreeks waarin de taak is ontstaan (gevuld door de meeting-assistent
+      in iris-os).
+    linkedTable: Meetingreeksen
+    linkedTableId: tbl1zbmsNY5OF9RZv
+  - name: Meeting datum
+    id: fldfbJyuVoAK54Vme
+    type: date
+    description: Datum van de meeting waarin de taak is ontstaan.
   - name: Tags
     id: fldTHzDGLu9Zi0fnK
     type: multipleSelects
@@ -936,3 +959,17 @@ tables:
   - name: Projecten RecordID
     id: fldWRSx27w3OUZr3X
     type: singleLineText
+- name: Meetingreeksen
+  id: tbl1zbmsNY5OF9RZv
+  fields:
+  - name: Naam
+    id: fldAmcjwca9sEU9e3
+    type: singleLineText
+  - name: Document
+    id: fldLoOmcKPpNJk9d0
+    type: url
+  - name: Taken
+    id: fldaLm0NgFsUHuMju
+    type: link
+    linkedTable: Taken
+    linkedTableId: tblW5PkBL4mysdN7t

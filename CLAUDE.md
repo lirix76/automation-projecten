@@ -65,6 +65,7 @@ op run --env-file=.env.tpl -- bash -c 'AIRTABLE_TOKEN="$AIRTABLE_API_KEY" airtab
 - **Versies** — versions/milestones
 - **Allocaties 2026** — resource allocation
 - **Marketing campagne** — campaign records
+- **Meetingreeksen** — recurring meeting series; `Taken.Meetingreeks` + `Taken.Meeting datum` record the meeting a task originated in (view "Taken per meeting" on Taken). Each series also has an entry with its record ID in iris-os `scripts/meetings/meeting_series.json` — add a new series in both places.
 
 ## OpenSpec Workflow
 
