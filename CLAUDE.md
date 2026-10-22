@@ -41,7 +41,7 @@ cd ../tools && ./setup.sh
 ## Credentials
 
 - `.env.tpl` — Airtable credentials, resolved via 1Password CLI (`op run --env-file=.env.tpl`). Contains only `op://` references (`AIRTABLE_API_KEY`) and the non-secret `AIRTABLE_BASE_ID` (`appopJMiQr8csSHhh`), so it's safe to commit — no separate `.env` copy needed. Requires the 1Password app unlocked and access to the referenced vault.
-- `../tools/.env` — Shared n8n credentials (`N8N_API_KEY`, `N8N_DOMAIN`).
+- `../tools/.env.tpl` — Shared n8n credentials (`N8N_API_KEY` as `op://` reference, `N8N_DOMAIN`); `pull-n8n.py`/`push-n8n.py` resolve them via the 1Password CLI.
 
 ## Airtable Access
 
