@@ -1,0 +1,205 @@
+{
+  "id": "wflOfkikkpeD4lRhx",
+  "name": "Afrondmelding naar aanvrager",
+  "description": "Change notify-requester-on-task-completion: Slack-DM naar Aangevraagd door als een taak op Done/Canceled gaat (zie formuleveld Stuur afrondmelding).",
+  "deploymentStatus": "deployed",
+  "deploymentError": null,
+  "trigger": {
+    "type": "recordMatchesConditions",
+    "inputs": {
+      "tableId": "tblW5PkBL4mysdN7t",
+      "filtersObj": {
+        "obj": {
+          "operator": "and",
+          "operands": {
+            "tuple": [
+              {
+                "obj": {
+                  "operator": "=",
+                  "operands": {
+                    "tuple": [
+                      "fldIzlneFWwjxxfXp",
+                      1
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "nodes": [
+    {
+      "key": "wacuxrpjF44GO1nrf",
+      "type": "sendToSlack",
+      "externalAccountId": "eaczxgyZO4OwxTrjk",
+      "inputs": {
+        "unfurlLinks": true,
+        "slackConversationId": {
+          "template": [
+            {
+              "fn": "trim",
+              "args": [
+                {
+                  "fn": "first",
+                  "args": [
+                    {
+                      "fn": "map",
+                      "args": [
+                        {
+                          "$ref": "trigger",
+                          "path": [
+                            "cellValuesByFieldId",
+                            "fldSjgOwKFn6NNR0o"
+                          ]
+                        },
+                        {
+                          "fn": "propertyGetter",
+                          "args": [
+                            "value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "notificationText": {
+          "template": [
+            "<",
+            {
+              "$ref": "trigger",
+              "path": [
+                "cellValuesByFieldId",
+                "fldZ9hO1xf6s2c7UN"
+              ]
+            },
+            "|",
+            {
+              "$ref": "trigger",
+              "path": [
+                "cellValuesByFieldId",
+                "fldEqow62GYNmDB25"
+              ]
+            },
+            "> is op *",
+            {
+              "$ref": "trigger",
+              "path": [
+                "cellValuesByFieldId",
+                "fldVOsyRlR76odsA0",
+                "name"
+              ]
+            },
+            "* gezet. Uitvoerder: ",
+            {
+              "fn": "map",
+              "args": [
+                {
+                  "$ref": "trigger",
+                  "path": [
+                    "cellValuesByFieldId",
+                    "fld3YCjA3KSJQRvPW"
+                  ]
+                },
+                {
+                  "fn": "propertyGetter",
+                  "args": [
+                    "name"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "username": {
+          "template": [
+            "Picoo taken"
+          ]
+        }
+      }
+    },
+    {
+      "key": "wacGM6gUvNmQRpa4Q",
+      "type": "updateRecord",
+      "inputs": {
+        "updateRecordMethod": "customFields",
+        "tableId": "tblW5PkBL4mysdN7t",
+        "rowId": {
+          "template": [
+            {
+              "$ref": "trigger",
+              "path": [
+                "id"
+              ]
+            }
+          ]
+        },
+        "fields": {
+          "obj": {
+            "fld4kYetFjPFM8BcP": {
+              "template": [
+                {
+                  "fn": "getWorkflowExecutionTime",
+                  "args": [
+                    "European",
+                    "Europe/Amsterdam"
+                  ]
+                },
+                " Afrondmelding (",
+                {
+                  "$ref": "trigger",
+                  "path": [
+                    "cellValuesByFieldId",
+                    "fldVOsyRlR76odsA0",
+                    "name"
+                  ]
+                },
+                ") gestuurd naar ",
+                {
+                  "fn": "first",
+                  "args": [
+                    {
+                      "fn": "map",
+                      "args": [
+                        {
+                          "$ref": "trigger",
+                          "path": [
+                            "cellValuesByFieldId",
+                            "fldgxT07Z3wTELd8b"
+                          ]
+                        },
+                        {
+                          "fn": "propertyGetter",
+                          "args": [
+                            "name"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "\n",
+                {
+                  "$ref": "trigger",
+                  "path": [
+                    "cellValuesByFieldId",
+                    "fld4kYetFjPFM8BcP"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "deployedVersion": null,
+  "configurationStatus": "valid",
+  "link": "https://airtable.com/appopJMiQr8csSHhh/wflOfkikkpeD4lRhx"
+}

@@ -45,3 +45,34 @@ This left two Projecten records stuck with `create-slack-channel` (`fldLB4mBrLyf
 
 ### Fix
 Re-pasted the full (intact, local-file) script into the automation, then unchecked and rechecked `create-slack-channel` on both stuck records to retrigger. Confirmed working.
+
+## 2026-11-05 — Spike: native Slack-DM naar dynamische ontvanger (change notify-requester-on-task-completion)
+
+Vraag: kan de native Airtable-actie `sendToSlack` een DM sturen naar een Slack-user-ID dat uit een record komt, in plaats van een vooraf gekozen kanaal/gebruiker?
+
+- `fetch-automation-input-data` (`sendToSlack` / `slackConversationId`, account `eaczxgyZO4OwxTrjk`) toont gebruikers als ontvanger met precies de `U…`-ID's uit `Picoo users.Slack`.
+- Test-automation `wflxV6StvAjntXA9K`: trigger op een taak met een vaste titel, `slackConversationId` = `{"template":[map(lookup Slack (from Assignee), .value)]}`, `username` "Picoo taken". Validatie ok, run `wfxyKk0Fr1Sia5wdz` succesvol, Iris ontving de DM.
+- **Conclusie: werkt.** Geen script nodig voor deze change.
+- CLI-valkuil: `airtable-mcp create-automation --input - < file` gaf binnen `op run` "Invalid JSON on stdin"; gepipet (`cat file | …`) of met losse flags werkt wel.
+- Een automation die aan staat kan niet via de CLI worden verwijderd; eerst in de UI uitzetten.
+
+## 2026-11-05 — Afrondmelding naar aanvrager (change notify-requester-on-task-completion)
+
+Wie een taak voor een collega aanmaakt en zichzelf in `Aangevraagd door` zet, krijgt een Slack-DM ("Picoo taken") als die taak op Done of Canceled gaat.
+
+**Onderdelen**
+- `Taken.Slack aanvrager` (`fldSjgOwKFn6NNR0o`): lookup van `Picoo users.Slack` via `Aangevraagd door`.
+- `Taken.Stuur afrondmelding` (`fldIzlneFWwjxxfXp`): formule, 1 = melding. Voorwaarden: Status is Done/Canceled, aanvrager ingevuld, aanvrager ≠ uitvoerder (vergelijking op naam), Slack-ID niet leeg.
+- Automation **Afrondmelding naar aanvrager** (`wflOfkikkpeD4lRhx`): trigger `recordMatchesConditions` op formule = 1 → `sendToSlack` (account `eaczxgyZO4OwxTrjk`, ontvanger `trim(first(Slack aanvrager))`) → `updateRecord` zet een regel bovenaan `systemMessages`.
+- `Aangevraagd door`: één record, filter `Status dienstverband` = `in dienst` (in de UI ingesteld).
+
+**Getest** (2026-11-05, testtaken daarna verwijderd): Done → melding, Canceled → melding, eigen taak → niets, geen aanvrager → niets, reopen → Done → tweede melding, Done → Canceled → niets. De 52 bestaande taken die al op 1 stonden gaven bij het aanzetten geen melding.
+
+**Bekende beperkingen**
+- Done → Canceled direct geeft geen nieuwe melding (de trigger gaat alleen af als een taak opnieuw aan de voorwaarden gaat voldoen).
+- Afzender is de Airtable-app in Slack (weergavenaam "Picoo taken"), niet de Picoo-bot.
+- Werkt alleen als `Aangevraagd door` is ingevuld; sinds aug 2026 was dat bij ~25% van de nieuwe taken.
+- `Picoo users.Slack` is een gesynchroniseerd veld: Slack-ID's corrigeren in de bronbase, niet hier (API geeft 403). Marthe's ID is op 2026-11-05 gecorrigeerd naar `U09NWDYV998`.
+- `systemMessages` krijgt een afsluitende newline als het veld leeg was (cosmetisch).
+
+**CLI-tips**: JSON-input werkt binnen `op run` alleen gepipet (`cat file.json | airtable-mcp <tool> --input -`), niet met `< file`. Een automation die aan staat moet eerst in de UI uit voordat de CLI hem kan verwijderen. Views aanmaken kan niet via de CLI.

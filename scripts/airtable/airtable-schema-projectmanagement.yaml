@@ -532,6 +532,24 @@ tables:
   - name: link_versions_version_id
     id: fldNx3vaovlqp1p9h
     type: checkbox
+  - name: Slack aanvrager
+    id: fldSjgOwKFn6NNR0o
+    type: multipleLookupValues
+    description: Slack-user-ID van Aangevraagd door; ontvanger van de afrondmelding
+      (change notify-requester-on-task-completion).
+    via: Aangevraagd door
+    result: multilineText
+  - name: Stuur afrondmelding
+    id: fldIzlneFWwjxxfXp
+    type: formula
+    description: 1 = de aanvrager krijgt een Slack-melding (Done/Canceled, aanvrager
+      ingevuld, niet zelf de uitvoerder, Slack-ID bekend). Trigger van automation
+      Afrondmelding naar aanvrager (wflOfkikkpeD4lRhx).
+    result: number
+    formula: "AND(\n  OR({fldVOsyRlR76odsA0} = \"Done\", {fldVOsyRlR76odsA0} = \"\
+      Canceled\"),\n  LEN({fldgxT07Z3wTELd8b} & \"\") > 0,\n  {fldgxT07Z3wTELd8b}\
+      \ & \"\" != {fld3YCjA3KSJQRvPW} & \"\",\n  LEN(TRIM(ARRAYJOIN({fldSjgOwKFn6NNR0o},\
+      \ \"\"))) > 0\n)"
 - name: Updates
   id: tblc2GJcRzgdArNua
   fields:
